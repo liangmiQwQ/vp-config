@@ -1,16 +1,16 @@
 {
-  "name": "vp-config",
-  "version": "0.0.0",
-  "description": "A starter for creating a TypeScript package.",
-  "homepage": "https://github.com/author/library#readme",
+  "name": "@liangmi/vp-config",
+  "version": "0.0.0-alpha.0",
+  "description": "Liang's JavaScript development toolchain config with Vite+.",
+  "homepage": "https://github.com/liangmiQwQ/vp-config#readme",
   "bugs": {
-    "url": "https://github.com/author/library/issues"
+    "url": "https://github.com/liangmiQwQ/vp-config/issues"
   },
   "license": "MIT",
-  "author": "Author Name <author.name@mail.com>",
+  "author": "Liang Mi <hi@liangmi.dev>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/author/library.git"
+    "url": "git+https://github.com/liangmiQwQ/vp-config.git"
   },
   "files": [
     "dist"

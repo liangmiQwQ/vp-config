@@ -2,7 +2,7 @@
 
 Liang's opinionated Vite+ config presets for JavaScript development, including linting, formatting, task running and more.
 
-It is designed to work with different kinds of project, cli / tui development, library, and website development (WIP, waiting for (Oxlint's better Vue support)[https://github.com/oxc-project/oxc/issues/15761])
+It is designed to work with different kinds of project, cli / tui development, library, and website development (WIP, waiting for [Oxlint's better Vue support](https://github.com/oxc-project/oxc/issues/15761))
 
 ## Usage
 

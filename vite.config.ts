@@ -1,6 +1,6 @@
-import { defineConfig } from "vite-plus";
+import { lib } from "./src/index.ts";
 
-export default defineConfig({
+export default lib({
   staged: {
     "*": "vp check --fix",
   },

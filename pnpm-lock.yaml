@@ -6,8 +6,20 @@ settings:
 
 catalogs:
   default:
+    '@types/node':
+      specifier: ^25.6.2
+      version: 25.9.2
+    '@typescript/native-preview':
+      specifier: 7.0.0-dev.20260509.2
+      version: 7.0.0-dev.20260509.2
+    bumpp:
+      specifier: ^11.1.0
+      version: 11.1.0
+    typescript:
+      specifier: ^6.0.3
+      version: 6.0.3
     vite-plus:
-      specifier: latest
+      specifier: ^0.1.24
       version: 0.1.24
 
 overrides:
@@ -19,16 +31,16 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^25.6.2
+        specifier: 'catalog:'
         version: 25.9.2
       '@typescript/native-preview':
-        specifier: 7.0.0-dev.20260509.2
+        specifier: 'catalog:'
         version: 7.0.0-dev.20260509.2
       bumpp:
-        specifier: ^11.1.0
+        specifier: 'catalog:'
         version: 11.1.0
       typescript:
-        specifier: ^6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
       vite-plus:
         specifier: 'catalog:'

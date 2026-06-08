@@ -1,3 +1,5 @@
-export function fn() {
-  return "Hello, tsdown!";
-}
+// import { defineConfig } from "vite-plus";
+
+// const functionType = defineConfig;
+
+export const a = 1;

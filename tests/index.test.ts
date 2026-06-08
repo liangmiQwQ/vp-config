@@ -1,8 +1,25 @@
 import { expect, test } from "vite-plus/test";
+import type { ConfigEnv } from "vite-plus";
 import { base, cli, lib, website } from "../src/index.ts";
 
 test("base returns user config", () => {
   expect(base({ fmt: { semi: true } })).toMatchObject({
+    fmt: {
+      semi: true,
+    },
+  });
+});
+
+test("base resolves function config", async () => {
+  const env = { command: "serve", mode: "test" } as ConfigEnv;
+  const config = base((configEnv) => ({
+    fmt: {
+      semi: configEnv.mode === "test",
+    },
+  }));
+
+  expect(typeof config).toBe("function");
+  await expect(config(env)).resolves.toMatchObject({
     fmt: {
       semi: true,
     },

@@ -1,6 +1,8 @@
 import { createConfigEntry } from "./entry.ts";
 
-const base = createConfigEntry({});
+const presetConfig = {};
+
+const base = createConfigEntry(presetConfig);
 const cli = base;
 const lib = base;
 // Waiting for Oxlint's better Vue support

@@ -1,16 +1,25 @@
-<!--VITE PLUS START-->
+# @liangmi/vp-config Agent Guide
 
-# Using Vite+, the Unified Toolchain for the Web
+`@liangmi/vp-config` is a config preset for Vite+ (The united toolchain of JavaScript development).
 
-This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
+View [RFCS](/rfcs) directory to learn more about project architecture and the road map.
+
+## Development and dog fooding
+
+This project itself is using Vite+, and `@liangmi/vp-config`. It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
-## Review Checklist
+## Rules
 
-- [ ] Run `vp install` after pulling remote changes and before getting started.
-- [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
-- [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
-- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
+Vite+ is used as the project manager. Use `vp install` to install dependencies, use `vp install -D` if the adden dependency can be bundled. Use `vp run` command to run commands in `package.json`. Do not use `pnpm` or `npm` directly.
 
-<!--VITE PLUS END-->
+Run `vp check` (lint and format) after you make changes.
+
+Keep AGENTS.md updated with the project codebase. Consider if there is need to modify AGENTS.md after your changes. Don't store meaningless things like project structure or project status in AGENTS.md.
+
+Keep code functional. Never use classes. Write simple code and make function reusable if possible. Use Unix philosophy to design your code (Every function should only do one thing and should not be too long or complex).
+
+Use existing dependencies and tools. Feel free to add dependencies. Don't reinvent the wheel.
+
+Add `.gitkeep` file when creating new empty directory

@@ -1,11 +1,14 @@
-import { createConfigEntry } from "./entry.ts";
+import { fmtBase } from './base/fmt.ts'
+import { createConfigEntry } from './entry.ts'
 
-const presetConfig = {};
+const presetConfig = {
+  fmt: fmtBase
+}
 
-const base = createConfigEntry(presetConfig);
-const cli = base;
-const lib = base;
+const base = createConfigEntry(presetConfig)
+const cli = base
+const lib = base
 // Waiting for Oxlint's better Vue support
-const website = base;
+const website = base
 
-export { base, cli, lib, website };
+export { base, cli, lib, website }

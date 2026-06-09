@@ -1,20 +1,20 @@
-import { lib } from "./src/index.ts";
+import { lib } from './src/index.ts'
 
 export default lib({
   staged: {
-    "*": "vp check --fix",
+    '*': 'vp check --fix'
   },
   pack: {
     dts: {
-      tsgo: true,
+      tsgo: true
     },
-    exports: true,
+    exports: true
   },
   lint: {
     options: {
       typeAware: true,
-      typeCheck: true,
-    },
+      typeCheck: true
+    }
   },
-  fmt: {},
-});
+  fmt: {}
+})

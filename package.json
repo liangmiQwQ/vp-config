@@ -25,12 +25,12 @@
   },
   "scripts": {
     "build": "vp pack",
-    "dev": "vp pack --watch",
-    "test": "vp test",
     "check": "vp check",
-    "prepublishOnly": "vp run build",
+    "dev": "vp pack --watch",
     "prepare": "vp config",
-    "release": "bumpp"
+    "prepublishOnly": "vp run build",
+    "release": "bumpp",
+    "test": "vp test"
   },
   "devDependencies": {
     "@types/node": "catalog:",

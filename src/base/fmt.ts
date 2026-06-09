@@ -1,7 +1,15 @@
-import type { OxfmtConfig } from "vite-plus/fmt";
+import type { OxfmtConfig } from 'vite-plus/fmt'
 
-export const fmt: OxfmtConfig = {
-  arrowParens: "avoid",
-  embeddedLanguageFormatting: "off",
-  jsxSingleQuote: true,
-};
+export const fmtBase: OxfmtConfig = {
+  arrowParens: 'avoid',
+  embeddedLanguageFormatting: 'off',
+  singleQuote: true,
+  sortImports: {
+    partitionByComment: true
+  },
+  sortPackageJson: {
+    sortScripts: true
+  },
+  semi: false,
+  trailingComma: 'none'
+}

@@ -45,7 +45,7 @@ export type ConfigEntry<PresetConfig> = {
 function defineMergedConfig(presetConfig: UserConfig, config: ConfigInput): ConfigResult {
   if (typeof config === "function") {
     // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
-    return defineConfig(async (env) => {
+    return defineConfig(async env => {
       const userConfig = await (config as ConfigFunctionInput)(env);
       return mergeConfig(presetConfig, userConfig) as UserConfig;
     }) as ConfigResult;
@@ -54,7 +54,7 @@ function defineMergedConfig(presetConfig: UserConfig, config: ConfigInput): Conf
   if (config instanceof Promise) {
     // Preserve async config shape instead of awaiting here, matching defineConfig's Promise overload.
     return defineConfig(
-      config.then((userConfig) => mergeConfig(presetConfig, userConfig) as UserConfig),
+      config.then(userConfig => mergeConfig(presetConfig, userConfig) as UserConfig),
     ) as ConfigResult;
   }
 
@@ -67,7 +67,7 @@ function pickPresetConfig<PresetConfig extends UserConfig>(
   presetConfig: PresetConfig,
   parts: readonly ConfigPart<PresetConfig>[],
 ): UserConfig {
-  return Object.fromEntries(parts.map((part) => [part, presetConfig[part]])) as UserConfig;
+  return Object.fromEntries(parts.map(part => [part, presetConfig[part]])) as UserConfig;
 }
 
 function omitPresetConfig<PresetConfig extends UserConfig>(

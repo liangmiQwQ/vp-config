@@ -1,6 +1,9 @@
+import { fmt } from "./base/fmt.ts";
 import { createConfigEntry } from "./entry.ts";
 
-const presetConfig = {};
+const presetConfig = {
+  fmt,
+};
 
 const base = createConfigEntry(presetConfig);
 const cli = base;

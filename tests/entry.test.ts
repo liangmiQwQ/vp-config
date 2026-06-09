@@ -39,7 +39,7 @@ test("should merge preset with promise config", async () => {
 
 test("should merge preset with function config after Vite+ provides env", async () => {
   const config = createConfigEntry(presetConfig);
-  const userConfig = config((env) => ({
+  const userConfig = config(env => ({
     fmt: {
       semi: env.mode === "test",
     },

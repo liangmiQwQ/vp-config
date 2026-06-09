@@ -4,5 +4,4 @@ export const fmt: OxfmtConfig = {
   arrowParens: "avoid",
   embeddedLanguageFormatting: "off",
   jsxSingleQuote: true,
-  proseWrap: "never",
 };

@@ -1,39 +1,90 @@
-interface ConfigType {
-  inWorkspace: boolean
-  root: boolean
-}
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
+
+import { globSync } from 'tinyglobby'
+import { parse } from 'yaml'
 
 /**
- * Check whether a config is a nested config
+ * Check whether a config is a root-level workspace config.
+ *
+ * It returns `undefined` if it is not a monorepo, return `true` for monorepo's root config, return `false` for nested config.
  */
-export function isProjectRoot(): ConfigType {
-  // 1. Start from the current working directory (`cwd`).
+export function isWorkspace(): boolean | undefined {
+  // 1. Find the nearest workspace marker.
+  const cwd = resolve(process.cwd())
+  let workspaceRoot: string | undefined
+  let workspacePatterns: string[] = []
 
-  // 2. Walk up parent directories until a workspace marker is found.
+  for (let directory = cwd; ; directory = dirname(directory)) {
+    const pnpmWorkspacePath = join(directory, 'pnpm-workspace.yaml')
+    if (existsSync(pnpmWorkspacePath)) {
+      const workspaceConfig = parse(readFileSync(pnpmWorkspacePath, 'utf8')) as {
+        packages?: unknown
+      }
 
-  // 3. If `pnpm-workspace.yaml` exists, treat that directory as the workspace root.
-  //    This means the project is a monorepo.
+      workspaceRoot = directory
+      workspacePatterns = Array.isArray(workspaceConfig.packages)
+        ? workspaceConfig.packages.filter(pattern => typeof pattern === 'string')
+        : []
+      break
+    }
 
-  // 4. Otherwise, if `package.json` exists and has a `workspaces` field,
-  //    treat that directory as the workspace root.
-  //    This also means the project is a monorepo.
+    const packageJsonPath = join(directory, 'package.json')
+    if (existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+        workspaces?: string[] | { packages?: string[] }
+      }
+      const patterns = Array.isArray(packageJson.workspaces)
+        ? packageJson.workspaces
+        : packageJson.workspaces?.packages
 
-  // 5. If no workspace marker is found, walk up to find the nearest `package.json`.
-  //    That directory is treated as a normal standalone package root.
+      if (patterns) {
+        workspaceRoot = directory
+        workspacePatterns = patterns
+        break
+      }
+    }
 
-  // 6. If neither a workspace marker nor `package.json` is found,
-  //    Vite+ treats the current location as not being inside a project.
+    const parent = dirname(directory)
+    if (parent === directory) {
+      break
+    }
+  }
 
-  // 7. After the workspace root is found, Vite+ sets `isMonorepo = true` only when
-  //    the root came from `pnpm-workspace.yaml` or `package.json#workspaces`.
+  if (!workspaceRoot) {
+    return undefined
+  }
 
-  // 8. To find workspace packages, Vite+ reads the workspace patterns:
-  //    `pnpm-workspace.yaml#packages` or `package.json#workspaces`.
+  // 2. A config loaded from the workspace root is the shared config.
+  if (relative(cwd, workspaceRoot) === '') {
+    return true
+  }
 
-  // 9. Those patterns are expanded to package paths by looking for matching
-  //    `package.json` files.
+  // 3. Expand workspace patterns by scanning package.json files.
+  const packageDirs = globSync(
+    workspacePatterns
+      .filter(pattern => !pattern.startsWith('!'))
+      .map(pattern => `${pattern}/package.json`),
+    {
+      absolute: true,
+      cwd: workspaceRoot,
+      ignore: [
+        '**/node_modules/**',
+        ...workspacePatterns
+          .filter(pattern => pattern.startsWith('!'))
+          .map(pattern => `${pattern.slice(1)}/package.json`)
+      ]
+    }
+  )
+    .map(packageJsonPath => dirname(packageJsonPath))
+    .sort((left, right) => right.length - left.length)
 
-  // 10. To decide the current sub-package, Vite+ walks up from `cwd` and checks
-  //     which package path in the package graph contains it.
-  return {} as ConfigType
+  // 4. Treat unmatched excluded packages as root-level config locations.
+  const currentPackage = packageDirs.find(packageDir => {
+    const relativePath = relative(packageDir, cwd)
+
+    return relativePath === '' || (!relativePath.startsWith('..') && !relativePath.startsWith('/'))
+  })
+
+  return currentPackage ? relative(currentPackage, workspaceRoot) === '' : true
 }

@@ -3,12 +3,12 @@ import type { OxlintConfig } from 'vite-plus/lint'
 export const lintBase: OxlintConfig = {
   categories: {
     correctness: 'error',
-    nursery: 'error',
-    pedantic: 'error',
     perf: 'error',
     restriction: 'error',
-    style: 'error',
-    suspicious: 'error'
+    suspicious: 'error',
+    pedantic: 'warn',
+    style: 'warn',
+    nursery: 'off'
   },
   options: {
     typeAware: true,

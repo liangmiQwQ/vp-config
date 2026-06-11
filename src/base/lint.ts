@@ -1,7 +1,7 @@
 import type { OxlintConfig } from 'vite-plus/lint'
 
 export const lintBase: OxlintConfig = {
-  options: { typeAware: true, typeCheck: true },
+  options: { typeAware: true, typeCheck: true, denyWarnings: true },
   overrides: [
     // Test override, can be used for all catelogries
     {

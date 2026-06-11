@@ -1,6 +1,15 @@
 import type { OxlintConfig } from 'vite-plus/lint'
 
 export const lintBase: OxlintConfig = {
+  categories: {
+    correctness: 'error',
+    nursery: 'error',
+    pedantic: 'error',
+    perf: 'error',
+    restriction: 'error',
+    style: 'error',
+    suspicious: 'error'
+  },
   options: {
     typeAware: true,
     typeCheck: true,
@@ -12,12 +21,12 @@ export const lintBase: OxlintConfig = {
   overrides: [
     // Test override, can be used for all catelogries
     {
-      files: ['*.test.ts', '*.spec.ts'],
       env: {
         node: true,
         // We do not use jest
         vitest: true
-      }
+      },
+      files: ['*.test.ts', '*.spec.ts']
     }
   ]
 }

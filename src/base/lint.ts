@@ -7,8 +7,13 @@ export const lintBase: OxlintConfig = {
     restriction: 'error',
     suspicious: 'error',
     pedantic: 'warn',
-    style: 'warn',
+    style: 'off',
     nursery: 'off'
+  },
+  plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
+  rules: {
+    // nursery
+    'import/export': 'error'
   },
   options: {
     typeAware: true,

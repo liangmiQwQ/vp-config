@@ -1,6 +1,6 @@
 import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 
-import { cliOverride } from '../cli/lint.ts'
+import { cliOverride } from '../shared/lint.ts'
 
 // Rules Config
 const nursery: DummyRuleMap = {

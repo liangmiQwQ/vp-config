@@ -23,10 +23,10 @@ const style: DummyRuleMap = {
   'max-statements': 'off',
   'no-magic-numbers': 'off',
   'no-ternary': 'off',
+  'prefer-destructuring': 'off',
   'sort-imports': 'off',
   'sort-keys': 'off',
 
-  'import/consistent-type-specifier-style': 'off',
   'import/exports-last': 'off',
   'import/group-exports': 'off',
   'import/no-named-export': 'off',
@@ -40,7 +40,8 @@ const style: DummyRuleMap = {
   'typescript/consistent-type-definitions': 'off',
 
   'unicorn/filename-case': 'off',
-  'unicorn/no-null': 'off'
+  'unicorn/no-null': 'off',
+  'unicorn/prefer-ternary': 'off'
 }
 
 // Whitelist mode

@@ -11,6 +11,50 @@ const nursery: DummyRuleMap = {
 }
 
 // Whitelist mode
+const restriction: DummyRuleMap = {
+  'oxc/bad-bitwise-operator': 'error',
+  'class-methods-use-this': 'error',
+  'default-case': 'error',
+  'typescript/explicit-function-return-type': 'error',
+  'typescript/explicit-module-boundary-types': 'error',
+  'import/extensions': ['error', 'always', { checkTypeImports: true, ignorePackages: true }],
+  'unicorn/no-abusive-eslint-disable': 'error',
+  'no-alert': 'error',
+  'import/no-amd': 'error',
+  'no-array-reduce': 'error',
+  'unicorn/prefer-module': 'error',
+  'no-console': 'error',
+  'import/no-cycle': 'error',
+  'oxc/no-const-enum': 'error',
+  'typescript/no-dynamic-delete': 'error',
+  'no-dynamic-require': 'error', // For the case like loading config, we should use oxlint-disable to skip this rule.
+  'no-empty': 'error',
+  'no-empty-function': 'error',
+  'no-explicit-any': 'error',
+  'no-implicit-globals': 'error',
+  'typescript/no-import-type-side-effects': 'error',
+  'typescript/no-invalid-void-type': 'error',
+  'unicorn/no-magic-array-flat-depth': 'error', // For cases we really need flat depth, use oxlint-disable
+  'typescript/no-namespace': 'error',
+  'typescript/no-non-null-asserted-nullish-coalescing': 'error',
+  'no-param-reassign': 'error',
+  'unicorn/no-process-exit': 'error',
+  'no-sequences': 'error',
+  'no-var': 'error',
+  'non-nullable-type-assertion-style': 'error',
+  'unicorn/prefer-modern-math-apis': 'error',
+  'unicode-bom': 'error',
+
+  'prefer-node-protocol': 'warn',
+  'unicorn/prefer-number-properties': 'warn',
+  'no-array-for-each': 'warn',
+  'no-div-regex': 'warn',
+
+  'no-default-export': 'warn',
+  'no-empty-object-type': 'warn',
+  'no-proto': 'warn'
+}
+
 const pedantic: DummyRuleMap = {
   eqeqeq: 'error',
   'oxc/branches-sharing-code': 'error',
@@ -96,6 +140,8 @@ export const lintBase: OxlintConfig = {
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
     ...nursery,
+
+    ...restriction,
     ...pedantic,
     'typescript/no-unsafe-type-assertion': 'off'
   },
@@ -116,6 +162,12 @@ export const lintBase: OxlintConfig = {
         vitest: true
       },
       files: ['*.test.ts', '*.spec.ts']
+    },
+    {
+      rules: {
+        'import/no-default-export': 'off'
+      },
+      files: ['*.config.ts']
     }
   ]
 }

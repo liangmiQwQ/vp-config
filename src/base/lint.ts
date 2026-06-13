@@ -41,6 +41,7 @@ const style: DummyRuleMap = {
   'import/group-exports': 'off',
   'import/no-nodejs-modules': 'off',
   'import/prefer-default-export': 'off',
+  'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
   'unicorn/no-null': 'off' // `null` is still meaningful in platform APIs.
 }
 

@@ -15,11 +15,14 @@ const nursery: DummyRuleMap = {
 const style: DummyRuleMap = {
   // Rules need configure
   'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
+  'typescript/consistent-type-definitions': ['warn', 'interface'],
+  'typescript/consistent-indexed-object-style': ['warn', 'record'],
+  'eslint/func-names': ['warn', 'never'],
+  'id-length': ['warn', { checkGeneric: false }],
 
-  'capitalized-comments': 'off',
-  'func-style': 'off',
-  'id-length': 'off',
-  'id-match': 'off',
+  'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
+  'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.
+
   'init-declarations': 'off',
   'max-params': 'off',
   'max-statements': 'off',
@@ -29,7 +32,6 @@ const style: DummyRuleMap = {
   'sort-imports': 'off',
   'sort-keys': 'off',
 
-  'import/exports-last': 'off',
   'import/group-exports': 'off',
   'import/no-named-export': 'off',
   'import/no-namespace': 'off',
@@ -39,9 +41,6 @@ const style: DummyRuleMap = {
   'promise/prefer-await-to-callbacks': 'off',
   'promise/prefer-await-to-then': 'off',
 
-  'typescript/consistent-type-definitions': 'off',
-
-  'unicorn/filename-case': 'off',
   'unicorn/no-null': 'off',
   'unicorn/prefer-ternary': 'off'
 }
@@ -133,7 +132,7 @@ const pedantic: DummyRuleMap = {
   'unicorn/no-unnecessary-slice-end': 'warn',
   'unicorn/no-instanceof-array': 'warn',
   'no-else-return': 'warn',
-  'typescript/ban-ts-comment': 'warn', // replace typescript/prefer-ts-expect-error
+  'typescript/ban-ts-comment': 'warn', // Replace typescript/prefer-ts-expect-error
   'typescript/no-confusing-void-expression': 'warn',
   'unicorn/escape-case': 'warn',
   'unicorn/explicit-length-check': 'warn',

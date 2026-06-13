@@ -1,4 +1,5 @@
-import { defineConfig, mergeConfig, type ConfigEnv, type UserConfig } from 'vite-plus'
+import { defineConfig, mergeConfig } from 'vite-plus'
+import type { ConfigEnv, UserConfig } from 'vite-plus'
 
 // Keep the public call signature aligned with Vite+'s defineConfig, but merge presets by input kind:
 // objects are merged immediately, promises are merged after resolution, and functions are wrapped until Vite+ provides ConfigEnv.

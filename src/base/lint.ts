@@ -12,6 +12,37 @@ const nursery: DummyRuleMap = {
   'no-restricted-exports': 'off'
 }
 
+const style: DummyRuleMap = {
+  'arrow-body-style': 'off',
+  'capitalized-comments': 'off',
+  'func-style': 'off',
+  'id-length': 'off',
+  'id-match': 'off',
+  'init-declarations': 'off',
+  'max-params': 'off',
+  'max-statements': 'off',
+  'no-magic-numbers': 'off',
+  'no-ternary': 'off',
+  'sort-imports': 'off',
+  'sort-keys': 'off',
+
+  'import/consistent-type-specifier-style': 'off',
+  'import/exports-last': 'off',
+  'import/group-exports': 'off',
+  'import/no-named-export': 'off',
+  'import/no-namespace': 'off',
+  'import/no-nodejs-modules': 'off',
+  'import/prefer-default-export': 'off',
+
+  'promise/prefer-await-to-callbacks': 'off',
+  'promise/prefer-await-to-then': 'off',
+
+  'typescript/consistent-type-definitions': 'off',
+
+  'unicorn/filename-case': 'off',
+  'unicorn/no-null': 'off'
+}
+
 // Whitelist mode
 const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
@@ -125,38 +156,6 @@ const pedantic: DummyRuleMap = {
   'no-lonely-if': 'warn',
   'unicorn/no-negation-in-equality-check': 'warn',
   'no-negated-condition': 'warn'
-}
-
-// Blacklist mode
-const style: DummyRuleMap = {
-  'arrow-body-style': 'off',
-  'capitalized-comments': 'off',
-  'func-style': 'off',
-  'id-length': 'off',
-  'id-match': 'off',
-  'init-declarations': 'off',
-  'max-params': 'off',
-  'max-statements': 'off',
-  'no-magic-numbers': 'off',
-  'no-ternary': 'off',
-  'sort-imports': 'off',
-  'sort-keys': 'off',
-
-  'import/consistent-type-specifier-style': 'off',
-  'import/exports-last': 'off',
-  'import/group-exports': 'off',
-  'import/no-named-export': 'off',
-  'import/no-namespace': 'off',
-  'import/no-nodejs-modules': 'off',
-  'import/prefer-default-export': 'off',
-
-  'promise/prefer-await-to-callbacks': 'off',
-  'promise/prefer-await-to-then': 'off',
-
-  'typescript/consistent-type-definitions': 'off',
-
-  'unicorn/filename-case': 'off',
-  'unicorn/no-null': 'off'
 }
 
 export const lintBase: OxlintConfig = {

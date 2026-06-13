@@ -127,17 +127,49 @@ const pedantic: DummyRuleMap = {
   'no-negated-condition': 'warn'
 }
 
+// Blacklist mode
+const style: DummyRuleMap = {
+  'arrow-body-style': 'off',
+  'capitalized-comments': 'off',
+  'func-style': 'off',
+  'id-length': 'off',
+  'id-match': 'off',
+  'init-declarations': 'off',
+  'max-params': 'off',
+  'max-statements': 'off',
+  'no-magic-numbers': 'off',
+  'no-ternary': 'off',
+  'sort-imports': 'off',
+  'sort-keys': 'off',
+
+  'import/consistent-type-specifier-style': 'off',
+  'import/exports-last': 'off',
+  'import/group-exports': 'off',
+  'import/no-named-export': 'off',
+  'import/no-namespace': 'off',
+  'import/no-nodejs-modules': 'off',
+  'import/prefer-default-export': 'off',
+
+  'promise/prefer-await-to-callbacks': 'off',
+  'promise/prefer-await-to-then': 'off',
+
+  'typescript/consistent-type-definitions': 'off',
+
+  'unicorn/filename-case': 'off',
+  'unicorn/no-null': 'off'
+}
+
 export const lintBase: OxlintConfig = {
   categories: {
     correctness: 'error',
     perf: 'error',
     suspicious: 'error',
     nursery: 'error',
+    style: 'warn',
 
     // White list mode
     restriction: 'off',
-    pedantic: 'off',
-    style: 'off'
+    pedantic: 'off'
   },
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
@@ -145,6 +177,7 @@ export const lintBase: OxlintConfig = {
 
     ...restriction,
     ...pedantic,
+    ...style,
     'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {

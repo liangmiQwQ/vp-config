@@ -1,4 +1,14 @@
-import type { OxlintConfig } from 'vite-plus/lint'
+import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
+
+// Rules Config
+const nursery: DummyRuleMap = {
+  // We hope typescript can process them.
+  'no-undef': 'off',
+  'import/named': 'off',
+
+  // Disable some too strict ones
+  'no-restricted-exports': 'off'
+}
 
 export const lintBase: OxlintConfig = {
   categories: {
@@ -6,14 +16,16 @@ export const lintBase: OxlintConfig = {
     perf: 'error',
     restriction: 'error',
     suspicious: 'error',
+    nursery: 'error',
     pedantic: 'warn',
-    style: 'off',
-    nursery: 'off'
+    style: 'off'
   },
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
-    // nursery
-    'import/export': 'error'
+    // oxlint-disable-next-line oxc/no-rest-spread-properties
+    ...nursery,
+
+    'no-inline-comments': 'off'
   },
   options: {
     typeAware: true,

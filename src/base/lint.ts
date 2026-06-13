@@ -12,6 +12,39 @@ const nursery: DummyRuleMap = {
   'no-restricted-exports': 'off'
 }
 
+const style: DummyRuleMap = {
+  // Rules need configure
+  'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
+  'typescript/consistent-type-definitions': ['warn', 'interface'],
+  'typescript/consistent-indexed-object-style': ['warn', 'record'],
+  'eslint/func-names': ['warn', 'never'],
+  'id-length': ['warn', { checkGeneric: false }],
+  // 'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
+  'unicorn/prefer-ternary': ['warn', 'only-single-line'],
+
+  'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
+  'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.
+  'init-declarations': 'off', // We should be able to init it through control flow.
+  'import/no-anonymous-default-export': 'off',
+  'unicorn/no-await-expression-member': 'off',
+  'max-params': 'off',
+  'max-statements': 'off',
+  'no-continue': 'off',
+  'no-nested-ternary': 'off',
+  'unicorn/no-nested-ternary': 'off', // The same as `no-nested-ternary`
+  'no-magic-numbers': 'off',
+  'import/no-namespace': 'off', // We need `node:*`
+  'import/no-named-export': 'off', // We need named export
+  'no-ternary': 'off',
+  'sort-imports': 'off', // Let Oxfmt to handle it
+  'sort-keys': 'off',
+  'import/group-exports': 'off',
+  'import/no-nodejs-modules': 'off',
+  'import/prefer-default-export': 'off',
+  'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
+  'unicorn/no-null': 'off' // `null` is still meaningful in platform APIs.
+}
+
 // Whitelist mode
 const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
@@ -99,7 +132,7 @@ const pedantic: DummyRuleMap = {
   'unicorn/no-unnecessary-slice-end': 'warn',
   'unicorn/no-instanceof-array': 'warn',
   'no-else-return': 'warn',
-  'typescript/ban-ts-comment': 'warn', // replace typescript/prefer-ts-expect-error
+  'typescript/ban-ts-comment': 'warn', // Replace typescript/prefer-ts-expect-error
   'typescript/no-confusing-void-expression': 'warn',
   'unicorn/escape-case': 'warn',
   'unicorn/explicit-length-check': 'warn',
@@ -133,11 +166,11 @@ export const lintBase: OxlintConfig = {
     perf: 'error',
     suspicious: 'error',
     nursery: 'error',
+    style: 'warn',
 
     // White list mode
     restriction: 'off',
-    pedantic: 'off',
-    style: 'off'
+    pedantic: 'off'
   },
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
@@ -145,6 +178,7 @@ export const lintBase: OxlintConfig = {
 
     ...restriction,
     ...pedantic,
+    ...style,
     'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {

@@ -1,18 +1,17 @@
-import { defineConfig, mergeConfig, type ConfigEnv, type UserConfig } from 'vite-plus'
+import { defineConfig, mergeConfig } from 'vite-plus'
+import type { ConfigEnv, UserConfig } from 'vite-plus'
 
 // Keep the public call signature aligned with Vite+'s defineConfig, but merge presets by input kind:
-// objects are merged immediately, promises are merged after resolution, and functions are wrapped until Vite+ provides ConfigEnv.
+// Objects are merged immediately, promises are merged after resolution, and functions are wrapped until Vite+ provides ConfigEnv.
 export function createConfigEntry<const PresetConfig extends UserConfig>(
   presetConfig: PresetConfig
 ): ConfigEntry<PresetConfig> {
   const entry = ((config: ConfigInput) =>
     defineMergedConfig(presetConfig, config)) as typeof defineConfig
-  const only: ConfigEntry<PresetConfig>['only'] = (parts, ...args) => {
-    return defineMergedConfig(pickPresetConfig(presetConfig, parts), ...args)
-  }
-  const exclude: ConfigEntry<PresetConfig>['exclude'] = (parts, ...args) => {
-    return defineMergedConfig(omitPresetConfig(presetConfig, parts), ...args)
-  }
+  const only: ConfigEntry<PresetConfig>['only'] = (parts, ...args) =>
+    defineMergedConfig(pickPresetConfig(presetConfig, parts), ...args)
+  const exclude: ConfigEntry<PresetConfig>['exclude'] = (parts, ...args) =>
+    defineMergedConfig(omitPresetConfig(presetConfig, parts), ...args)
 
   return Object.assign(entry, { only, exclude })
 }

@@ -8,12 +8,10 @@ export function createConfigEntry<const PresetConfig extends UserConfig>(
 ): ConfigEntry<PresetConfig> {
   const entry = ((config: ConfigInput) =>
     defineMergedConfig(presetConfig, config)) as typeof defineConfig
-  const only: ConfigEntry<PresetConfig>['only'] = (parts, ...args) => {
-    return defineMergedConfig(pickPresetConfig(presetConfig, parts), ...args)
-  }
-  const exclude: ConfigEntry<PresetConfig>['exclude'] = (parts, ...args) => {
-    return defineMergedConfig(omitPresetConfig(presetConfig, parts), ...args)
-  }
+  const only: ConfigEntry<PresetConfig>['only'] = (parts, ...args) =>
+    defineMergedConfig(pickPresetConfig(presetConfig, parts), ...args)
+  const exclude: ConfigEntry<PresetConfig>['exclude'] = (parts, ...args) =>
+    defineMergedConfig(omitPresetConfig(presetConfig, parts), ...args)
 
   return Object.assign(entry, { only, exclude })
 }

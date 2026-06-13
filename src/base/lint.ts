@@ -16,7 +16,6 @@ const style: DummyRuleMap = {
   // Rules need configure
   'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
 
-  'arrow-body-style': 'off',
   'capitalized-comments': 'off',
   'func-style': 'off',
   'id-length': 'off',

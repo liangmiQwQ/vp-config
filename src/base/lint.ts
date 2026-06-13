@@ -13,7 +13,6 @@ const nursery: DummyRuleMap = {
 // Whitelist mode
 const pedantic: DummyRuleMap = {
   eqeqeq: 'error',
-  'no-self-compare': 'error',
   'oxc/branches-sharing-code': 'error',
   'array-callback-return': 'error',
   'unicorn/consistent-empty-array-spread': 'error',
@@ -33,9 +32,15 @@ const pedantic: DummyRuleMap = {
   'unicorn/no-new-buffer': 'error',
   'no-object-constructor': 'error',
   'no-promise-executor-return': 'error',
+  'no-self-compare': 'error',
+  'no-throw-literal': 'error',
+  'no-unnecessary-array-flat-depth': 'error',
 
   // Rules are reported as `warn`. Most of them are fixable, mainly about readability and style.
   'unicorn/no-hex-escape': 'warn',
+  'unicorn/no-typeof-undefined': 'warn',
+  'unicorn/no-unnecessary-array-splice-count': 'warn',
+  'unicorn/no-unnecessary-slice-end': 'warn',
   'unicorn/no-instanceof-array': 'warn',
   'no-else-return': 'warn',
   'typescript/ban-ts-comment': 'warn',

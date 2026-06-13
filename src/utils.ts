@@ -77,7 +77,7 @@ export function isWorkspace(): boolean | undefined {
     }
   )
     .map(packageJsonPath => dirname(packageJsonPath))
-    .sort((left, right) => right.length - left.length)
+    .toSorted((left, right) => right.length - left.length)
 
   // 4. Treat unmatched excluded packages as root-level config locations.
   const currentPackage = packageDirs.find(packageDir => {

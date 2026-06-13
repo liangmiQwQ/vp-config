@@ -96,7 +96,8 @@ export const lintBase: OxlintConfig = {
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
     ...nursery,
-    ...pedantic
+    ...pedantic,
+    'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {
     typeAware: true,

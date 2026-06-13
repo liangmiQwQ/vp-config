@@ -1,5 +1,7 @@
 import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 
+import { cliOverride } from '../shared/lint.ts'
+
 // Rules Config
 const nursery: DummyRuleMap = {
   // We hope typescript can process them.
@@ -168,6 +170,10 @@ export const lintBase: OxlintConfig = {
         'import/no-default-export': 'off'
       },
       files: ['*.config.ts']
+    },
+    {
+      files: ['scripts/**'],
+      ...cliOverride
     }
   ]
 }

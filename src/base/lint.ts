@@ -18,7 +18,6 @@ const restriction: DummyRuleMap = {
   'typescript/explicit-function-return-type': 'error',
   'typescript/explicit-module-boundary-types': 'error',
   'import/extensions': ['error', 'always', { checkTypeImports: true, ignorePackages: true }],
-  'unicorn/import-style': 'error',
   'unicorn/no-abusive-eslint-disable': 'error',
   'no-alert': 'error',
   'import/no-amd': 'error',
@@ -163,6 +162,12 @@ export const lintBase: OxlintConfig = {
         vitest: true
       },
       files: ['*.test.ts', '*.spec.ts']
+    },
+    {
+      rules: {
+        'import/no-default-export': 'off'
+      },
+      files: ['*.config.ts']
     }
   ]
 }

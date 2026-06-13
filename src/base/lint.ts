@@ -166,14 +166,15 @@ export const lintBase: OxlintConfig = {
       files: ['*.test.ts', '*.spec.ts']
     },
     {
-      rules: {
-        'import/no-default-export': 'off'
-      },
-      files: ['*.config.ts']
+      files: ['./scripts/**', './script/**', './*.ts', './*.js'],
+      ...cliOverride
     },
     {
-      files: ['scripts/**'],
-      ...cliOverride
+      rules: {
+        'import/no-default-export': 'off',
+        'no-console': 'error'
+      },
+      files: ['*.config.ts']
     }
   ]
 }

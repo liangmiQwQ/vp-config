@@ -222,12 +222,6 @@ export const lintBase: OxlintConfig = {
         'no-console': 'error'
       },
       files: ['*.config.ts']
-    },
-    {
-      rules: {
-        'import/no-default-export': 'off'
-      },
-      files: ['./src/oxlint-plugin.ts']
     }
   ]
 }

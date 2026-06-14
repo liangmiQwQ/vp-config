@@ -191,7 +191,12 @@ export const lintBase: OxlintConfig = {
     ...restriction,
     ...pedantic,
     ...style,
-    'liangmi/load-vp-config-correctly': 'error',
+    'liangmi/no-orphan-vite-config': 'error',
+    'liangmi/no-useless-vp-preset-imports': 'error',
+    'liangmi/use-preset-vp-config': 'error',
+    'liangmi/load-proper-vp-config-category': 'error',
+    'liangmi/no-mixed-project': 'error',
+    'liangmi/cleanup': 'error',
     'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {

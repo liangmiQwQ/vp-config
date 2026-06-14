@@ -18,7 +18,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
-    "./oxlint-plugin": "./dist/oxlint-plugin.mjs",
+    "./oxlint-plugin": "./dist/oxlint-plugin/index.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {

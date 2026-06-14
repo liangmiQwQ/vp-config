@@ -2,6 +2,9 @@ import { defineConfig, mergeConfig } from 'vite-plus'
 import type { ConfigEnv, UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'
 
+import type { ConfigName } from './oxlint-plugin/constants.ts'
+import { writeRuntimeInfo } from './oxlint-plugin/info.ts'
+
 export interface PresetConfig {
   fmt?: UserConfig['fmt']
   lint?: UserConfig['lint']
@@ -13,14 +16,15 @@ export interface PresetConfig {
 // Keep the public call signature aligned with Vite+'s defineConfig, but merge presets by input kind:
 // Objects are merged immediately, promises are merged after resolution, and functions are wrapped until Vite+ provides ConfigEnv.
 export function createConfigEntry<const Config extends PresetConfig>(
-  presetConfig: Config
+  presetConfig: Config,
+  category?: ConfigName
 ): ConfigEntry<Config> {
   const entry = ((config: ConfigInput) =>
-    defineMergedConfig(presetConfig, config)) as typeof defineConfig
+    defineMergedConfig(presetConfig, config, category)) as typeof defineConfig
   const only: ConfigEntry<Config>['only'] = (parts, ...args) =>
-    defineMergedConfig(pickPresetConfig(presetConfig, parts), ...args)
+    defineMergedConfig(pickPresetConfig(presetConfig, parts), args[0], category)
   const exclude: ConfigEntry<Config>['exclude'] = (parts, ...args) =>
-    defineMergedConfig(omitPresetConfig(presetConfig, parts), ...args)
+    defineMergedConfig(omitPresetConfig(presetConfig, parts), args[0], category)
 
   return Object.assign(entry, { only, exclude })
 }
@@ -51,24 +55,32 @@ export type ConfigEntry<PresetConfig> = {
   exclude: ConfigFunction<PresetConfig>
 } & typeof defineConfig
 
-function defineMergedConfig(presetConfig: PresetConfig, config: ConfigInput): ConfigResult {
+function defineMergedConfig(
+  presetConfig: PresetConfig,
+  config: ConfigInput,
+  category?: ConfigName
+): ConfigResult {
   if (typeof config === 'function') {
     // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
     return defineConfig(async env => {
       const userConfig = await (config as ConfigFunctionInput)(env)
-      return mergePresetConfig(presetConfig, userConfig)
+      return trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
     }) as ConfigResult
   }
 
   if (config instanceof Promise) {
     // Preserve async config shape instead of awaiting here, matching defineConfig's Promise overload.
     return defineConfig(
-      config.then(userConfig => mergePresetConfig(presetConfig, userConfig))
+      config.then(userConfig =>
+        trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
+      )
     ) as ConfigResult
   }
 
   // Plain objects can be merged eagerly because they do not depend on ConfigEnv.
-  return defineConfig(mergePresetConfig(presetConfig, config)) as ConfigResult
+  return defineConfig(
+    trackRuntimeInfo(mergePresetConfig(presetConfig, config), category)
+  ) as ConfigResult
 }
 
 // Pick by explicit keys instead of mutating the preset object shared by other entries.
@@ -113,6 +125,15 @@ function mergePresetConfig(presetConfig: PresetConfig, userConfig: UserConfig): 
   if (presetConfig.staged) {
     config.staged = mergeStagedConfig(presetConfig.staged, userConfig.staged)
   }
+
+  return config
+}
+
+function trackRuntimeInfo(config: UserConfig, category?: ConfigName): UserConfig {
+  writeRuntimeInfo({
+    category,
+    config: config as Record<string, unknown>
+  })
 
   return config
 }

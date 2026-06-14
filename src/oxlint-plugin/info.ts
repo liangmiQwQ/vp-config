@@ -1,0 +1,223 @@
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join, normalize } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import type { ConfigName, ProjectConfigName } from './constants.ts'
+import { infoDirectoryName, infoFileName, viteConfigNames } from './constants.ts'
+
+export interface VpConfigRuntimeInfo {
+  version: 1
+  configFile: string
+  configDirectory: string
+  category?: ConfigName
+  configKeys: string[]
+  project: {
+    hasViteEntry: boolean
+    hasViteConfigFields: boolean
+    hasPack: boolean
+    hasPackageBin: boolean
+    isWebsite: boolean
+    isLib: boolean
+    isCli: boolean
+    isProject: boolean
+  }
+  cleanup: {
+    createdNodeModules: boolean
+  }
+}
+
+export interface RuntimeConfigInput {
+  category?: ConfigName
+  config: Record<string, unknown>
+}
+
+export function getInfoPath(configDirectory: string): string {
+  return join(configDirectory, 'node_modules', infoDirectoryName, infoFileName)
+}
+
+export function readRuntimeInfo(configDirectory: string): VpConfigRuntimeInfo | undefined {
+  const infoPath = getInfoPath(configDirectory)
+
+  if (!existsSync(infoPath)) {
+    return undefined
+  }
+
+  try {
+    return parseRuntimeInfo(JSON.parse(readFileSync(infoPath, 'utf8')))
+  } catch {
+    return undefined
+  }
+}
+
+export function writeRuntimeInfo(input: RuntimeConfigInput): void {
+  if (!shouldWriteRuntimeInfo()) {
+    return
+  }
+
+  const configFile =
+    findConfigFileFromStack(new Error('Find vite config caller').stack) ?? findCwdConfigFile()
+
+  if (!configFile) {
+    return
+  }
+
+  const configDirectory = dirname(configFile)
+  const nodeModulesDirectory = join(configDirectory, 'node_modules')
+  const createdNodeModules = !existsSync(nodeModulesDirectory)
+  const infoPath = getInfoPath(configDirectory)
+
+  rmSync(infoPath, { force: true })
+  mkdirSync(dirname(infoPath), { recursive: true })
+  writeFileSync(
+    infoPath,
+    `${JSON.stringify(createRuntimeInfo(configFile, input, createdNodeModules), null, 2)}\n`
+  )
+}
+
+export function cleanupRuntimeInfo(configDirectory: string): void {
+  const info = readRuntimeInfo(configDirectory)
+  const nodeModulesDirectory = join(configDirectory, 'node_modules')
+
+  rmSync(getInfoPath(configDirectory), { force: true })
+  rmSync(join(nodeModulesDirectory, infoDirectoryName), { recursive: true, force: true })
+
+  if (info?.cleanup.createdNodeModules) {
+    rmSync(nodeModulesDirectory, { recursive: true, force: true })
+  }
+}
+
+export function getConfigDirectory(filename: string): string {
+  return dirname(filename)
+}
+
+function shouldWriteRuntimeInfo(): boolean {
+  return process.env.VP_COMMAND === 'lint' || process.env.VP_COMMAND === 'check'
+}
+
+function createRuntimeInfo(
+  configFile: string,
+  input: RuntimeConfigInput,
+  createdNodeModules: boolean
+): VpConfigRuntimeInfo {
+  const configDirectory = dirname(configFile)
+  const configKeys = Object.keys(input.config)
+  const hasViteEntry = existsSync(join(configDirectory, 'index.html'))
+  const hasPack = configKeys.includes('pack')
+  const hasViteConfigFields = configKeys.some(key =>
+    key === 'lint' ? false : ['build', 'preview', 'plugins'].includes(key)
+  )
+  const { hasPackageBin } = readPackageJson(configDirectory)
+  const isWebsite = hasViteEntry || hasViteConfigFields
+  const isLib = hasPack
+  const isCli = isLib && hasPackageBin
+
+  return {
+    version: 1,
+    configFile,
+    configDirectory,
+    category: input.category,
+    configKeys,
+    project: {
+      hasViteEntry,
+      hasViteConfigFields,
+      hasPack,
+      hasPackageBin,
+      isWebsite,
+      isLib,
+      isCli,
+      isProject: isWebsite || isLib
+    },
+    cleanup: { createdNodeModules }
+  }
+}
+
+function findConfigFileFromStack(stack: string | undefined): string | undefined {
+  if (!stack) {
+    return undefined
+  }
+
+  for (const rawLine of stack.split('\n')) {
+    const path = normalizeStackPath(rawLine)
+
+    if (path && viteConfigNames.includes(basename(path) as (typeof viteConfigNames)[number])) {
+      return path
+    }
+  }
+
+  return undefined
+}
+
+function normalizeStackPath(line: string): string | undefined {
+  const fileUrlMatch = /file:\/\/[^:)]+/u.exec(line)
+
+  if (fileUrlMatch) {
+    return fileURLToPath(fileUrlMatch[0])
+  }
+
+  const absolutePathMatch = /(\/[^:)]+vite\.config\.[cm]?[jt]s)/u.exec(line)
+
+  return absolutePathMatch ? normalize(absolutePathMatch[1]) : undefined
+}
+
+function readPackageJson(configDirectory: string): { hasPackageBin: boolean } {
+  try {
+    const packageJson = JSON.parse(readFileSync(join(configDirectory, 'package.json'), 'utf8'))
+    const { bin } = packageJson
+
+    return { hasPackageBin: typeof bin === 'string' || isNonEmptyObject(bin) }
+  } catch {
+    return { hasPackageBin: false }
+  }
+}
+
+function findCwdConfigFile(): string | undefined {
+  for (const configName of viteConfigNames) {
+    const configFile = join(process.cwd(), configName)
+
+    if (existsSync(configFile)) {
+      return configFile
+    }
+  }
+
+  return undefined
+}
+
+function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && Object.keys(value).length > 0
+}
+
+function parseRuntimeInfo(value: unknown): VpConfigRuntimeInfo | undefined {
+  if (!isRuntimeInfo(value)) {
+    return undefined
+  }
+
+  return value
+}
+
+function isRuntimeInfo(value: unknown): value is VpConfigRuntimeInfo {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'version' in value &&
+    value.version === 1 &&
+    'project' in value &&
+    typeof value.project === 'object' &&
+    value.project !== null
+  )
+}
+
+export function inferProjectCategory(info: VpConfigRuntimeInfo): ProjectConfigName | undefined {
+  if (info.project.isWebsite) {
+    return 'website'
+  }
+
+  if (info.project.isCli) {
+    return 'cli'
+  }
+
+  if (info.project.isLib) {
+    return 'lib'
+  }
+
+  return undefined
+}

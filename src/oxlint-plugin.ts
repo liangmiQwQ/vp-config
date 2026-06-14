@@ -1,6 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
+import { definePlugin, defineRule } from '@oxlint/plugins'
+import type { ESTree } from '@oxlint/plugins'
+
 const packageName = '@liangmi/vp-config'
 const ruleName = 'load-vp-config-correctly'
 const pluginName = 'liangmi'
@@ -9,68 +12,6 @@ const rootConfigNames = ['base'] as const
 const configNames = [...rootConfigNames, ...projectConfigNames] as const
 
 type ConfigName = (typeof configNames)[number]
-interface LintNode {
-  type: string
-  value?: unknown
-}
-type StringLiteral = LintNode & {
-  type: 'Literal'
-  value: string
-}
-type IdentifierName = LintNode & {
-  type: 'Identifier'
-  name: string
-}
-type ModuleExportName = IdentifierName | StringLiteral
-interface ImportSpecifier {
-  type: 'ImportSpecifier'
-  imported: ModuleExportName
-}
-type ImportDeclarationSpecifier =
-  | ImportSpecifier
-  | {
-      type: 'ImportDefaultSpecifier' | 'ImportNamespaceSpecifier'
-    }
-interface ImportDeclaration {
-  source: StringLiteral
-  specifiers: ImportDeclarationSpecifier[]
-}
-interface ExportAllDeclaration {
-  source: StringLiteral
-}
-interface ExportNamedDeclaration {
-  source: StringLiteral | null
-}
-interface ImportExpression {
-  source: LintNode | StringLiteral
-}
-interface RuleContext {
-  filename: string
-  report: (diagnostic: { data?: Record<string, string>; messageId: string; node: LintNode }) => void
-}
-interface VisitorObject {
-  ExportAllDeclaration: (node: ExportAllDeclaration) => void
-  ExportNamedDeclaration: (node: ExportNamedDeclaration) => void
-  ImportDeclaration: (node: ImportDeclaration) => void
-  ImportExpression: (node: ImportExpression) => void
-}
-interface Rule {
-  create: (context: RuleContext) => VisitorObject
-  meta: {
-    docs: {
-      description: string
-      recommended: boolean
-    }
-    messages: Record<string, string>
-    type: 'problem'
-  }
-}
-interface Plugin {
-  meta: {
-    name: string
-  }
-  rules: Record<string, Rule>
-}
 
 export function getAllowedConfigNames(filename: string): readonly ConfigName[] {
   if (basename(filename) !== 'vite.config.ts') {
@@ -94,7 +35,7 @@ export function isVpConfigImportAllowed(
   )
 }
 
-const loadVpConfigCorrectlyRule: Rule = {
+const loadVpConfigCorrectlyRule = defineRule({
   meta: {
     type: 'problem',
     docs: {
@@ -107,7 +48,11 @@ const loadVpConfigCorrectlyRule: Rule = {
     }
   },
   create(context) {
-    const reportModuleReference = (filename: string, specifier: string, node: LintNode): void => {
+    const reportModuleReference = (
+      filename: string,
+      specifier: string,
+      node: ESTree.Node
+    ): void => {
       if (!isVpConfigSpecifier(specifier)) {
         return
       }
@@ -123,7 +68,7 @@ const loadVpConfigCorrectlyRule: Rule = {
       })
     }
 
-    const reportWrongCategory = (node: LintNode, importedNames: readonly string[]): void => {
+    const reportWrongCategory = (node: ESTree.Node, importedNames: readonly string[]): void => {
       if (isVpConfigImportAllowed(context.filename, importedNames)) {
         return
       }
@@ -161,29 +106,29 @@ const loadVpConfigCorrectlyRule: Rule = {
       }
     }
   }
-}
+})
 
 // oxlint-disable-next-line import/no-default-export
-export default {
+export default definePlugin({
   meta: { name: pluginName },
   rules: { [ruleName]: loadVpConfigCorrectlyRule }
-} satisfies Plugin
+})
 
 function isVpConfigSpecifier(specifier: string): boolean {
   return specifier === packageName
 }
 
-function getImportDeclarationNames(node: ImportDeclaration): string[] {
+function getImportDeclarationNames(node: ESTree.ImportDeclaration): string[] {
   return node.specifiers.flatMap(specifier =>
     specifier.type === 'ImportSpecifier' ? [getModuleExportName(specifier.imported)] : []
   )
 }
 
-function getModuleExportName(name: ModuleExportName): string {
+function getModuleExportName(name: ESTree.ModuleExportName): string {
   return name.type === 'Literal' ? name.value : name.name
 }
 
-function isStringLiteral(node: LintNode): node is StringLiteral {
+function isStringLiteral(node: ESTree.Node): node is ESTree.StringLiteral {
   return node.type === 'Literal' && typeof node.value === 'string'
 }
 

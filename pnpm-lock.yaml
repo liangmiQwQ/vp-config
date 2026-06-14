@@ -29,6 +29,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      '@oxlint/plugins':
+        specifier: 1.61.0
+        version: 1.61.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

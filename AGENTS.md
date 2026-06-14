@@ -6,7 +6,7 @@ View [RFCS](/rfcs) directory to learn more about project architecture and the ro
 
 ## Development and dog fooding
 
-This project itself is using Vite+, and `@liangmi/vp-config`. It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.
+This project itself is using Vite+, and `@liangmi/vp-config` (`lib` category). It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 

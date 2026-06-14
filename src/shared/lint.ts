@@ -45,14 +45,13 @@ export const componentOverride: OxlintConfig = {
         props: 'never'
       }
     ],
-    'react/jsx-max-depth': 'off',
-    'react/jsx-pascal-case': 'warn',
     'vue/define-emits-declaration': ['warn', 'type-literal'],
     'vue/define-props-declaration': ['warn', 'type-based'],
     'vue/next-tick-style': ['warn', 'promise'],
     'vue/prop-name-casing': ['warn', 'camelCase'],
 
     'vue/require-prop-types': 'off',
+    'react/jsx-max-depth': 'off',
     'react/no-redundant-should-component-update': 'off',
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
   }

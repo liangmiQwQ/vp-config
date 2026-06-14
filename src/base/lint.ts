@@ -3,6 +3,10 @@ import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 import { cliOverride } from '../shared/lint.ts'
 
 // Rules Config
+const suspicious: DummyRuleMap = {
+  'no-shadow': 'off'
+}
+
 const nursery: DummyRuleMap = {
   // We hope typescript can process them.
   'no-undef': 'off',
@@ -174,6 +178,8 @@ export const lintBase: OxlintConfig = {
   },
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
+    // Enable all `correctness` and `perf` config
+    ...suspicious,
     ...nursery,
 
     ...restriction,

@@ -205,8 +205,10 @@ export const cleanupRule = defineRule({
   create(context) {
     return {
       'Program:exit'(): void {
-        if (isViteConfigFile(context.filename) && shouldCleanupRuntimeInfo()) {
-          cleanupRuntimeInfo(getConfigDirectory(context.filename))
+        const configDirectory = getConfigDirectory(context.filename)
+
+        if (isViteConfigFile(context.filename) && shouldCleanupRuntimeInfo(configDirectory)) {
+          cleanupRuntimeInfo(configDirectory)
         }
       }
     }

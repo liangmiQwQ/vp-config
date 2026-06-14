@@ -23,6 +23,7 @@ export interface VpConfigRuntimeInfo {
   }
   cleanup: {
     createdNodeModules: boolean
+    lspPid?: number
   }
 }
 
@@ -50,12 +51,13 @@ export function readRuntimeInfo(configDirectory: string): VpConfigRuntimeInfo | 
 }
 
 export function writeRuntimeInfo(input: RuntimeConfigInput): void {
-  if (!shouldWriteRuntimeInfo()) {
+  const { stack } = new Error('Find vite config caller')
+
+  if (!shouldWriteRuntimeInfo(stack)) {
     return
   }
 
-  const configFile =
-    findConfigFileFromStack(new Error('Find vite config caller').stack) ?? findCwdConfigFile()
+  const configFile = findConfigFileFromStack(stack) ?? findCwdConfigFile()
 
   if (!configFile) {
     return
@@ -65,12 +67,13 @@ export function writeRuntimeInfo(input: RuntimeConfigInput): void {
   const nodeModulesDirectory = join(configDirectory, 'node_modules')
   const createdNodeModules = !existsSync(nodeModulesDirectory)
   const infoPath = getInfoPath(configDirectory)
+  const previousInfo = readRuntimeInfo(configDirectory)
 
   rmSync(infoPath, { force: true })
   mkdirSync(dirname(infoPath), { recursive: true })
   writeFileSync(
     infoPath,
-    `${JSON.stringify(createRuntimeInfo(configFile, input, createdNodeModules), null, 2)}\n`
+    `${JSON.stringify(createRuntimeInfo(configFile, input, createdNodeModules, previousInfo), null, 2)}\n`
   )
 }
 
@@ -86,22 +89,28 @@ export function cleanupRuntimeInfo(configDirectory: string): void {
   }
 }
 
-export function shouldCleanupRuntimeInfo(argv: readonly string[] = process.argv): boolean {
-  return !argv.includes('--lsp')
+export function shouldCleanupRuntimeInfo(
+  configDirectory: string,
+  argv: readonly string[] = process.argv
+): boolean {
+  const info = readRuntimeInfo(configDirectory)
+
+  return !isLspProcess(argv) && !isRunningProcess(info?.cleanup.lspPid)
 }
 
 export function getConfigDirectory(filename: string): string {
   return dirname(filename)
 }
 
-function shouldWriteRuntimeInfo(): boolean {
-  return process.env.VP_COMMAND === 'lint' || process.env.VP_COMMAND === 'check'
+function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
+  return Boolean(stack?.includes('oxlint'))
 }
 
 function createRuntimeInfo(
   configFile: string,
   input: RuntimeConfigInput,
-  createdNodeModules: boolean
+  createdNodeModules: boolean,
+  previousInfo: VpConfigRuntimeInfo | undefined
 ): VpConfigRuntimeInfo {
   const configDirectory = dirname(configFile)
   const configKeys = Object.keys(input.config)
@@ -131,8 +140,44 @@ function createRuntimeInfo(
       isCli,
       isProject: isWebsite || isLib
     },
-    cleanup: { createdNodeModules }
+    cleanup: {
+      createdNodeModules,
+      lspPid: getRuntimeInfoLspPid(previousInfo)
+    }
   }
+}
+
+function getRuntimeInfoLspPid(previousInfo: VpConfigRuntimeInfo | undefined): number | undefined {
+  if (isLspProcess()) {
+    return process.pid
+  }
+
+  const previousLspPid = previousInfo?.cleanup.lspPid
+
+  return isRunningProcess(previousLspPid) ? previousLspPid : undefined
+}
+
+function isLspProcess(argv: readonly string[] = process.argv): boolean {
+  return argv.includes('--lsp')
+}
+
+function isRunningProcess(pid: number | undefined): boolean {
+  if (pid === undefined) {
+    return false
+  }
+
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return getErrorCode(error) === 'EPERM'
+  }
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : undefined
 }
 
 export function findConfigFileFromStack(stack: string | undefined): string | undefined {

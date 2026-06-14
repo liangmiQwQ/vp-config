@@ -67,10 +67,10 @@ test('registers liangmi oxlint plugin in base lint config', () => {
       'liangmi/no-useless-vp-preset-imports': 'error',
       'liangmi/use-preset-vp-config': 'error',
       'liangmi/load-proper-vp-config-category': 'error',
-      'liangmi/no-mixed-project': 'error',
-      'liangmi/cleanup': 'error'
+      'liangmi/no-mixed-project': 'error'
     }
   })
+  expect(lintBase.rules).toHaveProperty('liangmi/cleanup')
 })
 
 test('writes runtime info beside vite config and cleans it up', () => {
@@ -117,8 +117,29 @@ test('tracks every vite config filename supported by local vite-plus', () => {
 })
 
 test('disables cleanup in oxlint lsp mode', () => {
-  expect(shouldCleanupRuntimeInfo(['node', 'oxlint', '--lsp'])).toBe(false)
-  expect(shouldCleanupRuntimeInfo(['node', 'oxlint'])).toBe(true)
+  withTempProject(project => {
+    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint', '--lsp'])).toBe(false)
+    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint'])).toBe(true)
+  })
+})
+
+test('keeps runtime info when project oxlint lsp is running', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'lsp-project' })
+    const configPath = join(project, 'vite.config.ts')
+
+    withProcessArgv(['node', 'oxlint', '--lsp'], () => {
+      writeRuntimeInfoForConfig(configPath, 'base', { lint: {} })
+    })
+
+    expect(readRuntimeInfo(project)).toMatchObject({
+      cleanup: {
+        lspPid: process.pid
+      }
+    })
+    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint'])).toBe(false)
+    cleanupRuntimeInfo(project)
+  })
 })
 
 function withTempProject(run: (project: string) => void): void {
@@ -140,7 +161,6 @@ function writeRuntimeInfoForConfig(
   category: 'base' | 'cli' | 'lib' | 'website',
   config: Record<string, unknown>
 ): void {
-  process.env.VP_COMMAND = 'check'
   const previousStackTraceLimit = Error.stackTraceLimit
   Error.stackTraceLimit = 20
 
@@ -150,17 +170,28 @@ function writeRuntimeInfoForConfig(
     })
   } finally {
     Error.stackTraceLimit = previousStackTraceLimit
-    delete process.env.VP_COMMAND
   }
 }
 
 function callWithConfigStack(configPath: string, run: () => void): void {
   const originalPrepareStackTrace = Reflect.get(Error, 'prepareStackTrace')
-  Error.prepareStackTrace = (): string => `Error\n    at config (${configPath}:1:1)`
+  Error.prepareStackTrace = (): string =>
+    `Error\n    at oxlint (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`
 
   try {
     run()
   } finally {
     Error.prepareStackTrace = originalPrepareStackTrace
+  }
+}
+
+function withProcessArgv(argv: string[], run: () => void): void {
+  const originalArgv = process.argv
+  process.argv = argv
+
+  try {
+    run()
+  } finally {
+    process.argv = originalArgv
   }
 }

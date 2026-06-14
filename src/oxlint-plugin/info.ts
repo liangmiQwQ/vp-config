@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import type { ConfigName, ProjectConfigName } from './constants.ts'
+import type { ConfigName } from './constants.ts'
 import {
   configNames,
   infoDirectoryName,
@@ -20,7 +20,6 @@ export interface VpConfigRuntimeInfo {
   project: {
     hasViteConfigFields: boolean
     hasPack: boolean
-    hasPackageBin: boolean
   }
   cleanup: {
     createdNodeModules: boolean
@@ -144,7 +143,6 @@ function createRuntimeInfo(
   const configKeys = Object.keys(input.config)
   const hasPack = configKeys.includes('pack')
   const hasViteConfigFields = configKeys.some(isViteConfigField)
-  const { hasPackageBin } = readPackageJson(configDirectory)
 
   return {
     version: 1,
@@ -154,8 +152,7 @@ function createRuntimeInfo(
     configKeys,
     project: {
       hasViteConfigFields,
-      hasPack,
-      hasPackageBin
+      hasPack
     },
     cleanup: {
       createdNodeModules
@@ -500,17 +497,6 @@ function escapeRegExp(value: string): string {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`)
 }
 
-function readPackageJson(configDirectory: string): { hasPackageBin: boolean } {
-  try {
-    const packageJson = JSON.parse(readFileSync(join(configDirectory, 'package.json'), 'utf8'))
-    const { bin } = packageJson
-
-    return { hasPackageBin: typeof bin === 'string' || isNonEmptyObject(bin) }
-  } catch {
-    return { hasPackageBin: false }
-  }
-}
-
 function findCwdConfigFile(): string | undefined {
   for (const configName of viteConfigNames) {
     const configFile = join(process.cwd(), configName)
@@ -521,10 +507,6 @@ function findCwdConfigFile(): string | undefined {
   }
 
   return undefined
-}
-
-function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && Object.keys(value).length > 0
 }
 
 function parseRuntimeInfo(value: unknown): VpConfigRuntimeInfo | undefined {
@@ -555,26 +537,6 @@ export function isLibProject(info: VpConfigRuntimeInfo): boolean {
   return info.project.hasPack
 }
 
-export function isCliProject(info: VpConfigRuntimeInfo): boolean {
-  return isLibProject(info) && info.project.hasPackageBin
-}
-
 export function isProject(info: VpConfigRuntimeInfo): boolean {
   return isWebsiteProject(info) || isLibProject(info)
-}
-
-export function inferProjectCategory(info: VpConfigRuntimeInfo): ProjectConfigName | undefined {
-  if (isWebsiteProject(info)) {
-    return 'website'
-  }
-
-  if (isCliProject(info)) {
-    return 'cli'
-  }
-
-  if (isLibProject(info)) {
-    return 'lib'
-  }
-
-  return undefined
 }

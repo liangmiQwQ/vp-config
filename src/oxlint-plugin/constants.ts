@@ -16,7 +16,6 @@ export const viteConfigNames = [
 ] as const
 
 export type ConfigName = (typeof configNames)[number]
-export type ProjectConfigName = (typeof projectConfigNames)[number]
 
 export function isVpConfigEntrySpecifier(specifier: string): boolean {
   return (

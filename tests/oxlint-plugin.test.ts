@@ -77,7 +77,7 @@ test('registers liangmi oxlint plugin in base lint config', () => {
 
 test('writes runtime info beside vite config and cleans it up', () => {
   withTempProject(project => {
-    writeJson(join(project, 'package.json'), { name: 'cli-project', bin: './dist/cli.mjs' })
+    writeJson(join(project, 'package.json'), { name: 'project' })
     const configPath = join(project, 'vite.config.ts')
 
     writeRuntimeInfoForConfig(configPath, 'cli', { lint: {}, pack: {} })
@@ -90,14 +90,14 @@ test('writes runtime info beside vite config and cleans it up', () => {
       configDirectory: project,
       configKeys: ['lint', 'pack'],
       project: {
-        hasPack: true,
-        hasPackageBin: true
+        hasPack: true
       }
     })
     expect(info?.project).not.toHaveProperty('isWebsite')
     expect(info?.project).not.toHaveProperty('isLib')
     expect(info?.project).not.toHaveProperty('isCli')
     expect(info?.project).not.toHaveProperty('isProject')
+    expect(info?.project).not.toHaveProperty('hasPackageBin')
 
     cleanupRuntimeInfo(project)
     expect(readRuntimeInfo(project)).toBeUndefined()
@@ -171,7 +171,7 @@ test('reports current runtime category mismatch for local project config entry',
       "import { base } from './src/index.ts'\n\nexport default base({ lint: {}, pack: {} })\n"
     )
 
-    const reports = runLoadProperVpConfigCategoryRule(configPath, './src/index.ts', 'base')
+    const reports = runLoadProperVpConfigCategoryRule(configPath)
 
     expect(readRuntimeInfo(project)).toMatchObject({
       category: 'base',
@@ -181,6 +181,9 @@ test('reports current runtime category mismatch for local project config entry',
     })
     expect(reports).toMatchObject([
       {
+        node: {
+          type: 'Program'
+        },
         messageId: 'wrongCategory',
         data: {
           expected: '{ cli } or { lib } or { website }'
@@ -315,30 +318,16 @@ function callWithStack(stack: string, run: () => void): void {
 interface RuleReport {
   messageId: string
   data?: Record<string, string>
+  node?: {
+    type: string
+  }
 }
 
-function runLoadProperVpConfigCategoryRule(
-  filename: string,
-  source: string,
-  importedName: string
-): RuleReport[] {
+function runLoadProperVpConfigCategoryRule(filename: string): RuleReport[] {
   const reports: RuleReport[] = []
   const rule = loadProperVpConfigCategoryRule as unknown as {
     create: (context: { filename: string; report: (report: RuleReport) => void }) => {
-      ImportDeclaration?: (node: {
-        source: {
-          type: 'Literal'
-          value: string
-        }
-        specifiers: {
-          type: 'ImportSpecifier'
-          imported: {
-            type: 'Identifier'
-            name: string
-          }
-        }[]
-      }) => void
-      'Program:exit'?: (node: { type: 'Program' }) => void
+      Program?: (node: { type: 'Program' }) => void
     }
   }
   const visitor = rule.create({
@@ -347,25 +336,9 @@ function runLoadProperVpConfigCategoryRule(
       reports.push(report)
     }
   })
-  const visitImportDeclaration = visitor.ImportDeclaration
-  const visitProgramExit = visitor['Program:exit']
+  const visitProgram = visitor.Program
 
-  visitImportDeclaration?.({
-    source: {
-      type: 'Literal',
-      value: source
-    },
-    specifiers: [
-      {
-        type: 'ImportSpecifier',
-        imported: {
-          type: 'Identifier',
-          name: importedName
-        }
-      }
-    ]
-  })
-  visitProgramExit?.({ type: 'Program' })
+  visitProgram?.({ type: 'Program' })
 
   return reports
 }

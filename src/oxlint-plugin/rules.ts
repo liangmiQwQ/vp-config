@@ -1,18 +1,11 @@
 import { defineRule } from '@oxlint/plugins'
-import type { ESTree, Fix, Rule } from '@oxlint/plugins'
+import type { ESTree, Rule } from '@oxlint/plugins'
 
-import { getModuleExportName, isStringLiteral, isVpConfigSpecifier } from './ast.ts'
-import {
-  configNames,
-  isVpConfigEntrySpecifier,
-  packageName,
-  projectConfigNames,
-  rootConfigNames
-} from './constants.ts'
+import { isStringLiteral, isVpConfigSpecifier } from './ast.ts'
+import { packageName, projectConfigNames, rootConfigNames } from './constants.ts'
 import {
   ensureRuntimeInfo,
   getConfigDirectory,
-  inferProjectCategory,
   isLibProject,
   isProject,
   isWebsiteProject,
@@ -120,23 +113,20 @@ export const loadProperVpConfigCategoryRule = defineRule({
       description: `Load ${packageName} with a category that matches the package role.`,
       recommended: true
     },
-    fixable: 'code',
     messages: {
       wrongCategory: `Use {{expected}} from ${packageName} in this vite.config.ts.`
     }
   },
   create(context) {
-    const info = readRuntimeInfoForConfig(context.filename)
-    let configImportNode: ESTree.ImportDeclaration | undefined
-
     return {
-      ImportDeclaration(node): void {
-        if (isVpConfigEntrySpecifier(node.source.value)) {
-          configImportNode = node
+      Program(node): void {
+        if (!isViteConfigFile(context.filename)) {
+          return
         }
-      },
-      'Program:exit'(node): void {
-        if (!isViteConfigFile(context.filename) || !info?.category) {
+
+        const info = readRuntimeInfoForConfig(context.filename)
+
+        if (!info?.category) {
           return
         }
 
@@ -146,26 +136,12 @@ export const loadProperVpConfigCategoryRule = defineRule({
           return
         }
 
-        const expected = getExpectedCategory(isProject(info), inferProjectCategory(info))
-        const reportNode = configImportNode?.source ?? node
-
         context.report({
-          node: reportNode,
+          node,
           messageId: 'wrongCategory',
           data: {
             expected: allowed.map(name => `{ ${name} }`).join(' or ')
-          },
-          fix: expected
-            ? (fixer): Fix[] =>
-                (configImportNode?.specifiers ?? []).flatMap(specifier =>
-                  specifier.type === 'ImportSpecifier' &&
-                  configNames.includes(
-                    getModuleExportName(specifier.imported) as (typeof configNames)[number]
-                  )
-                    ? [fixer.replaceText(specifier.imported, expected)]
-                    : []
-                )
-            : undefined
+          }
         })
       }
     }
@@ -207,13 +183,6 @@ export const rules: Record<string, Rule> = {
   'use-preset-vp-config': usePresetVpConfigRule,
   'load-proper-vp-config-category': loadProperVpConfigCategoryRule,
   'no-mixed-project': noMixedProjectRule
-}
-
-function getExpectedCategory(
-  isProject: boolean,
-  inferredProjectCategory: string | undefined
-): string {
-  return isProject ? (inferredProjectCategory ?? 'lib') : 'base'
 }
 
 function getAllowedRuntimeConfigNames(info: VpConfigRuntimeInfo): readonly string[] {

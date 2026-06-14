@@ -18,5 +18,6 @@ export const cliOverride: OxlintConfig = {
 // For React and Vue component. There is no web-specific or node-specific rules so it can be used for both cli and website
 export const componentOverride: OxlintConfig = {
   env: { vue: true },
-  plugins: ['jsx-a11y', 'react', 'react-perf', 'vue']
+  plugins: ['react', 'react-perf', 'vue'],
+  rules: {}
 }

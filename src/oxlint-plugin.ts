@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
 import { definePlugin, defineRule } from '@oxlint/plugins'
@@ -10,22 +10,27 @@ const pluginName = 'liangmi'
 const projectConfigNames = ['cli', 'lib', 'website'] as const
 const rootConfigNames = ['base'] as const
 const configNames = [...rootConfigNames, ...projectConfigNames] as const
+const packageConfigFieldNames = new Set(['build', 'pack', 'plugins'])
 
 type ConfigName = (typeof configNames)[number]
 
-export function getAllowedConfigNames(filename: string): readonly ConfigName[] {
+export function getAllowedConfigNames(
+  filename: string,
+  isPackageConfig = isPackageConfigDirectory(dirname(filename))
+): readonly ConfigName[] {
   if (basename(filename) !== 'vite.config.ts') {
     return []
   }
 
-  return isWorkspaceRootConfigDirectory(dirname(filename)) ? rootConfigNames : projectConfigNames
+  return isPackageConfig ? projectConfigNames : rootConfigNames
 }
 
 export function isVpConfigImportAllowed(
   filename: string,
-  importedNames: readonly string[]
+  importedNames: readonly string[],
+  isPackageConfig?: boolean
 ): boolean {
-  const allowedNames = getAllowedConfigNames(filename)
+  const allowedNames = getAllowedConfigNames(filename, isPackageConfig)
   const allowedNameSet = new Set<string>(allowedNames)
 
   return (
@@ -48,6 +53,10 @@ const loadVpConfigCorrectlyRule = defineRule({
     }
   },
   create(context) {
+    let isPackageConfig = isPackageConfigDirectory(dirname(context.filename))
+    const moduleReferences: { filename: string; node: ESTree.Node; specifier: string }[] = []
+    const imports: { importedNames: readonly string[]; node: ESTree.Node }[] = []
+
     const reportModuleReference = (
       filename: string,
       specifier: string,
@@ -61,7 +70,7 @@ const loadVpConfigCorrectlyRule = defineRule({
         node,
         messageId: basename(filename) === 'vite.config.ts' ? 'wrongCategory' : 'outsideConfig',
         data: {
-          allowed: getAllowedConfigNames(filename)
+          allowed: getAllowedConfigNames(filename, isPackageConfig)
             .map(name => `{ ${name} }`)
             .join(' or ')
         }
@@ -69,11 +78,11 @@ const loadVpConfigCorrectlyRule = defineRule({
     }
 
     const reportWrongCategory = (node: ESTree.Node, importedNames: readonly string[]): void => {
-      if (isVpConfigImportAllowed(context.filename, importedNames)) {
+      if (isVpConfigImportAllowed(context.filename, importedNames, isPackageConfig)) {
         return
       }
 
-      const allowedNames = getAllowedConfigNames(context.filename)
+      const allowedNames = getAllowedConfigNames(context.filename, isPackageConfig)
       context.report({
         node,
         messageId: allowedNames.length > 0 ? 'wrongCategory' : 'outsideConfig',
@@ -84,25 +93,63 @@ const loadVpConfigCorrectlyRule = defineRule({
     }
 
     return {
+      'Program:exit'(): void {
+        for (const moduleReference of moduleReferences) {
+          reportModuleReference(
+            moduleReference.filename,
+            moduleReference.specifier,
+            moduleReference.node
+          )
+        }
+
+        for (const importReference of imports) {
+          reportWrongCategory(importReference.node, importReference.importedNames)
+        }
+      },
       ImportDeclaration(node): void {
         if (!isVpConfigSpecifier(node.source.value)) {
           return
         }
 
-        reportWrongCategory(node.source, getImportDeclarationNames(node))
+        imports.push({
+          importedNames: getImportDeclarationNames(node),
+          node: node.source
+        })
       },
       ExportAllDeclaration(node): void {
-        reportModuleReference(context.filename, node.source.value, node.source)
+        moduleReferences.push({
+          filename: context.filename,
+          node: node.source,
+          specifier: node.source.value
+        })
       },
       ExportNamedDeclaration(node): void {
         if (node.source) {
-          reportModuleReference(context.filename, node.source.value, node.source)
+          moduleReferences.push({
+            filename: context.filename,
+            node: node.source,
+            specifier: node.source.value
+          })
         }
       },
       ImportExpression(node): void {
         if (isStringLiteral(node.source)) {
-          reportModuleReference(context.filename, node.source.value, node.source)
+          moduleReferences.push({
+            filename: context.filename,
+            node: node.source,
+            specifier: node.source.value
+          })
         }
+      },
+      ObjectExpression(node): void {
+        if (isPackageConfig) {
+          return
+        }
+
+        isPackageConfig = node.properties.some(
+          property =>
+            isStaticProperty(property) && packageConfigFieldNames.has(getPropertyName(property))
+        )
       }
     }
   }
@@ -132,19 +179,22 @@ function isStringLiteral(node: ESTree.Node): node is ESTree.StringLiteral {
   return node.type === 'Literal' && typeof node.value === 'string'
 }
 
-function isWorkspaceRootConfigDirectory(directory: string): boolean {
-  if (existsSync(join(directory, 'pnpm-workspace.yaml'))) {
-    return true
-  }
+function isPackageConfigDirectory(directory: string): boolean {
+  return existsSync(join(directory, 'index.html'))
+}
 
-  const packageJsonPath = join(directory, 'package.json')
-  if (!existsSync(packageJsonPath)) {
-    return false
-  }
+function isStaticProperty(
+  property: ESTree.ObjectExpression['properties'][number]
+): property is ESTree.ObjectProperty & { key: ESTree.IdentifierName | ESTree.StringLiteral } {
+  return (
+    property.type === 'Property' &&
+    !property.computed &&
+    (property.key.type === 'Identifier' || isStringLiteral(property.key))
+  )
+}
 
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
-    workspaces?: unknown
-  }
-
-  return Boolean(packageJson.workspaces)
+function getPropertyName(
+  property: ESTree.ObjectProperty & { key: ESTree.IdentifierName | ESTree.StringLiteral }
+): string {
+  return property.key.type === 'Identifier' ? property.key.name : property.key.value
 }

@@ -17,3 +17,11 @@ export const viteConfigNames = [
 
 export type ConfigName = (typeof configNames)[number]
 export type ProjectConfigName = (typeof projectConfigNames)[number]
+
+export function isVpConfigEntrySpecifier(specifier: string): boolean {
+  return (
+    specifier === packageName ||
+    /(?:^|[\\/])src[\\/]index\.ts$/u.test(specifier) ||
+    specifier.endsWith('/src/index.ts')
+  )
+}

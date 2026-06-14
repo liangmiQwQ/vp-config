@@ -1,13 +1,14 @@
 import { defineRule } from '@oxlint/plugins'
 import type { ESTree, Fix, Rule } from '@oxlint/plugins'
 
+import { getModuleExportName, isStringLiteral, isVpConfigSpecifier } from './ast.ts'
 import {
-  getImportDeclarationNames,
-  getModuleExportName,
-  isStringLiteral,
-  isVpConfigSpecifier
-} from './ast.ts'
-import { configNames, packageName } from './constants.ts'
+  configNames,
+  isVpConfigEntrySpecifier,
+  packageName,
+  projectConfigNames,
+  rootConfigNames
+} from './constants.ts'
 import {
   ensureRuntimeInfo,
   getConfigDirectory,
@@ -18,12 +19,7 @@ import {
   readRuntimeInfo
 } from './info.ts'
 import type { VpConfigRuntimeInfo } from './info.ts'
-import {
-  getAllowedConfigNames,
-  hasPackageJson,
-  isViteConfigFile,
-  isVpConfigImportAllowed
-} from './project.ts'
+import { hasPackageJson, isViteConfigFile } from './project.ts'
 
 export const noOrphanViteConfigRule = defineRule({
   meta: {
@@ -131,24 +127,27 @@ export const loadProperVpConfigCategoryRule = defineRule({
   },
   create(context) {
     const info = readRuntimeInfoForConfig(context.filename)
+    let configImportNode: ESTree.ImportDeclaration | undefined
 
     return {
       ImportDeclaration(node): void {
-        if (!isViteConfigFile(context.filename) || !isVpConfigSpecifier(node.source.value)) {
+        if (isVpConfigEntrySpecifier(node.source.value)) {
+          configImportNode = node
+        }
+      },
+      'Program:exit'(node): void {
+        if (!isViteConfigFile(context.filename) || !info?.category) {
           return
         }
 
-        const importedNames = getImportDeclarationNames(node)
+        const allowed = getAllowedRuntimeConfigNames(info)
 
-        if (isVpConfigImportAllowed(context.filename, importedNames)) {
+        if (allowed.includes(info.category)) {
           return
         }
 
-        const expected = info
-          ? getExpectedCategory(isProject(info), inferProjectCategory(info))
-          : undefined
-        const allowed = expected ? [expected] : getAllowedConfigNames(context.filename)
-        const reportNode = node.source
+        const expected = getExpectedCategory(isProject(info), inferProjectCategory(info))
+        const reportNode = configImportNode?.source ?? node
 
         context.report({
           node: reportNode,
@@ -158,7 +157,7 @@ export const loadProperVpConfigCategoryRule = defineRule({
           },
           fix: expected
             ? (fixer): Fix[] =>
-                node.specifiers.flatMap(specifier =>
+                (configImportNode?.specifiers ?? []).flatMap(specifier =>
                   specifier.type === 'ImportSpecifier' &&
                   configNames.includes(
                     getModuleExportName(specifier.imported) as (typeof configNames)[number]
@@ -215,6 +214,10 @@ function getExpectedCategory(
   inferredProjectCategory: string | undefined
 ): string {
   return isProject ? (inferredProjectCategory ?? 'lib') : 'base'
+}
+
+function getAllowedRuntimeConfigNames(info: VpConfigRuntimeInfo): readonly string[] {
+  return isProject(info) ? projectConfigNames : rootConfigNames
 }
 
 function readRuntimeInfoForConfig(filename: string): VpConfigRuntimeInfo | undefined {

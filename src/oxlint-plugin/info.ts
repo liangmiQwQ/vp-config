@@ -7,7 +7,7 @@ import {
   configNames,
   infoDirectoryName,
   infoFileName,
-  packageName,
+  isVpConfigEntrySpecifier,
   viteConfigNames
 } from './constants.ts'
 
@@ -68,11 +68,6 @@ export function writeRuntimeInfo(input: RuntimeConfigInput): void {
 
 export function ensureRuntimeInfo(configFile: string): VpConfigRuntimeInfo | undefined {
   const configDirectory = dirname(configFile)
-  const existingInfo = readRuntimeInfo(configDirectory)
-
-  if (existingInfo) {
-    return existingInfo
-  }
 
   loadRuntimeInfo(configFile)
 
@@ -494,12 +489,7 @@ function splitSimpleList(source: string): string[] {
 }
 
 function isConfigEntrySpecifier(specifier: string | undefined): boolean {
-  return Boolean(
-    specifier &&
-    (specifier === packageName ||
-      /(?:^|[\\/])src[\\/]index\.ts$/u.test(specifier) ||
-      specifier.endsWith('/src/index.ts'))
-  )
+  return specifier ? isVpConfigEntrySpecifier(specifier) : false
 }
 
 function toConfigName(name: string | undefined): ConfigName | undefined {

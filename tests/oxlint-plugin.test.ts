@@ -15,6 +15,7 @@ import {
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
 import { ensureRuntimeInfo, findConfigFileFromStack } from '../src/oxlint-plugin/info.ts'
+import { loadProperVpConfigCategoryRule } from '../src/oxlint-plugin/rules.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -154,6 +155,42 @@ test('uses live index.html signal when runtime info exists', () => {
   })
 })
 
+test('reports current runtime category mismatch for local project config entry', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'category-project' })
+    const configPath = join(project, 'vite.config.ts')
+    writeFileSync(
+      configPath,
+      "import { lib } from './src/index.ts'\n\nexport default lib({ lint: {}, pack: {} })\n"
+    )
+
+    expect(ensureRuntimeInfo(configPath)).toMatchObject({ category: 'lib' })
+
+    writeFileSync(
+      configPath,
+      "import { base } from './src/index.ts'\n\nexport default base({ lint: {}, pack: {} })\n"
+    )
+
+    const reports = runLoadProperVpConfigCategoryRule(configPath, './src/index.ts', 'base')
+
+    expect(readRuntimeInfo(project)).toMatchObject({
+      category: 'base',
+      project: {
+        hasPack: true
+      }
+    })
+    expect(reports).toMatchObject([
+      {
+        messageId: 'wrongCategory',
+        data: {
+          expected: '{ cli } or { lib } or { website }'
+        }
+      }
+    ])
+    cleanupRuntimeInfo(project)
+  })
+})
+
 test('finds vite config files from windows stack paths', () => {
   const configPath = String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\vite.config.ts`
 
@@ -273,4 +310,62 @@ function callWithStack(stack: string, run: () => void): void {
   } finally {
     Error.prepareStackTrace = originalPrepareStackTrace
   }
+}
+
+interface RuleReport {
+  messageId: string
+  data?: Record<string, string>
+}
+
+function runLoadProperVpConfigCategoryRule(
+  filename: string,
+  source: string,
+  importedName: string
+): RuleReport[] {
+  const reports: RuleReport[] = []
+  const rule = loadProperVpConfigCategoryRule as unknown as {
+    create: (context: { filename: string; report: (report: RuleReport) => void }) => {
+      ImportDeclaration?: (node: {
+        source: {
+          type: 'Literal'
+          value: string
+        }
+        specifiers: {
+          type: 'ImportSpecifier'
+          imported: {
+            type: 'Identifier'
+            name: string
+          }
+        }[]
+      }) => void
+      'Program:exit'?: (node: { type: 'Program' }) => void
+    }
+  }
+  const visitor = rule.create({
+    filename,
+    report: report => {
+      reports.push(report)
+    }
+  })
+  const visitImportDeclaration = visitor.ImportDeclaration
+  const visitProgramExit = visitor['Program:exit']
+
+  visitImportDeclaration?.({
+    source: {
+      type: 'Literal',
+      value: source
+    },
+    specifiers: [
+      {
+        type: 'ImportSpecifier',
+        imported: {
+          type: 'Identifier',
+          name: importedName
+        }
+      }
+    ]
+  })
+  visitProgramExit?.({ type: 'Program' })
+
+  return reports
 }

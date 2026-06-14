@@ -6,12 +6,6 @@ export function isVpConfigSpecifier(specifier: string): boolean {
   return specifier === packageName
 }
 
-export function getImportDeclarationNames(node: ESTree.ImportDeclaration): string[] {
-  return node.specifiers.flatMap(specifier =>
-    specifier.type === 'ImportSpecifier' ? [getModuleExportName(specifier.imported)] : []
-  )
-}
-
 export function getModuleExportName(name: ESTree.ModuleExportName): string {
   return name.type === 'Literal' ? name.value : name.name
 }

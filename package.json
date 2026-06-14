@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "vp pack",
-    "check": "vp check",
+    "check": "vp pack && vp check",
     "dev": "vp pack --watch",
     "prepare": "vp config",
     "prepublishOnly": "vp run build",

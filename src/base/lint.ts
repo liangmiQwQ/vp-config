@@ -1,6 +1,5 @@
 import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 
-import { liangmiOxlintPluginSpecifier } from '../oxlint-plugin-specifier.ts'
 import { cliOverride } from '../shared/lint.ts'
 
 // Rules Config
@@ -180,7 +179,7 @@ export const lintBase: OxlintConfig = {
   jsPlugins: [
     {
       name: 'liangmi',
-      specifier: liangmiOxlintPluginSpecifier
+      specifier: '@liangmi/vp-config/oxlint-plugin'
     }
   ],
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],

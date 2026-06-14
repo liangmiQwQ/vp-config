@@ -38,7 +38,8 @@ test('registers liangmi oxlint plugin in base lint config', () => {
   expect(lintBase).toMatchObject({
     jsPlugins: [
       {
-        name: 'liangmi'
+        name: 'liangmi',
+        specifier: '@liangmi/vp-config/oxlint-plugin'
       }
     ],
     rules: {

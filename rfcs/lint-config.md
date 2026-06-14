@@ -12,9 +12,9 @@ We mark as `warn` for code format lint rules that process with linter (e.g. `imp
 
 We define a `liangmi` Oxlint JsPlugin, it is mainly to make sure users load this config in a proper way.
 
-Considering we have provided cli entry, it gives our ability to do runtime check for vite.config.ts. We generate a `node_modules/.vp-config/info.json`, it records necessary information used to do rule-checks, it should be deleted when running this rule. (If `node_modules` doesn't exist and is created by the entry function, delete it as well). If found this file is already existing, delete and regenerate a new one.
+Considering we have provided cli entry, it gives our ability to do runtime check for vite.config.ts. We generate a `node_modules/.vp-config/info.json`, it records raw runtime config signals used to do rule-checks. If found this file is already existing, delete and regenerate a new one.
 
-The runtime information should only be created when it is read by Oxlint. It should be possible to confirm by using some JavaScript trick (like error stack?).
+The runtime information should only be created when it is read by Oxlint. Use the error stack import path to confirm that Vite+ or Oxlint is loading the config.
 
 If a rule require runtime information, but there is not any, just simply ignore it. (except `liangmi/use-preset-config`).
 
@@ -83,9 +83,3 @@ Note: We don't strictly check the category, it only reports the wrong type acros
 #### `liangmi/no-mixed-project`
 
 If the project is inferred as both `lib` and `website`, report an error
-
-#### `liangmi/cleanup`
-
-This rule should not be disabled, it removes `node_modules/.vp-config/info.json`, if it is not enabled, some undefined behaviors can probably happen.
-
-It should not report any error.

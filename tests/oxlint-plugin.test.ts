@@ -14,11 +14,7 @@ import {
   readRuntimeInfo,
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
-import {
-  ensureRuntimeInfo,
-  findConfigFileFromStack,
-  shouldCleanupRuntimeInfo
-} from '../src/oxlint-plugin/info.ts'
+import { ensureRuntimeInfo, findConfigFileFromStack } from '../src/oxlint-plugin/info.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -75,7 +71,7 @@ test('registers liangmi oxlint plugin in base lint config', () => {
       'liangmi/no-mixed-project': 'error'
     }
   })
-  expect(lintBase.rules).toHaveProperty('liangmi/cleanup')
+  expect(lintBase.rules).not.toHaveProperty('liangmi/cleanup')
 })
 
 test('writes runtime info beside vite config and cleans it up', () => {
@@ -85,19 +81,22 @@ test('writes runtime info beside vite config and cleans it up', () => {
 
     writeRuntimeInfoForConfig(configPath, 'cli', { lint: {}, pack: {} })
 
-    expect(readRuntimeInfo(project)).toMatchObject({
+    const info = readRuntimeInfo(project)
+
+    expect(info).toMatchObject({
       category: 'cli',
       configFile: configPath,
       configDirectory: project,
       configKeys: ['lint', 'pack'],
       project: {
         hasPack: true,
-        hasPackageBin: true,
-        isLib: true,
-        isCli: true,
-        isProject: true
+        hasPackageBin: true
       }
     })
+    expect(info?.project).not.toHaveProperty('isWebsite')
+    expect(info?.project).not.toHaveProperty('isLib')
+    expect(info?.project).not.toHaveProperty('isCli')
+    expect(info?.project).not.toHaveProperty('isProject')
 
     cleanupRuntimeInfo(project)
     expect(readRuntimeInfo(project)).toBeUndefined()
@@ -118,6 +117,39 @@ test('ensures runtime info by loading vite config from oxlint plugin', () => {
 
     expect(info).toMatchObject({ category: 'lib' })
     expect(info?.configKeys).toEqual(expect.arrayContaining(['lint', 'pack']))
+    cleanupRuntimeInfo(project)
+  })
+})
+
+test('detects vite config fields by excluding vite-plus specific fields', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'website-config-project' })
+    const configPath = join(project, 'vite.config.ts')
+
+    writeRuntimeInfoForConfig(configPath, 'website', { lint: {}, server: {}, test: {} })
+
+    expect(readRuntimeInfo(project)).toMatchObject({
+      project: {
+        hasViteConfigFields: true,
+        hasPack: false
+      }
+    })
+    cleanupRuntimeInfo(project)
+  })
+})
+
+test('uses live index.html signal when runtime info exists', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'static-site-project' })
+    const configPath = join(project, 'vite.config.ts')
+
+    writeRuntimeInfoForConfig(configPath, 'base', { lint: {} })
+
+    expect(getAllowedConfigNames(configPath)).toEqual(['base'])
+
+    writeFileSync(join(project, 'index.html'), '')
+
+    expect(getAllowedConfigNames(configPath)).toEqual(['cli', 'lib', 'website'])
     cleanupRuntimeInfo(project)
   })
 })
@@ -155,46 +187,20 @@ test('tracks every vite config filename supported by local vite-plus', () => {
   ])
 })
 
-test('disables cleanup in oxlint lsp mode', () => {
-  withTempProject(project => {
-    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint', '--lsp'])).toBe(false)
-    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint'])).toBe(true)
-  })
-})
-
-test('keeps runtime info when project oxlint lsp is running', () => {
-  withTempProject(project => {
-    writeJson(join(project, 'package.json'), { name: 'lsp-project' })
-    const configPath = join(project, 'vite.config.ts')
-
-    withProcessArgv(['node', 'oxlint', '--lsp'], () => {
-      writeRuntimeInfoForConfig(configPath, 'base', { lint: {} })
-    })
-
-    expect(readRuntimeInfo(project)).toMatchObject({
-      cleanup: {
-        lspPid: process.pid
-      }
-    })
-    expect(shouldCleanupRuntimeInfo(project, ['node', 'oxlint'])).toBe(false)
-    cleanupRuntimeInfo(project)
-  })
-})
-
 test('writes runtime info from config stack during vite-plus check', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'check-project' })
     const configPath = join(project, 'vite.config.ts')
 
-    withVpCommand('check', () => {
-      callWithConfigStack(
-        configPath,
-        () => {
-          writeRuntimeInfo({ category: 'base', config: { lint: {} } })
-        },
-        'loadVitePlusConfigs'
-      )
-    })
+    callWithStack(
+      `Error\n    at resolveUniversalViteConfig (${join(
+        project,
+        'node_modules/vite-plus/dist/resolve-vite-config-abc123.js'
+      )}:1:1)\n    at config (${configPath}:1:1)`,
+      () => {
+        writeRuntimeInfo({ category: 'base', config: { lint: {} } })
+      }
+    )
 
     expect(readRuntimeInfo(project)).toMatchObject({
       category: 'base',
@@ -256,32 +262,6 @@ function callWithConfigStack(configPath: string, run: () => void, stackEntry = '
     `Error\n    at ${stackEntry} (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`,
     run
   )
-}
-
-function withProcessArgv(argv: string[], run: () => void): void {
-  const originalArgv = process.argv
-  process.argv = argv
-
-  try {
-    run()
-  } finally {
-    process.argv = originalArgv
-  }
-}
-
-function withVpCommand(command: string, run: () => void): void {
-  const originalCommand = process.env.VP_COMMAND
-  process.env.VP_COMMAND = command
-
-  try {
-    run()
-  } finally {
-    if (originalCommand === undefined) {
-      delete process.env.VP_COMMAND
-    } else {
-      process.env.VP_COMMAND = originalCommand
-    }
-  }
 }
 
 function callWithStack(stack: string, run: () => void): void {

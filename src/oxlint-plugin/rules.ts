@@ -9,12 +9,13 @@ import {
 } from './ast.ts'
 import { configNames, packageName } from './constants.ts'
 import {
-  cleanupRuntimeInfo,
   ensureRuntimeInfo,
   getConfigDirectory,
   inferProjectCategory,
-  readRuntimeInfo,
-  shouldCleanupRuntimeInfo
+  isLibProject,
+  isProject,
+  isWebsiteProject,
+  readRuntimeInfo
 } from './info.ts'
 import type { VpConfigRuntimeInfo } from './info.ts'
 import {
@@ -144,7 +145,7 @@ export const loadProperVpConfigCategoryRule = defineRule({
         }
 
         const expected = info
-          ? getExpectedCategory(info.project.isProject, inferProjectCategory(info))
+          ? getExpectedCategory(isProject(info), inferProjectCategory(info))
           : undefined
         const allowed = expected ? [expected] : getAllowedConfigNames(context.filename)
         const reportNode = node.source
@@ -188,29 +189,13 @@ export const noMixedProjectRule = defineRule({
       Program(node): void {
         const info = readRuntimeInfoForConfig(context.filename)
 
-        if (isViteConfigFile(context.filename) && info?.project.isWebsite && info.project.isLib) {
+        if (
+          isViteConfigFile(context.filename) &&
+          info &&
+          isWebsiteProject(info) &&
+          isLibProject(info)
+        ) {
           context.report({ node, messageId: 'mixed' })
-        }
-      }
-    }
-  }
-})
-
-export const cleanupRule = defineRule({
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Remove temporary @liangmi/vp-config runtime lint information.',
-      recommended: true
-    }
-  },
-  create(context) {
-    return {
-      'Program:exit'(): void {
-        const configDirectory = getConfigDirectory(context.filename)
-
-        if (isViteConfigFile(context.filename) && shouldCleanupRuntimeInfo(configDirectory)) {
-          cleanupRuntimeInfo(configDirectory)
         }
       }
     }
@@ -222,8 +207,7 @@ export const rules: Record<string, Rule> = {
   'no-useless-vp-preset-imports': noUselessVpPresetImportsRule,
   'use-preset-vp-config': usePresetVpConfigRule,
   'load-proper-vp-config-category': loadProperVpConfigCategoryRule,
-  'no-mixed-project': noMixedProjectRule,
-  cleanup: cleanupRule
+  'no-mixed-project': noMixedProjectRule
 }
 
 function getExpectedCategory(

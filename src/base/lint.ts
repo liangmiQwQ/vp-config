@@ -198,8 +198,7 @@ export const lintBase: OxlintConfig = {
     'liangmi/no-useless-vp-preset-imports': 'error',
     'liangmi/use-preset-vp-config': 'error',
     'liangmi/load-proper-vp-config-category': 'error',
-    'liangmi/no-mixed-project': 'error',
-    'liangmi/cleanup': 'warn' // It should not be report
+    'liangmi/no-mixed-project': 'error'
   },
   options: {
     typeAware: true,

@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path'
 
 import type { ConfigName } from './constants.ts'
 import { projectConfigNames, rootConfigNames, viteConfigNames } from './constants.ts'
-import { readRuntimeInfo } from './info.ts'
+import { isProject, readRuntimeInfo } from './info.ts'
 
 export function getAllowedConfigNames(filename: string): readonly ConfigName[] {
   if (!isViteConfigFile(filename)) {
@@ -12,7 +12,7 @@ export function getAllowedConfigNames(filename: string): readonly ConfigName[] {
 
   const info = readRuntimeInfo(dirname(filename))
 
-  return info?.project.isProject || isStaticWebsiteProjectDirectory(dirname(filename))
+  return (info ? isProject(info) : isStaticWebsiteProjectDirectory(dirname(filename)))
     ? projectConfigNames
     : rootConfigNames
 }

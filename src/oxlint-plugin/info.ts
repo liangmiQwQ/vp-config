@@ -1,10 +1,15 @@
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 
 import type { ConfigName, ProjectConfigName } from './constants.ts'
-import { infoDirectoryName, infoFileName, viteConfigNames } from './constants.ts'
+import {
+  configNames,
+  infoDirectoryName,
+  infoFileName,
+  packageName,
+  viteConfigNames
+} from './constants.ts'
 
 export interface VpConfigRuntimeInfo {
   version: 1
@@ -13,18 +18,12 @@ export interface VpConfigRuntimeInfo {
   category?: ConfigName
   configKeys: string[]
   project: {
-    hasViteEntry: boolean
     hasViteConfigFields: boolean
     hasPack: boolean
     hasPackageBin: boolean
-    isWebsite: boolean
-    isLib: boolean
-    isCli: boolean
-    isProject: boolean
   }
   cleanup: {
     createdNodeModules: boolean
-    lspPid?: number
   }
 }
 
@@ -64,18 +63,7 @@ export function writeRuntimeInfo(input: RuntimeConfigInput): void {
     return
   }
 
-  const configDirectory = dirname(configFile)
-  const nodeModulesDirectory = join(configDirectory, 'node_modules')
-  const createdNodeModules = !existsSync(nodeModulesDirectory)
-  const infoPath = getInfoPath(configDirectory)
-  const previousInfo = readRuntimeInfo(configDirectory)
-
-  rmSync(infoPath, { force: true })
-  mkdirSync(dirname(infoPath), { recursive: true })
-  writeFileSync(
-    infoPath,
-    `${JSON.stringify(createRuntimeInfo(configFile, input, createdNodeModules, previousInfo), null, 2)}\n`
-  )
+  writeRuntimeInfoFile(configFile, input)
 }
 
 export function ensureRuntimeInfo(configFile: string): VpConfigRuntimeInfo | undefined {
@@ -103,27 +91,26 @@ export function cleanupRuntimeInfo(configDirectory: string): void {
   }
 }
 
-export function shouldCleanupRuntimeInfo(
-  configDirectory: string,
-  argv: readonly string[] = process.argv
-): boolean {
-  const info = readRuntimeInfo(configDirectory)
-
-  return !isLspProcess(argv) && !isRunningProcess(info?.cleanup.lspPid)
-}
-
 export function getConfigDirectory(filename: string): string {
   return dirname(filename)
 }
 
-function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
-  return Boolean(
-    isVpLintOrCheck() || hasOxlintEntryStack(stack) || stack?.includes('resolveUniversalViteConfig')
+function writeRuntimeInfoFile(configFile: string, input: RuntimeConfigInput): void {
+  const configDirectory = dirname(configFile)
+  const nodeModulesDirectory = join(configDirectory, 'node_modules')
+  const createdNodeModules = !existsSync(nodeModulesDirectory)
+  const infoPath = getInfoPath(configDirectory)
+
+  rmSync(infoPath, { force: true })
+  mkdirSync(dirname(infoPath), { recursive: true })
+  writeFileSync(
+    infoPath,
+    `${JSON.stringify(createRuntimeInfo(configFile, input, createdNodeModules), null, 2)}\n`
   )
 }
 
-function isVpLintOrCheck(command = process.env.VP_COMMAND): boolean {
-  return command === 'lint' || command === 'check'
+function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
+  return hasOxlintEntryStack(stack) || hasVitePlusResolveStack(stack)
 }
 
 function hasOxlintEntryStack(stack: string | undefined): boolean {
@@ -135,47 +122,34 @@ function hasOxlintEntryStack(stack: string | undefined): boolean {
   )
 }
 
+function hasVitePlusResolveStack(stack: string | undefined): boolean {
+  return Boolean(
+    stack &&
+    /node_modules[\\/]vite-plus[\\/]dist[\\/]resolve-vite-config(?:-[^\\/]+)?\.js/u.test(stack)
+  )
+}
+
 function loadRuntimeInfo(configFile: string): void {
-  try {
-    execFileSync(
-      process.execPath,
-      [
-        '--input-type=module',
-        '--eval',
-        `await import(${JSON.stringify(pathToFileURL(configFile).href)})`
-      ],
-      {
-        cwd: dirname(configFile),
-        env: {
-          ...process.env,
-          VP_COMMAND: 'lint',
-          VP_OXLINT_LSP: isLspProcess() ? 'true' : undefined
-        },
-        stdio: 'ignore'
-      }
-    )
-  } catch {
+  const input = readRuntimeConfigInput(configFile)
+
+  if (!input) {
     // The rule that needs runtime info will report the missing info.
+    return
   }
+
+  writeRuntimeInfoFile(configFile, input)
 }
 
 function createRuntimeInfo(
   configFile: string,
   input: RuntimeConfigInput,
-  createdNodeModules: boolean,
-  previousInfo: VpConfigRuntimeInfo | undefined
+  createdNodeModules: boolean
 ): VpConfigRuntimeInfo {
   const configDirectory = dirname(configFile)
   const configKeys = Object.keys(input.config)
-  const hasViteEntry = existsSync(join(configDirectory, 'index.html'))
   const hasPack = configKeys.includes('pack')
-  const hasViteConfigFields = configKeys.some(key =>
-    key === 'lint' ? false : ['build', 'preview', 'plugins'].includes(key)
-  )
+  const hasViteConfigFields = configKeys.some(isViteConfigField)
   const { hasPackageBin } = readPackageJson(configDirectory)
-  const isWebsite = hasViteEntry || hasViteConfigFields
-  const isLib = hasPack
-  const isCli = isLib && hasPackageBin
 
   return {
     version: 1,
@@ -184,53 +158,20 @@ function createRuntimeInfo(
     category: input.category,
     configKeys,
     project: {
-      hasViteEntry,
       hasViteConfigFields,
       hasPack,
-      hasPackageBin,
-      isWebsite,
-      isLib,
-      isCli,
-      isProject: isWebsite || isLib
+      hasPackageBin
     },
     cleanup: {
-      createdNodeModules,
-      lspPid: getRuntimeInfoLspPid(previousInfo)
+      createdNodeModules
     }
   }
 }
 
-function getRuntimeInfoLspPid(previousInfo: VpConfigRuntimeInfo | undefined): number | undefined {
-  if (isLspProcess()) {
-    return process.pid
-  }
+const vitePlusConfigKeys = new Set(['create', 'fmt', 'lint', 'pack', 'run', 'staged', 'test'])
 
-  const previousLspPid = previousInfo?.cleanup.lspPid
-
-  return isRunningProcess(previousLspPid) ? previousLspPid : undefined
-}
-
-function isLspProcess(argv: readonly string[] = process.argv): boolean {
-  return argv.includes('--lsp') || (argv === process.argv && process.env.VP_OXLINT_LSP === 'true')
-}
-
-function isRunningProcess(pid: number | undefined): boolean {
-  if (pid === undefined) {
-    return false
-  }
-
-  try {
-    process.kill(pid, 0)
-    return true
-  } catch (error) {
-    return getErrorCode(error) === 'EPERM'
-  }
-}
-
-function getErrorCode(error: unknown): string | undefined {
-  return typeof error === 'object' && error !== null && 'code' in error
-    ? String(error.code)
-    : undefined
+function isViteConfigField(key: string): boolean {
+  return !vitePlusConfigKeys.has(key)
 }
 
 export function findConfigFileFromStack(stack: string | undefined): string | undefined {
@@ -276,6 +217,297 @@ function resolveBundledConfigPath(path: string): string {
   return bundledConfigMatch
     ? `${bundledConfigMatch[1]}${bundledConfigMatch[2]}${bundledConfigMatch[3]}`
     : path
+}
+
+// Oxlint rule visitors are synchronous, so inspect the supported preset call shape instead of importing vite.config.ts.
+function readRuntimeConfigInput(configFile: string): RuntimeConfigInput | undefined {
+  try {
+    return parseRuntimeConfigInput(readFileSync(configFile, 'utf8'))
+  } catch {
+    return undefined
+  }
+}
+
+function parseRuntimeConfigInput(source: string): RuntimeConfigInput | undefined {
+  const imports = getConfigImports(source)
+
+  for (const [localName, category] of imports.named) {
+    const input = findConfigCallInput(source, localName, category)
+
+    if (input) {
+      return input
+    }
+  }
+
+  for (const namespace of imports.namespaces) {
+    for (const category of configNames) {
+      const input = findConfigCallInput(source, `${namespace}.${category}`, category)
+
+      if (input) {
+        return input
+      }
+    }
+  }
+
+  return undefined
+}
+
+function getConfigImports(source: string): {
+  named: Map<string, ConfigName>
+  namespaces: Set<string>
+} {
+  const named = new Map<string, ConfigName>()
+  const namespaces = new Set<string>()
+
+  for (const match of source.matchAll(
+    /import\s*\{(?<imports>[^}]+)\}\s*from\s*['"](?<specifier>[^'"]+)['"]/gu
+  )) {
+    if (!isConfigEntrySpecifier(match.groups?.specifier)) {
+      continue
+    }
+
+    for (const specifier of splitSimpleList(match.groups?.imports ?? '')) {
+      const [importedName, localName] = specifier.split(/\s+as\s+/u).map(part => part.trim())
+      const category = toConfigName(importedName)
+
+      if (category) {
+        named.set(localName || importedName, category)
+      }
+    }
+  }
+
+  for (const match of source.matchAll(
+    /import\s*\*\s*as\s*(?<localName>[$A-Z_a-z][$\w]*)\s*from\s*['"](?<specifier>[^'"]+)['"]/gu
+  )) {
+    if (isConfigEntrySpecifier(match.groups?.specifier) && match.groups?.localName) {
+      namespaces.add(match.groups.localName)
+    }
+  }
+
+  for (const match of source.matchAll(
+    /const\s*\{(?<imports>[^}]+)\}\s*=\s*require\(\s*['"](?<specifier>[^'"]+)['"]\s*\)/gu
+  )) {
+    if (!isConfigEntrySpecifier(match.groups?.specifier)) {
+      continue
+    }
+
+    for (const specifier of splitSimpleList(match.groups?.imports ?? '')) {
+      const [importedName, localName] = specifier.split(/\s*:\s*/u).map(part => part.trim())
+      const category = toConfigName(importedName)
+
+      if (category) {
+        named.set(localName || importedName, category)
+      }
+    }
+  }
+
+  return { named, namespaces }
+}
+
+function findConfigCallInput(
+  source: string,
+  callee: string,
+  category: ConfigName
+): RuntimeConfigInput | undefined {
+  const callPattern = new RegExp(
+    `(^|[^$\\w])${callee
+      .split('.')
+      .map(part => escapeRegExp(part))
+      .join(String.raw`\s*\.\s*`)}\\s*(?:\\.\\s*(?<method>only|exclude)\\s*)?\\(`,
+    'gu'
+  )
+
+  for (const match of source.matchAll(callPattern)) {
+    const openParenIndex = match.index + match[0].lastIndexOf('(')
+    const argumentIndex = match.groups?.method ? 1 : 0
+    const argument = readCallArgument(source, openParenIndex, argumentIndex)
+    const configKeys = argument ? readObjectKeys(argument) : []
+
+    if (configKeys.length > 0 || argument?.trim() === '{}') {
+      return {
+        category,
+        config: Object.fromEntries(configKeys.map(key => [key, true]))
+      }
+    }
+  }
+
+  return undefined
+}
+
+function readCallArgument(
+  source: string,
+  openParenIndex: number,
+  argumentIndex: number
+): string | undefined {
+  const closeParenIndex = findClosingDelimiter(source, openParenIndex, '(', ')')
+
+  if (closeParenIndex === undefined) {
+    return undefined
+  }
+
+  return splitTopLevel(source.slice(openParenIndex + 1, closeParenIndex), ',')[argumentIndex]
+}
+
+function readObjectKeys(source: string): string[] {
+  const objectStart = source.search(/\S/u)
+
+  if (objectStart === -1 || source[objectStart] !== '{') {
+    return []
+  }
+
+  const objectEnd = findClosingDelimiter(source, objectStart, '{', '}')
+
+  if (objectEnd === undefined) {
+    return []
+  }
+
+  return splitTopLevel(source.slice(objectStart + 1, objectEnd), ',').flatMap(readPropertyKey)
+}
+
+function readPropertyKey(source: string): string[] {
+  const property = source.trim()
+
+  if (!property || property.startsWith('...') || property.startsWith('[')) {
+    return []
+  }
+
+  const quotedKeyMatch = /^['"](?<key>[^'"]+)['"]\s*[:(]/u.exec(property)
+
+  if (quotedKeyMatch?.groups?.key) {
+    return [quotedKeyMatch.groups.key]
+  }
+
+  const identifierKeyMatch =
+    /^(?:async\s+|get\s+|set\s+)?(?<key>[$A-Z_a-z][$\w]*)\s*(?::|\(|$)/u.exec(property)
+
+  return identifierKeyMatch?.groups?.key ? [identifierKeyMatch.groups.key] : []
+}
+
+function splitTopLevel(source: string, separator: string): string[] {
+  const parts: string[] = []
+  let start = 0
+  let depth = 0
+
+  for (let index = 0; index < source.length; index += 1) {
+    const skippedIndex = skipSyntax(source, index)
+
+    if (skippedIndex !== index) {
+      index = skippedIndex
+      continue
+    }
+
+    const char = source[index]
+
+    if (char === '(' || char === '[' || char === '{') {
+      depth += 1
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth -= 1
+    } else if (char === separator && depth === 0) {
+      parts.push(source.slice(start, index).trim())
+      start = index + 1
+    }
+  }
+
+  parts.push(source.slice(start).trim())
+
+  return parts.filter(Boolean)
+}
+
+function findClosingDelimiter(
+  source: string,
+  openIndex: number,
+  openDelimiter: string,
+  closeDelimiter: string
+): number | undefined {
+  let depth = 0
+
+  for (let index = openIndex; index < source.length; index += 1) {
+    const skippedIndex = skipSyntax(source, index)
+
+    if (skippedIndex !== index) {
+      index = skippedIndex
+      continue
+    }
+
+    if (source[index] === openDelimiter) {
+      depth += 1
+    } else if (source[index] === closeDelimiter) {
+      depth -= 1
+
+      if (depth === 0) {
+        return index
+      }
+    }
+  }
+
+  return undefined
+}
+
+function skipSyntax(source: string, index: number): number {
+  const char = source[index]
+  const nextChar = source[index + 1]
+
+  if (char === '"' || char === "'" || char === '`') {
+    return skipString(source, index, char)
+  }
+
+  if (char === '/' && nextChar === '/') {
+    return skipLineComment(source, index)
+  }
+
+  if (char === '/' && nextChar === '*') {
+    return skipBlockComment(source, index)
+  }
+
+  return index
+}
+
+function skipString(source: string, start: number, quote: string): number {
+  for (let index = start + 1; index < source.length; index += 1) {
+    if (source[index] === '\\') {
+      index += 1
+    } else if (source[index] === quote) {
+      return index
+    }
+  }
+
+  return source.length - 1
+}
+
+function skipLineComment(source: string, start: number): number {
+  const end = source.indexOf('\n', start + 2)
+
+  return end === -1 ? source.length - 1 : end
+}
+
+function skipBlockComment(source: string, start: number): number {
+  const end = source.indexOf('*/', start + 2)
+
+  return end === -1 ? source.length - 1 : end + 1
+}
+
+function splitSimpleList(source: string): string[] {
+  return source
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean)
+}
+
+function isConfigEntrySpecifier(specifier: string | undefined): boolean {
+  return Boolean(
+    specifier &&
+    (specifier === packageName ||
+      /(?:^|[\\/])src[\\/]index\.ts$/u.test(specifier) ||
+      specifier.endsWith('/src/index.ts'))
+  )
+}
+
+function toConfigName(name: string | undefined): ConfigName | undefined {
+  return configNames.includes(name as ConfigName) ? (name as ConfigName) : undefined
+}
+
+function escapeRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`)
 }
 
 function readPackageJson(configDirectory: string): { hasPackageBin: boolean } {
@@ -325,16 +557,32 @@ function isRuntimeInfo(value: unknown): value is VpConfigRuntimeInfo {
   )
 }
 
+export function isWebsiteProject(info: VpConfigRuntimeInfo): boolean {
+  return existsSync(join(info.configDirectory, 'index.html')) || info.project.hasViteConfigFields
+}
+
+export function isLibProject(info: VpConfigRuntimeInfo): boolean {
+  return info.project.hasPack
+}
+
+export function isCliProject(info: VpConfigRuntimeInfo): boolean {
+  return isLibProject(info) && info.project.hasPackageBin
+}
+
+export function isProject(info: VpConfigRuntimeInfo): boolean {
+  return isWebsiteProject(info) || isLibProject(info)
+}
+
 export function inferProjectCategory(info: VpConfigRuntimeInfo): ProjectConfigName | undefined {
-  if (info.project.isWebsite) {
+  if (isWebsiteProject(info)) {
     return 'website'
   }
 
-  if (info.project.isCli) {
+  if (isCliProject(info)) {
     return 'cli'
   }
 
-  if (info.project.isLib) {
+  if (isLibProject(info)) {
     return 'lib'
   }
 

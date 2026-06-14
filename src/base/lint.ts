@@ -1,5 +1,6 @@
 import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 
+import { liangmiOxlintPluginSpecifier } from '../oxlint-plugin-specifier.ts'
 import { cliOverride } from '../shared/lint.ts'
 
 // Rules Config
@@ -176,6 +177,12 @@ export const lintBase: OxlintConfig = {
     restriction: 'off',
     pedantic: 'off'
   },
+  jsPlugins: [
+    {
+      name: 'liangmi',
+      specifier: liangmiOxlintPluginSpecifier
+    }
+  ],
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
     // Enable all `correctness` and `perf` config
@@ -185,6 +192,7 @@ export const lintBase: OxlintConfig = {
     ...restriction,
     ...pedantic,
     ...style,
+    'liangmi/load-vp-config-correctly': 'error',
     'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {
@@ -215,6 +223,12 @@ export const lintBase: OxlintConfig = {
         'no-console': 'error'
       },
       files: ['*.config.ts']
+    },
+    {
+      rules: {
+        'import/no-default-export': 'off'
+      },
+      files: ['./src/oxlint-plugin.ts']
     }
   ]
 }

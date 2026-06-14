@@ -4,10 +4,20 @@ export default lib({
   staged: {
     '*': 'vp check --fix'
   },
-  pack: {
-    dts: {
-      tsgo: true
+  pack: [
+    {
+      dts: {
+        tsgo: true
+      },
+      entry: ['./src/index.ts'],
+      exports: true
     },
-    exports: true
-  }
+    {
+      dts: {
+        tsgo: true
+      },
+      entry: ['./src/oxlint-plugin.ts'],
+      exports: false
+    }
+  ]
 })

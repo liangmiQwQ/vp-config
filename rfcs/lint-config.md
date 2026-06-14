@@ -33,13 +33,6 @@ If any one of these conditions is satisfied, the directory of `vite.config.ts` i
 
 - There is `pack` field passed in `vite.config.ts` (Runtime-based analyze)
 
-#### Is it a cli project
-
-If both of these conditions are satisfied, the directory of `vite.config.ts` is a cli / tui project.
-
-- This directory is a lib project
-- There is at least one `bin` defined in `package.json` near the `vite.config.ts` (Runtime-based analyze)
-
 #### Is it a project
 
 If any one of these conditions is satisfied, the directory of `vite.config.ts` is a project.
@@ -67,19 +60,25 @@ If find a import of `@liangmi/vp-config` outside of the `vite.config.ts`, report
 
 This rule is a special one, it can run without runtime information, but it actually needs them.
 
+The error span should be the whole `vite.config.ts` file.
+
 Report an error if a `vite.config.ts` does not have a corresponding `info.json`.
 
 #### `liangmi/load-proper-vp-config-category`
 
+This rule need runtime information, the error span should be the whole `vite.config.ts` file.
+
 We hope users load project in these way:
 
-- `base` category for `vite.config.ts` in a workspace root.
+- `base` category for `vite.config.ts` not in a project (workspace root).
 - `cli` | `lib` | `website` category for `vite.config.ts` in a project.
 
-If a user uses the wrong category for a project, report an error, provide a autofix, infer the proper category based on the `concept` part (Order: `website` > `cli` > `lib`).
+If a user uses the wrong category, report an error.
 
-Note: We don't strictly check the category, it only reports the wrong type across workspace root and project. For example, if users use `lib` category but it is inferred as a `cli` category, just treat it as proper.
+Note: We don't strictly check the category, it only reports the wrong type across workspace root and project. For example, if users use `website` category but it is inferred as a `lib` category, just ignore it.
 
 #### `liangmi/no-mixed-project`
+
+This rule need runtime information, the error span should be the whole `vite.config.ts` file.
 
 If the project is inferred as both `lib` and `website`, report an error

@@ -163,6 +163,7 @@ const loadVpConfigCorrectlyRule: Rule = {
   }
 }
 
+// oxlint-disable-next-line import/no-default-export
 export default {
   meta: { name: pluginName },
   rules: { [ruleName]: loadVpConfigCorrectlyRule }

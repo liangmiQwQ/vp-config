@@ -10,11 +10,13 @@ import {
 import { configNames, packageName } from './constants.ts'
 import {
   cleanupRuntimeInfo,
+  ensureRuntimeInfo,
   getConfigDirectory,
   inferProjectCategory,
   readRuntimeInfo,
   shouldCleanupRuntimeInfo
 } from './info.ts'
+import type { VpConfigRuntimeInfo } from './info.ts'
 import {
   getAllowedConfigNames,
   hasPackageJson,
@@ -106,7 +108,7 @@ export const usePresetVpConfigRule = defineRule({
           return
         }
 
-        if (!readRuntimeInfo(getConfigDirectory(context.filename))) {
+        if (!readRuntimeInfoForConfig(context.filename)) {
           context.report({ node, messageId: 'missingRuntimeInfo' })
         }
       }
@@ -127,7 +129,7 @@ export const loadProperVpConfigCategoryRule = defineRule({
     }
   },
   create(context) {
-    const info = readRuntimeInfo(getConfigDirectory(context.filename))
+    const info = readRuntimeInfoForConfig(context.filename)
 
     return {
       ImportDeclaration(node): void {
@@ -184,7 +186,7 @@ export const noMixedProjectRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        const info = readRuntimeInfo(getConfigDirectory(context.filename))
+        const info = readRuntimeInfoForConfig(context.filename)
 
         if (isViteConfigFile(context.filename) && info?.project.isWebsite && info.project.isLib) {
           context.report({ node, messageId: 'mixed' })
@@ -229,4 +231,10 @@ function getExpectedCategory(
   inferredProjectCategory: string | undefined
 ): string {
   return isProject ? (inferredProjectCategory ?? 'lib') : 'base'
+}
+
+function readRuntimeInfoForConfig(filename: string): VpConfigRuntimeInfo | undefined {
+  return isViteConfigFile(filename)
+    ? ensureRuntimeInfo(filename)
+    : readRuntimeInfo(getConfigDirectory(filename))
 }

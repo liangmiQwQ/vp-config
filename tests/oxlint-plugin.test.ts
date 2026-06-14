@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import { expect, test } from 'vite-plus/test'
 
@@ -13,7 +14,11 @@ import {
   readRuntimeInfo,
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
-import { findConfigFileFromStack, shouldCleanupRuntimeInfo } from '../src/oxlint-plugin/info.ts'
+import {
+  ensureRuntimeInfo,
+  findConfigFileFromStack,
+  shouldCleanupRuntimeInfo
+} from '../src/oxlint-plugin/info.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -96,6 +101,24 @@ test('writes runtime info beside vite config and cleans it up', () => {
 
     cleanupRuntimeInfo(project)
     expect(readRuntimeInfo(project)).toBeUndefined()
+  })
+})
+
+test('ensures runtime info by loading vite config from oxlint plugin', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'direct-oxlint-project' })
+    const configPath = join(project, 'vite.config.ts')
+    const entryUrl = pathToFileURL(join(process.cwd(), 'src/index.ts')).href
+    writeFileSync(
+      configPath,
+      `import { lib } from ${JSON.stringify(entryUrl)}\n\nexport default lib({ lint: {}, pack: {} })\n`
+    )
+
+    const info = ensureRuntimeInfo(configPath)
+
+    expect(info).toMatchObject({ category: 'lib' })
+    expect(info?.configKeys).toEqual(expect.arrayContaining(['lint', 'pack']))
+    cleanupRuntimeInfo(project)
   })
 })
 

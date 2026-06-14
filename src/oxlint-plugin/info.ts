@@ -1,6 +1,7 @@
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { ConfigName, ProjectConfigName } from './constants.ts'
 import { infoDirectoryName, infoFileName, viteConfigNames } from './constants.ts'
@@ -77,6 +78,19 @@ export function writeRuntimeInfo(input: RuntimeConfigInput): void {
   )
 }
 
+export function ensureRuntimeInfo(configFile: string): VpConfigRuntimeInfo | undefined {
+  const configDirectory = dirname(configFile)
+  const existingInfo = readRuntimeInfo(configDirectory)
+
+  if (existingInfo) {
+    return existingInfo
+  }
+
+  loadRuntimeInfo(configFile)
+
+  return readRuntimeInfo(configDirectory)
+}
+
 export function cleanupRuntimeInfo(configDirectory: string): void {
   const info = readRuntimeInfo(configDirectory)
   const nodeModulesDirectory = join(configDirectory, 'node_modules')
@@ -119,6 +133,30 @@ function hasOxlintEntryStack(stack: string | undefined): boolean {
       stack
     )
   )
+}
+
+function loadRuntimeInfo(configFile: string): void {
+  try {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `await import(${JSON.stringify(pathToFileURL(configFile).href)})`
+      ],
+      {
+        cwd: dirname(configFile),
+        env: {
+          ...process.env,
+          VP_COMMAND: 'lint',
+          VP_OXLINT_LSP: isLspProcess() ? 'true' : undefined
+        },
+        stdio: 'ignore'
+      }
+    )
+  } catch {
+    // The rule that needs runtime info will report the missing info.
+  }
 }
 
 function createRuntimeInfo(
@@ -173,7 +211,7 @@ function getRuntimeInfoLspPid(previousInfo: VpConfigRuntimeInfo | undefined): nu
 }
 
 function isLspProcess(argv: readonly string[] = process.argv): boolean {
-  return argv.includes('--lsp')
+  return argv.includes('--lsp') || (argv === process.argv && process.env.VP_OXLINT_LSP === 'true')
 }
 
 function isRunningProcess(pid: number | undefined): boolean {

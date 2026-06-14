@@ -121,10 +121,7 @@ function mergeLintConfig(
   presetLint: NonNullable<PresetConfig['lint']>,
   userLint: UserConfig['lint']
 ): UserConfig['lint'] {
-  return {
-    ...userLint,
-    extends: [...(userLint?.extends ?? []), presetLint]
-  }
+  return mergeConfig(presetLint, userLint ?? {}) as UserConfig['lint']
 }
 
 function mergePackConfig(

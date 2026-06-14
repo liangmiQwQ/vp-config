@@ -9,6 +9,9 @@ const presetConfig = {
     semi: false
   },
   lint: {
+    options: {
+      typeAware: true
+    },
     rules: {
       eqeqeq: 'error'
     }
@@ -113,10 +116,12 @@ test('should merge preset after excluding selected parts', () => {
   })
 })
 
-test('should use lint extends instead of merging lint fields', () => {
+test('should merge lint fields', () => {
   const config = createConfigEntry(presetConfig)
   const userLint: NonNullable<UserConfig['lint']> = {
-    extends: [{ rules: { curly: 'warn' } }],
+    options: {
+      denyWarnings: true
+    },
     rules: {
       eqeqeq: 'off'
     }
@@ -124,14 +129,10 @@ test('should use lint extends instead of merging lint fields', () => {
 
   expect(config({ lint: userLint })).toMatchObject({
     lint: {
-      extends: [
-        { rules: { curly: 'warn' } },
-        {
-          rules: {
-            eqeqeq: 'error'
-          }
-        }
-      ],
+      options: {
+        denyWarnings: true,
+        typeAware: true
+      },
       rules: {
         eqeqeq: 'off'
       }

@@ -165,6 +165,22 @@ test('writes runtime info from config stack during vite-plus check', () => {
   })
 })
 
+test('does not write runtime info from package stack without lint entry', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'plain-project' })
+    const configPath = join(project, 'vite.config.ts')
+
+    callWithStack(
+      `Error\n    at info (src/oxlint-plugin/info.ts:1:1)\n    at config (${configPath}:1:1)`,
+      () => {
+        writeRuntimeInfo({ category: 'base', config: { lint: {} } })
+      }
+    )
+
+    expect(readRuntimeInfo(project)).toBeUndefined()
+  })
+})
+
 function withTempProject(run: (project: string) => void): void {
   const project = mkdtempSync(join(tmpdir(), 'vp-config-'))
 
@@ -197,15 +213,10 @@ function writeRuntimeInfoForConfig(
 }
 
 function callWithConfigStack(configPath: string, run: () => void, stackEntry = 'oxlint'): void {
-  const originalPrepareStackTrace = Reflect.get(Error, 'prepareStackTrace')
-  Error.prepareStackTrace = (): string =>
-    `Error\n    at ${stackEntry} (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`
-
-  try {
-    run()
-  } finally {
-    Error.prepareStackTrace = originalPrepareStackTrace
-  }
+  callWithStack(
+    `Error\n    at ${stackEntry} (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`,
+    run
+  )
 }
 
 function withProcessArgv(argv: string[], run: () => void): void {
@@ -231,5 +242,16 @@ function withVpCommand(command: string, run: () => void): void {
     } else {
       process.env.VP_COMMAND = originalCommand
     }
+  }
+}
+
+function callWithStack(stack: string, run: () => void): void {
+  const originalPrepareStackTrace = Reflect.get(Error, 'prepareStackTrace')
+  Error.prepareStackTrace = (): string => stack
+
+  try {
+    run()
+  } finally {
+    Error.prepareStackTrace = originalPrepareStackTrace
   }
 }

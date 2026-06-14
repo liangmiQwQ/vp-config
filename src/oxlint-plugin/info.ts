@@ -104,13 +104,21 @@ export function getConfigDirectory(filename: string): string {
 
 function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
   return Boolean(
-    isVpLintOrCheck() ||
-    (stack && (stack.includes('oxlint') || stack.includes('resolveUniversalViteConfig')))
+    isVpLintOrCheck() || hasOxlintEntryStack(stack) || stack?.includes('resolveUniversalViteConfig')
   )
 }
 
 function isVpLintOrCheck(command = process.env.VP_COMMAND): boolean {
   return command === 'lint' || command === 'check'
+}
+
+function hasOxlintEntryStack(stack: string | undefined): boolean {
+  return Boolean(
+    stack &&
+    /node_modules[\\/](?:\.pnpm[\\/]oxlint@[^\\/]+[\\/]node_modules[\\/])?oxlint[\\/]dist[\\/]/u.test(
+      stack
+    )
+  )
 }
 
 function createRuntimeInfo(
@@ -211,7 +219,7 @@ function getPathBasename(path: string): string {
 }
 
 function normalizeStackPath(line: string): string | undefined {
-  const fileUrlMatch = /file:\/\/[^:)]+/u.exec(line)
+  const fileUrlMatch = /file:\/\/\/.*?vite\.config\.[cm]?[jt]s/u.exec(line)
 
   if (fileUrlMatch) {
     return fileURLToPath(fileUrlMatch[0])

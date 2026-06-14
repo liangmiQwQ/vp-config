@@ -1,9 +1,8 @@
-import type { UserConfig } from 'vite-plus'
-
+import type { PresetConfig } from '../entry.ts'
 import { fmtLib } from './fmt.ts'
 import { lintLib } from './lint.ts'
 
-export const libConfig: UserConfig = {
+export const libConfig: PresetConfig = {
   fmt: fmtLib,
   lint: lintLib
 }

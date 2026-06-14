@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { expect, test } from 'vite-plus/test'
 
 import { lintBase } from '../src/base/lint.ts'
+import { viteConfigNames } from '../src/oxlint-plugin/constants.ts'
 import {
   cleanupRuntimeInfo,
   getAllowedConfigNames,
@@ -12,6 +13,7 @@ import {
   readRuntimeInfo,
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
+import { findConfigFileFromStack } from '../src/oxlint-plugin/info.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -95,6 +97,23 @@ test('writes runtime info beside vite config and cleans it up', () => {
     cleanupRuntimeInfo(project)
     expect(readRuntimeInfo(project)).toBeUndefined()
   })
+})
+
+test('finds vite config files from windows stack paths', () => {
+  const configPath = String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\vite.config.ts`
+
+  expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(configPath)
+})
+
+test('tracks every vite config filename supported by local vite-plus', () => {
+  expect(viteConfigNames).toEqual([
+    'vite.config.ts',
+    'vite.config.mts',
+    'vite.config.cts',
+    'vite.config.js',
+    'vite.config.mjs',
+    'vite.config.cjs'
+  ])
 })
 
 function withTempProject(run: (project: string) => void): void {

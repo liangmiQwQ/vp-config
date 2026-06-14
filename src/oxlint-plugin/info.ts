@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, normalize } from 'node:path'
+import { dirname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { ConfigName, ProjectConfigName } from './constants.ts'
@@ -131,7 +131,7 @@ function createRuntimeInfo(
   }
 }
 
-function findConfigFileFromStack(stack: string | undefined): string | undefined {
+export function findConfigFileFromStack(stack: string | undefined): string | undefined {
   if (!stack) {
     return undefined
   }
@@ -139,12 +139,19 @@ function findConfigFileFromStack(stack: string | undefined): string | undefined 
   for (const rawLine of stack.split('\n')) {
     const path = normalizeStackPath(rawLine)
 
-    if (path && viteConfigNames.includes(basename(path) as (typeof viteConfigNames)[number])) {
+    if (
+      path &&
+      viteConfigNames.includes(getPathBasename(path) as (typeof viteConfigNames)[number])
+    ) {
       return path
     }
   }
 
   return undefined
+}
+
+function getPathBasename(path: string): string {
+  return path.split(/[\\/]/u).at(-1) ?? path
 }
 
 function normalizeStackPath(line: string): string | undefined {
@@ -154,7 +161,7 @@ function normalizeStackPath(line: string): string | undefined {
     return fileURLToPath(fileUrlMatch[0])
   }
 
-  const absolutePathMatch = /(\/[^:)]+vite\.config\.[cm]?[jt]s)/u.exec(line)
+  const absolutePathMatch = /((?:[a-zA-Z]:[\\/]|\/)[^:)]+vite\.config\.[cm]?[jt]s)/u.exec(line)
 
   return absolutePathMatch ? normalize(absolutePathMatch[1]) : undefined
 }

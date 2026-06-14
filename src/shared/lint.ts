@@ -18,7 +18,7 @@ export const cliOverride: OxlintConfig = {
 // For React and Vue component. There is no web-specific or node-specific rules so it can be used for both cli and website
 export const componentOverride: OxlintConfig = {
   env: { vue: true },
-  plugins: ['react', 'react-perf', 'vue'],
+  plugins: ['react', 'react-perf', 'vue' /* WIP */],
   rules: {
     // Suspicious
     'react/react-in-jsx-scope': 'off', // React 17+ JSX transform does not require `import React`.
@@ -28,6 +28,8 @@ export const componentOverride: OxlintConfig = {
     'react/no-react-children': 'error',
     'react/prefer-function-component': 'error',
 
+    'vue/no-import-compiler-macros': 'warn',
+
     // Pedantic
     'react/rules-of-hooks': 'error',
 
@@ -35,6 +37,12 @@ export const componentOverride: OxlintConfig = {
     'react/no-unescaped-entities': 'warn',
 
     // Style
+    'vue/define-emits-declaration': ['warn', 'type-literal'],
+    'vue/define-props-declaration': ['warn', 'type-based'],
+    'vue/next-tick-style': ['warn', 'promise'],
+    'vue/prop-name-casing': ['warn', 'camelCase'],
+
+    'vue/require-prop-types': 'off',
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
   }
 }

@@ -2,15 +2,25 @@ import type { ConfigEnv, UserConfig } from 'vite-plus'
 import { expect, test } from 'vite-plus/test'
 
 import { createConfigEntry } from '../src/entry.ts'
+import type { PresetConfig } from '../src/entry.ts'
 
 const presetConfig = {
   fmt: {
     semi: false
   },
+  lint: {
+    rules: {
+      eqeqeq: 'error'
+    }
+  },
+  pack: {
+    dts: true,
+    exports: true
+  },
   staged: {
     '*': 'vp check'
   }
-} satisfies UserConfig
+} satisfies PresetConfig
 
 test('should merge preset with object config', () => {
   const config = createConfigEntry(presetConfig)
@@ -21,6 +31,10 @@ test('should merge preset with object config', () => {
     },
     staged: {
       '*': 'vp check'
+    },
+    pack: {
+      dts: true,
+      exports: true
     }
   })
 })
@@ -34,6 +48,10 @@ test('should merge preset with promise config', async () => {
     },
     staged: {
       '*': 'vp check'
+    },
+    pack: {
+      dts: true,
+      exports: true
     }
   })
 })
@@ -54,14 +72,19 @@ test('should merge preset with function config after Vite+ provides env', async 
     },
     staged: {
       '*': 'vp check'
+    },
+    pack: {
+      dts: true,
+      exports: true
     }
   })
 })
 
 test('should merge only selected preset parts', () => {
   const config = createConfigEntry(presetConfig)
+  const mergedConfig = config.only(['fmt'], { staged: { '*': 'vp test' } })
 
-  expect(config.only(['fmt'], { staged: { '*': 'vp test' } })).toMatchObject({
+  expect(mergedConfig).toMatchObject({
     fmt: {
       semi: false
     },
@@ -69,6 +92,8 @@ test('should merge only selected preset parts', () => {
       '*': 'vp test'
     }
   })
+  expect(mergedConfig).not.toHaveProperty('lint')
+  expect(mergedConfig).not.toHaveProperty('pack')
 })
 
 test('should merge preset after excluding selected parts', () => {
@@ -80,6 +105,86 @@ test('should merge preset after excluding selected parts', () => {
     },
     staged: {
       '*': 'vp check'
+    },
+    pack: {
+      dts: true,
+      exports: true
     }
+  })
+})
+
+test('should use lint extends instead of merging lint fields', () => {
+  const config = createConfigEntry(presetConfig)
+  const userLint: NonNullable<UserConfig['lint']> = {
+    extends: [{ rules: { curly: 'warn' } }],
+    rules: {
+      eqeqeq: 'off'
+    }
+  }
+
+  expect(config({ lint: userLint })).toMatchObject({
+    lint: {
+      extends: [
+        { rules: { curly: 'warn' } },
+        {
+          rules: {
+            eqeqeq: 'error'
+          }
+        }
+      ],
+      rules: {
+        eqeqeq: 'off'
+      }
+    }
+  })
+})
+
+test('should merge pack preset with object config', () => {
+  const config = createConfigEntry(presetConfig)
+
+  expect(
+    config({
+      pack: {
+        exports: false,
+        minify: true
+      }
+    })
+  ).toMatchObject({
+    pack: {
+      dts: true,
+      exports: false,
+      minify: true
+    }
+  })
+})
+
+test('should merge pack preset with every array item', () => {
+  const config = createConfigEntry(presetConfig)
+
+  expect(
+    config({
+      pack: [
+        {
+          entry: ['./src/index.ts']
+        },
+        {
+          dts: false,
+          entry: ['./src/cli.ts']
+        }
+      ]
+    })
+  ).toMatchObject({
+    pack: [
+      {
+        dts: true,
+        entry: ['./src/index.ts'],
+        exports: true
+      },
+      {
+        dts: false,
+        entry: ['./src/cli.ts'],
+        exports: true
+      }
+    ]
   })
 })

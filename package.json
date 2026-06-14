@@ -1,6 +1,6 @@
 {
   "name": "@liangmi/vp-config",
-  "version": "0.0.0-alpha.0",
+  "version": "0.0.0",
   "description": "Liang's JavaScript development toolchain config with Vite+.",
   "homepage": "https://github.com/liangmiQwQ/vp-config#readme",
   "bugs": {

@@ -108,7 +108,7 @@ test('finds vite config files from windows stack paths', () => {
 test('maps bundled vite temp stack paths to project config files', () => {
   const configPath = '/tmp/vp-config/node_modules/.vite-temp/vite.config.ts'
 
-  expect(findConfigFileFromStack(`Error\n    at config (file://${configPath}:1:1)`)).toBe(
+  expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(
     '/tmp/vp-config/vite.config.ts'
   )
 })

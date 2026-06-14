@@ -142,6 +142,27 @@ test('keeps runtime info when project oxlint lsp is running', () => {
   })
 })
 
+test('writes runtime info when vite-plus check resolves config', () => {
+  withTempProject(project => {
+    writeJson(join(project, 'package.json'), { name: 'check-project' })
+    const configPath = join(project, 'vite.config.ts')
+
+    callWithConfigStack(
+      configPath,
+      () => {
+        writeRuntimeInfo({ category: 'base', config: { lint: {} } })
+      },
+      'resolveUniversalViteConfig'
+    )
+
+    expect(readRuntimeInfo(project)).toMatchObject({
+      category: 'base',
+      configFile: configPath
+    })
+    cleanupRuntimeInfo(project)
+  })
+})
+
 function withTempProject(run: (project: string) => void): void {
   const project = mkdtempSync(join(tmpdir(), 'vp-config-'))
 
@@ -173,10 +194,10 @@ function writeRuntimeInfoForConfig(
   }
 }
 
-function callWithConfigStack(configPath: string, run: () => void): void {
+function callWithConfigStack(configPath: string, run: () => void, stackEntry = 'oxlint'): void {
   const originalPrepareStackTrace = Reflect.get(Error, 'prepareStackTrace')
   Error.prepareStackTrace = (): string =>
-    `Error\n    at oxlint (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`
+    `Error\n    at ${stackEntry} (node_modules/oxlint/dist/cli.js:1:1)\n    at config (${configPath}:1:1)`
 
   try {
     run()

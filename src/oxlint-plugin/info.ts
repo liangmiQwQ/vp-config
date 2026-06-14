@@ -103,7 +103,9 @@ export function getConfigDirectory(filename: string): string {
 }
 
 function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
-  return Boolean(stack?.includes('oxlint'))
+  return Boolean(
+    stack && (stack.includes('oxlint') || stack.includes('resolveUniversalViteConfig'))
+  )
 }
 
 function createRuntimeInfo(

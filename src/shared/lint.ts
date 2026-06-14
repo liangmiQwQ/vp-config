@@ -19,5 +19,25 @@ export const cliOverride: OxlintConfig = {
 export const componentOverride: OxlintConfig = {
   env: { vue: true },
   plugins: ['react', 'react-perf', 'vue'],
-  rules: {}
+  rules: {
+    // React 17+ JSX transform does not require `import React`.
+    'react/react-in-jsx-scope': 'off',
+
+    // Component APIs often intentionally forward JSX props.
+    'react/jsx-props-no-spreading': 'off',
+
+    // We prefer function components, so class-component style rules are not useful.
+    'react/no-set-state': 'off',
+    'react/prefer-es6-class': 'off',
+    'react/state-in-constructor': 'off',
+
+    'react/no-clone-element': 'error',
+    'react/no-react-children': 'error',
+    'react/prefer-function-component': 'error',
+
+    'react/rules-of-hooks': 'error',
+
+    'react/jsx-no-useless-fragment': 'warn',
+    'react/no-unescaped-entities': 'warn'
+  }
 }

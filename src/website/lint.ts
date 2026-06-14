@@ -12,6 +12,8 @@ export const lintWebsite: OxlintConfig = mergeConfig<OxlintConfig, OxlintConfig>
     'unicorn/prefer-query-selector': 'warn',
 
     'prefer-dom-node-remove': 'warn',
-    'prefer-blob-reading-methods': 'warn'
+    'prefer-blob-reading-methods': 'warn',
+
+    'import/no-unassigned-import': ['error', { allow: ['**/*.css'] }]
   }
 })

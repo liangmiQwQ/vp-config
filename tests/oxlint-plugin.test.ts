@@ -142,18 +142,20 @@ test('keeps runtime info when project oxlint lsp is running', () => {
   })
 })
 
-test('writes runtime info when vite-plus check resolves config', () => {
+test('writes runtime info from config stack during vite-plus check', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'check-project' })
     const configPath = join(project, 'vite.config.ts')
 
-    callWithConfigStack(
-      configPath,
-      () => {
-        writeRuntimeInfo({ category: 'base', config: { lint: {} } })
-      },
-      'resolveUniversalViteConfig'
-    )
+    withVpCommand('check', () => {
+      callWithConfigStack(
+        configPath,
+        () => {
+          writeRuntimeInfo({ category: 'base', config: { lint: {} } })
+        },
+        'loadVitePlusConfigs'
+      )
+    })
 
     expect(readRuntimeInfo(project)).toMatchObject({
       category: 'base',
@@ -214,5 +216,20 @@ function withProcessArgv(argv: string[], run: () => void): void {
     run()
   } finally {
     process.argv = originalArgv
+  }
+}
+
+function withVpCommand(command: string, run: () => void): void {
+  const originalCommand = process.env.VP_COMMAND
+  process.env.VP_COMMAND = command
+
+  try {
+    run()
+  } finally {
+    if (originalCommand === undefined) {
+      delete process.env.VP_COMMAND
+    } else {
+      process.env.VP_COMMAND = originalCommand
+    }
   }
 }

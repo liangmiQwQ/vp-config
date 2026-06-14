@@ -104,8 +104,13 @@ export function getConfigDirectory(filename: string): string {
 
 function shouldWriteRuntimeInfo(stack: string | undefined): boolean {
   return Boolean(
-    stack && (stack.includes('oxlint') || stack.includes('resolveUniversalViteConfig'))
+    isVpLintOrCheck() ||
+    (stack && (stack.includes('oxlint') || stack.includes('resolveUniversalViteConfig')))
   )
+}
+
+function isVpLintOrCheck(command = process.env.VP_COMMAND): boolean {
+  return command === 'lint' || command === 'check'
 }
 
 function createRuntimeInfo(

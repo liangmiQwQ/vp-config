@@ -176,6 +176,12 @@ export const lintBase: OxlintConfig = {
     restriction: 'off',
     pedantic: 'off'
   },
+  jsPlugins: [
+    {
+      name: 'liangmi',
+      specifier: '@liangmi/vp-config/oxlint-plugin'
+    }
+  ],
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
     // Enable all `correctness` and `perf` config
@@ -185,6 +191,7 @@ export const lintBase: OxlintConfig = {
     ...restriction,
     ...pedantic,
     ...style,
+    'liangmi/load-vp-config-correctly': 'error',
     'typescript/no-unsafe-type-assertion': 'off'
   },
   options: {

@@ -12,7 +12,8 @@ import {
   cleanupRuntimeInfo,
   getConfigDirectory,
   inferProjectCategory,
-  readRuntimeInfo
+  readRuntimeInfo,
+  shouldCleanupRuntimeInfo
 } from './info.ts'
 import {
   getAllowedConfigNames,
@@ -204,7 +205,7 @@ export const cleanupRule = defineRule({
   create(context) {
     return {
       'Program:exit'(): void {
-        if (isViteConfigFile(context.filename)) {
+        if (isViteConfigFile(context.filename) && shouldCleanupRuntimeInfo()) {
           cleanupRuntimeInfo(getConfigDirectory(context.filename))
         }
       }

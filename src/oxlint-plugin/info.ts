@@ -86,6 +86,10 @@ export function cleanupRuntimeInfo(configDirectory: string): void {
   }
 }
 
+export function shouldCleanupRuntimeInfo(argv: readonly string[] = process.argv): boolean {
+  return !argv.includes('--lsp')
+}
+
 export function getConfigDirectory(filename: string): string {
   return dirname(filename)
 }

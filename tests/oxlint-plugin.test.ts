@@ -13,7 +13,7 @@ import {
   readRuntimeInfo,
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
-import { findConfigFileFromStack } from '../src/oxlint-plugin/info.ts'
+import { findConfigFileFromStack, shouldCleanupRuntimeInfo } from '../src/oxlint-plugin/info.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -114,6 +114,11 @@ test('tracks every vite config filename supported by local vite-plus', () => {
     'vite.config.mjs',
     'vite.config.cjs'
   ])
+})
+
+test('disables cleanup in oxlint lsp mode', () => {
+  expect(shouldCleanupRuntimeInfo(['node', 'oxlint', '--lsp'])).toBe(false)
+  expect(shouldCleanupRuntimeInfo(['node', 'oxlint'])).toBe(true)
 })
 
 function withTempProject(run: (project: string) => void): void {

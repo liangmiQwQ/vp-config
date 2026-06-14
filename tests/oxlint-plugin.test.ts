@@ -105,6 +105,22 @@ test('finds vite config files from windows stack paths', () => {
   expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(configPath)
 })
 
+test('maps bundled vite temp stack paths to project config files', () => {
+  const configPath = '/tmp/vp-config/node_modules/.vite-temp/vite.config.ts'
+
+  expect(findConfigFileFromStack(`Error\n    at config (file://${configPath}:1:1)`)).toBe(
+    '/tmp/vp-config/vite.config.ts'
+  )
+})
+
+test('maps windows bundled vite temp stack paths to project config files', () => {
+  const configPath = String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\node_modules\.vite-temp\vite.config.ts`
+
+  expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(
+    String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\vite.config.ts`
+  )
+})
+
 test('tracks every vite config filename supported by local vite-plus', () => {
   expect(viteConfigNames).toEqual([
     'vite.config.ts',

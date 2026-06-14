@@ -202,12 +202,13 @@ export function findConfigFileFromStack(stack: string | undefined): string | und
 
   for (const rawLine of stack.split('\n')) {
     const path = normalizeStackPath(rawLine)
+    const configPath = path ? resolveBundledConfigPath(path) : undefined
 
     if (
-      path &&
-      viteConfigNames.includes(getPathBasename(path) as (typeof viteConfigNames)[number])
+      configPath &&
+      viteConfigNames.includes(getPathBasename(configPath) as (typeof viteConfigNames)[number])
     ) {
-      return path
+      return configPath
     }
   }
 
@@ -228,6 +229,15 @@ function normalizeStackPath(line: string): string | undefined {
   const absolutePathMatch = /((?:[a-zA-Z]:[\\/]|\/)[^:)]+vite\.config\.[cm]?[jt]s)/u.exec(line)
 
   return absolutePathMatch ? normalize(absolutePathMatch[1]) : undefined
+}
+
+function resolveBundledConfigPath(path: string): string {
+  const bundledConfigMatch =
+    /^(.*)([\\/])node_modules[\\/]\.vite-temp[\\/](vite\.config\.[cm]?[jt]s)$/u.exec(path)
+
+  return bundledConfigMatch
+    ? `${bundledConfigMatch[1]}${bundledConfigMatch[2]}${bundledConfigMatch[3]}`
+    : path
 }
 
 function readPackageJson(configDirectory: string): { hasPackageBin: boolean } {

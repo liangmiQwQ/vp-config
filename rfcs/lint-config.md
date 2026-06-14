@@ -14,7 +14,9 @@ We define a `liangmi` Oxlint JsPlugin, it is mainly to make sure users load this
 
 Considering we have provided cli entry, it gives our ability to do runtime check for vite.config.ts. We generate a `node_modules/.vp-config/info.json`, it records necessary information used to do rule-checks, it should be deleted when running this rule. (If `node_modules` doesn't exist and is created by the entry function, delete it as well). If found this file is already existing, delete and regenerate a new one.
 
-If a rule require runtime information, but there is not any, just simply ignore it. (except `liangmi/force-to-use-preset-config`)
+The runtime information should only be created when it is read by Oxlint. It should be possible to confirm by using some JavaScript trick (like error stack?).
+
+If a rule require runtime information, but there is not any, just simply ignore it. (except `liangmi/use-preset-config`).
 
 ### Concept
 
@@ -23,7 +25,7 @@ If a rule require runtime information, but there is not any, just simply ignore 
 If any one of these conditions is satisfied, the directory of `vite.config.ts` is a website project.
 
 - There is a `index.html` near `vite.config.ts` (Static analyze)
-- There is at least one vite-specific configure field like `build`, `preview`, `plugin` (Just exclude Vite+ ones like `lint`). (Runtime-based analyze)
+- There is at least one vite-specific configure field like `build`, `preview`, `plugins` (Just exclude Vite+ ones like `lint`). (Runtime-based analyze)
 
 #### Is it a lib project
 
@@ -33,7 +35,7 @@ If any one of these conditions is satisfied, the directory of `vite.config.ts` i
 
 #### Is it a cli project
 
-If any one of these conditions is satisfied, the directory of `vite.config.ts` is a cli / tui project.
+If both of these conditions are satisfied, the directory of `vite.config.ts` is a cli / tui project.
 
 - This directory is a lib project
 - There is at least one `bin` defined in `package.json` near the `vite.config.ts` (Runtime-based analyze)
@@ -85,3 +87,5 @@ If the project is inferred as both `lib` and `website`, report an error
 #### `liangmi/cleanup`
 
 This rule should not be disabled, it removes `node_modules/.vp-config/info.json`, if it is not enabled, some undefined behaviors can probably happen.
+
+It should not report any error.

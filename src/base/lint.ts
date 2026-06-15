@@ -216,6 +216,23 @@ export const lintBase: OxlintConfig = {
         // We do not use jest
         vitest: true
       },
+      plugins: ['vitest'],
+      rules: {
+        // Style
+        'vitest/consistent-test-filename': ['warn', { pattern: '.*.test.ts$' }],
+        'vitest/consistent-test-it': ['warn', { fn: 'it', withinDescribe: 'it' }],
+
+        'vitest/no-hooks': 'off',
+        'vitest/require-top-level-describe': 'off',
+        'vitest/prefer-strict-boolean-matchers': 'off',
+        'vitest/max-expects': 'off',
+        'vitest/prefer-expect-assertions': 'off',
+        'vitest/prefer-importing-vitest-globals': 'off', // Conflict with `vite-plus/test`
+        'vitest/no-importing-vitest-globals': 'off',
+        'vitest/no-large-snapshots': 'off',
+        'vitest/no-restricted-matchers': 'off',
+        'vitest/no-restricted-vi-methods': 'off'
+      },
       files: ['*.test.ts', '*.spec.ts']
     },
     {

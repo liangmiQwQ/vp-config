@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { expect, test } from 'vite-plus/test'
+import { expect, it } from 'vite-plus/test'
 
 import { lintBase } from '../src/base/lint.ts'
 import { viteConfigNames } from '../src/oxlint-plugin/constants.ts'
@@ -21,31 +21,31 @@ import {
   usePresetVpConfigRule
 } from '../src/oxlint-plugin/rules.ts'
 
-test('allows project categories from project vite config', () => {
+it('allows project categories from project vite config', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'project' })
     writeFileSync(join(project, 'index.html'), '')
     const configPath = join(project, 'vite.config.ts')
 
-    expect(getAllowedConfigNames(configPath)).toEqual(['cli', 'lib', 'website'])
-    expect(isVpConfigImportAllowed(configPath, ['lib'])).toBe(true)
-    expect(isVpConfigImportAllowed(configPath, ['base'])).toBe(false)
+    expect(getAllowedConfigNames(configPath)).toStrictEqual(['cli', 'lib', 'website'])
+    expect(isVpConfigImportAllowed(configPath, ['lib'])).toBeTruthy()
+    expect(isVpConfigImportAllowed(configPath, ['base'])).toBeFalsy()
   })
 })
 
-test('allows base category from workspace root vite config', () => {
+it('allows base category from workspace root vite config', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'root' })
     writeFileSync(join(project, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n")
     const rootConfigPath = join(project, 'vite.config.ts')
 
-    expect(getAllowedConfigNames(rootConfigPath)).toEqual(['base'])
-    expect(isVpConfigImportAllowed(rootConfigPath, ['base'])).toBe(true)
-    expect(isVpConfigImportAllowed(rootConfigPath, ['lib'])).toBe(false)
+    expect(getAllowedConfigNames(rootConfigPath)).toStrictEqual(['base'])
+    expect(isVpConfigImportAllowed(rootConfigPath, ['base'])).toBeTruthy()
+    expect(isVpConfigImportAllowed(rootConfigPath, ['lib'])).toBeFalsy()
   })
 })
 
-test('allows project categories when config has a package signal', () => {
+it('allows project categories when config has a package signal', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'workspace-package' })
     writeFileSync(join(project, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n")
@@ -53,14 +53,14 @@ test('allows project categories when config has a package signal', () => {
 
     writeRuntimeInfoForConfig(configPath, 'lib', { lint: {}, pack: {} })
 
-    expect(getAllowedConfigNames(configPath)).toEqual(['cli', 'lib', 'website'])
-    expect(isVpConfigImportAllowed(configPath, ['lib'])).toBe(true)
-    expect(isVpConfigImportAllowed(configPath, ['base'])).toBe(false)
+    expect(getAllowedConfigNames(configPath)).toStrictEqual(['cli', 'lib', 'website'])
+    expect(isVpConfigImportAllowed(configPath, ['lib'])).toBeTruthy()
+    expect(isVpConfigImportAllowed(configPath, ['base'])).toBeFalsy()
     cleanupRuntimeInfo(project)
   })
 })
 
-test('registers liangmi oxlint plugin in base lint config', () => {
+it('registers liangmi oxlint plugin in base lint config', () => {
   expect(lintBase).toMatchObject({
     jsPlugins: [
       {
@@ -79,7 +79,7 @@ test('registers liangmi oxlint plugin in base lint config', () => {
   expect(lintBase.rules).not.toHaveProperty('liangmi/cleanup')
 })
 
-test('writes runtime info beside vite config and cleans it up', () => {
+it('writes runtime info beside vite config and cleans it up', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'project' })
     const configPath = join(project, 'vite.config.ts')
@@ -108,7 +108,7 @@ test('writes runtime info beside vite config and cleans it up', () => {
   })
 })
 
-test('ensures runtime info by loading vite config from oxlint plugin', () => {
+it('ensures runtime info by loading vite config from oxlint plugin', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'direct-oxlint-project' })
     const configPath = join(project, 'vite.config.ts')
@@ -121,12 +121,12 @@ test('ensures runtime info by loading vite config from oxlint plugin', () => {
     const info = ensureRuntimeInfo(configPath)
 
     expect(info).toMatchObject({ category: 'lib' })
-    expect(info?.configKeys).toEqual(expect.arrayContaining(['lint', 'pack']))
+    expect(info?.configKeys).toStrictEqual(expect.arrayContaining(['lint', 'pack']))
     cleanupRuntimeInfo(project)
   })
 })
 
-test('skips runtime info rules for orphan vite config', () => {
+it('skips runtime info rules for orphan vite config', () => {
   withTempProject(project => {
     const configPath = join(project, 'vite.config.ts')
 
@@ -137,13 +137,13 @@ test('skips runtime info rules for orphan vite config', () => {
 
     expect(ensureRuntimeInfo(configPath)).toBeUndefined()
     expect(readRuntimeInfo(project)).toBeUndefined()
-    expect(runProgramRule(usePresetVpConfigRule, configPath)).toEqual([])
-    expect(runProgramRule(loadProperVpConfigCategoryRule, configPath)).toEqual([])
-    expect(runProgramRule(noMixedProjectRule, configPath)).toEqual([])
+    expect(runProgramRule(usePresetVpConfigRule, configPath)).toStrictEqual([])
+    expect(runProgramRule(loadProperVpConfigCategoryRule, configPath)).toStrictEqual([])
+    expect(runProgramRule(noMixedProjectRule, configPath)).toStrictEqual([])
   })
 })
 
-test('detects vite config fields by excluding vite-plus specific fields', () => {
+it('detects vite config fields by excluding vite-plus specific fields', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'website-config-project' })
     const configPath = join(project, 'vite.config.ts')
@@ -160,23 +160,23 @@ test('detects vite config fields by excluding vite-plus specific fields', () => 
   })
 })
 
-test('uses live index.html signal when runtime info exists', () => {
+it('uses live index.html signal when runtime info exists', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'static-site-project' })
     const configPath = join(project, 'vite.config.ts')
 
     writeRuntimeInfoForConfig(configPath, 'base', { lint: {} })
 
-    expect(getAllowedConfigNames(configPath)).toEqual(['base'])
+    expect(getAllowedConfigNames(configPath)).toStrictEqual(['base'])
 
     writeFileSync(join(project, 'index.html'), '')
 
-    expect(getAllowedConfigNames(configPath)).toEqual(['cli', 'lib', 'website'])
+    expect(getAllowedConfigNames(configPath)).toStrictEqual(['cli', 'lib', 'website'])
     cleanupRuntimeInfo(project)
   })
 })
 
-test('reports current runtime category mismatch for local project config entry', () => {
+it('reports current runtime category mismatch for local project config entry', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'category-project' })
     const configPath = join(project, 'vite.config.ts')
@@ -215,13 +215,13 @@ test('reports current runtime category mismatch for local project config entry',
   })
 })
 
-test('finds vite config files from windows stack paths', () => {
+it('finds vite config files from windows stack paths', () => {
   const configPath = String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\vite.config.ts`
 
   expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(configPath)
 })
 
-test('maps bundled vite temp stack paths to project config files', () => {
+it('maps bundled vite temp stack paths to project config files', () => {
   const configPath = '/tmp/vp-config/node_modules/.vite-temp/vite.config.ts'
 
   expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(
@@ -229,7 +229,7 @@ test('maps bundled vite temp stack paths to project config files', () => {
   )
 })
 
-test('maps windows bundled vite temp stack paths to project config files', () => {
+it('maps windows bundled vite temp stack paths to project config files', () => {
   const configPath = String.raw`C:\Users\runneradmin\AppData\Local\Temp\vp-config-abc123\node_modules\.vite-temp\vite.config.ts`
 
   expect(findConfigFileFromStack(`Error\n    at config (${configPath}:1:1)`)).toBe(
@@ -237,8 +237,8 @@ test('maps windows bundled vite temp stack paths to project config files', () =>
   )
 })
 
-test('tracks every vite config filename supported by local vite-plus', () => {
-  expect(viteConfigNames).toEqual([
+it('tracks every vite config filename supported by local vite-plus', () => {
+  expect(viteConfigNames).toStrictEqual([
     'vite.config.ts',
     'vite.config.mts',
     'vite.config.cts',
@@ -248,7 +248,7 @@ test('tracks every vite config filename supported by local vite-plus', () => {
   ])
 })
 
-test('writes runtime info from config stack during vite-plus check', () => {
+it('writes runtime info from config stack during vite-plus check', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'check-project' })
     const configPath = join(project, 'vite.config.ts')
@@ -271,7 +271,7 @@ test('writes runtime info from config stack during vite-plus check', () => {
   })
 })
 
-test('does not write runtime info from package stack without lint entry', () => {
+it('does not write runtime info from package stack without lint entry', () => {
   withTempProject(project => {
     writeJson(join(project, 'package.json'), { name: 'plain-project' })
     const configPath = join(project, 'vite.config.ts')

@@ -1,17 +1,11 @@
+import { dirname } from 'node:path'
+
 import { defineRule } from '@oxlint/plugins'
 import type { ESTree, Rule } from '@oxlint/plugins'
 
 import { isStringLiteral, isVpConfigSpecifier } from './ast.ts'
 import { packageName, projectConfigNames, rootConfigNames } from './constants.ts'
-import {
-  ensureRuntimeInfo,
-  getConfigDirectory,
-  isLibProject,
-  isProject,
-  isWebsiteProject,
-  readRuntimeInfo
-} from './info.ts'
-import type { VpConfigRuntimeInfo } from './info.ts'
+import { ensureRuntimeInfo, isLibProject, isProject, isWebsiteProject } from './info.ts'
 import { hasPackageJson, isViteConfigFile } from './project.ts'
 
 export const noOrphanViteConfigRule = defineRule({
@@ -28,10 +22,7 @@ export const noOrphanViteConfigRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        if (
-          isViteConfigFile(context.filename) &&
-          !hasPackageJson(getConfigDirectory(context.filename))
-        ) {
+        if (isViteConfigFile(context.filename) && !hasPackageJson(dirname(context.filename))) {
           context.report({ node, messageId: 'orphan' })
         }
       }
@@ -98,7 +89,7 @@ export const usePresetVpConfigRule = defineRule({
           return
         }
 
-        if (!readRuntimeInfoForConfig(context.filename)) {
+        if (!ensureRuntimeInfo(context.filename)) {
           context.report({ node, messageId: 'missingRuntimeInfo' })
         }
       }
@@ -124,13 +115,13 @@ export const loadProperVpConfigCategoryRule = defineRule({
           return
         }
 
-        const info = readRuntimeInfoForConfig(context.filename)
+        const info = ensureRuntimeInfo(context.filename)
 
         if (!info?.category) {
           return
         }
 
-        const allowed = getAllowedRuntimeConfigNames(info)
+        const allowed: readonly string[] = isProject(info) ? projectConfigNames : rootConfigNames
 
         if (allowed.includes(info.category)) {
           return
@@ -162,14 +153,13 @@ export const noMixedProjectRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        const info = readRuntimeInfoForConfig(context.filename)
+        if (!isViteConfigFile(context.filename)) {
+          return
+        }
 
-        if (
-          isViteConfigFile(context.filename) &&
-          info &&
-          isWebsiteProject(info) &&
-          isLibProject(info)
-        ) {
+        const info = ensureRuntimeInfo(context.filename)
+
+        if (info && isWebsiteProject(info) && isLibProject(info)) {
           context.report({ node, messageId: 'mixed' })
         }
       }
@@ -183,14 +173,4 @@ export const rules: Record<string, Rule> = {
   'use-preset-vp-config': usePresetVpConfigRule,
   'load-proper-vp-config-category': loadProperVpConfigCategoryRule,
   'no-mixed-project': noMixedProjectRule
-}
-
-function getAllowedRuntimeConfigNames(info: VpConfigRuntimeInfo): readonly string[] {
-  return isProject(info) ? projectConfigNames : rootConfigNames
-}
-
-function readRuntimeInfoForConfig(filename: string): VpConfigRuntimeInfo | undefined {
-  return isViteConfigFile(filename)
-    ? ensureRuntimeInfo(filename)
-    : readRuntimeInfo(getConfigDirectory(filename))
 }

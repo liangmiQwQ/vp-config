@@ -43,7 +43,9 @@ export function readRuntimeInfo(configDirectory: string): VpConfigRuntimeInfo | 
   }
 
   try {
-    return parseRuntimeInfo(JSON.parse(readFileSync(infoPath, 'utf8')))
+    const info = JSON.parse(readFileSync(infoPath, 'utf8'))
+
+    return isRuntimeInfo(info) ? info : undefined
   } catch {
     return undefined
   }
@@ -85,10 +87,6 @@ export function cleanupRuntimeInfo(configDirectory: string): void {
   }
 }
 
-export function getConfigDirectory(filename: string): string {
-  return dirname(filename)
-}
-
 function writeRuntimeInfoFile(configFile: string, input: RuntimeConfigInput): void {
   const configDirectory = dirname(configFile)
   const nodeModulesDirectory = join(configDirectory, 'node_modules')
@@ -126,12 +124,9 @@ function hasVitePlusResolveStack(stack: string | undefined): boolean {
 function loadRuntimeInfo(configFile: string): void {
   const input = readRuntimeConfigInput(configFile)
 
-  if (!input) {
-    // The rule that needs runtime info will report the missing info.
-    return
+  if (input) {
+    writeRuntimeInfoFile(configFile, input)
   }
-
-  writeRuntimeInfoFile(configFile, input)
 }
 
 function createRuntimeInfo(
@@ -337,7 +332,7 @@ function readCallArgument(
     return undefined
   }
 
-  return splitTopLevel(source.slice(openParenIndex + 1, closeParenIndex), ',')[argumentIndex]
+  return splitTopLevel(source.slice(openParenIndex + 1, closeParenIndex))[argumentIndex]
 }
 
 function readObjectKeys(source: string): string[] {
@@ -353,7 +348,7 @@ function readObjectKeys(source: string): string[] {
     return []
   }
 
-  return splitTopLevel(source.slice(objectStart + 1, objectEnd), ',').flatMap(readPropertyKey)
+  return splitTopLevel(source.slice(objectStart + 1, objectEnd)).flatMap(readPropertyKey)
 }
 
 function readPropertyKey(source: string): string[] {
@@ -375,7 +370,7 @@ function readPropertyKey(source: string): string[] {
   return identifierKeyMatch?.groups?.key ? [identifierKeyMatch.groups.key] : []
 }
 
-function splitTopLevel(source: string, separator: string): string[] {
+function splitTopLevel(source: string): string[] {
   const parts: string[] = []
   let start = 0
   let depth = 0
@@ -394,7 +389,7 @@ function splitTopLevel(source: string, separator: string): string[] {
       depth += 1
     } else if (char === ')' || char === ']' || char === '}') {
       depth -= 1
-    } else if (char === separator && depth === 0) {
+    } else if (char === ',' && depth === 0) {
       parts.push(source.slice(start, index).trim())
       start = index + 1
     }
@@ -507,14 +502,6 @@ function findCwdConfigFile(): string | undefined {
   }
 
   return undefined
-}
-
-function parseRuntimeInfo(value: unknown): VpConfigRuntimeInfo | undefined {
-  if (!isRuntimeInfo(value)) {
-    return undefined
-  }
-
-  return value
 }
 
 function isRuntimeInfo(value: unknown): value is VpConfigRuntimeInfo {

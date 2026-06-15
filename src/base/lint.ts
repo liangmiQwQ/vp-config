@@ -216,6 +216,17 @@ export const lintBase: OxlintConfig = {
         // We do not use jest
         vitest: true
       },
+      plugins: ['vitest'],
+      rules: {
+        // Style
+        'vitest/consistent-test-filename': ['warn', { pattern: '.*.test.ts$' }],
+        'vitest/consistent-test-it': ['warn', { fn: 'it', withinDescribe: 'it' }],
+
+        'vitest/no-hooks': 'off',
+        'vitest/no-large-snapshots': 'off',
+        'vitest/no-restricted-matchers': 'off',
+        'vitest/no-restricted-vi-methods': 'off'
+      },
       files: ['*.test.ts', '*.spec.ts']
     },
     {

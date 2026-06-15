@@ -223,6 +223,7 @@ export const lintBase: OxlintConfig = {
         'vitest/consistent-test-it': ['warn', { fn: 'it', withinDescribe: 'it' }],
 
         'vitest/no-hooks': 'off',
+        'vitest/prefer-importing-vitest-globals': 'off', // Conflict with `vite-plus/test`
         'vitest/no-importing-vitest-globals': 'off',
         'vitest/no-large-snapshots': 'off',
         'vitest/no-restricted-matchers': 'off',

@@ -70,6 +70,10 @@ export function writeRuntimeInfo(input: RuntimeConfigInput): void {
 export function ensureRuntimeInfo(configFile: string): VpConfigRuntimeInfo | undefined {
   const configDirectory = dirname(configFile)
 
+  if (!hasConfigPackageJson(configFile)) {
+    return undefined
+  }
+
   loadRuntimeInfo(configFile)
 
   return readRuntimeInfo(configDirectory)
@@ -88,6 +92,10 @@ export function cleanupRuntimeInfo(configDirectory: string): void {
 }
 
 function writeRuntimeInfoFile(configFile: string, input: RuntimeConfigInput): void {
+  if (!hasConfigPackageJson(configFile)) {
+    return
+  }
+
   const configDirectory = dirname(configFile)
   const nodeModulesDirectory = join(configDirectory, 'node_modules')
   const createdNodeModules = !existsSync(nodeModulesDirectory)
@@ -502,6 +510,10 @@ function findCwdConfigFile(): string | undefined {
   }
 
   return undefined
+}
+
+function hasConfigPackageJson(configFile: string): boolean {
+  return existsSync(join(dirname(configFile), 'package.json'))
 }
 
 function isRuntimeInfo(value: unknown): value is VpConfigRuntimeInfo {

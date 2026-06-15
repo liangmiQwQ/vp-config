@@ -16,6 +16,8 @@ Considering we have provided cli entry, it gives our ability to do runtime check
 
 The runtime information should only be created when it is read by Oxlint. Use the error stack import path to confirm that Vite+ or Oxlint is loading the config.
 
+For orphan `vite.config.ts`, we do not generate runtime information, no rules but `liangmi/no-orphan-vite-config` should be run with orphan config files.
+
 If a rule require runtime information, but there is not any, just simply ignore it. (except `liangmi/use-preset-config`).
 
 ### Concept

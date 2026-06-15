@@ -8,6 +8,10 @@ import { packageName, projectConfigNames, rootConfigNames } from './constants.ts
 import { ensureRuntimeInfo, isLibProject, isProject, isWebsiteProject } from './info.ts'
 import { hasPackageJson, isViteConfigFile } from './project.ts'
 
+function canUseRuntimeInfo(filename: string): boolean {
+  return isViteConfigFile(filename) && hasPackageJson(dirname(filename))
+}
+
 export const noOrphanViteConfigRule = defineRule({
   meta: {
     type: 'problem',
@@ -85,7 +89,7 @@ export const usePresetVpConfigRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        if (!isViteConfigFile(context.filename)) {
+        if (!canUseRuntimeInfo(context.filename)) {
           return
         }
 
@@ -111,7 +115,7 @@ export const loadProperVpConfigCategoryRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        if (!isViteConfigFile(context.filename)) {
+        if (!canUseRuntimeInfo(context.filename)) {
           return
         }
 
@@ -153,7 +157,7 @@ export const noMixedProjectRule = defineRule({
   create(context) {
     return {
       Program(node): void {
-        if (!isViteConfigFile(context.filename)) {
+        if (!canUseRuntimeInfo(context.filename)) {
           return
         }
 

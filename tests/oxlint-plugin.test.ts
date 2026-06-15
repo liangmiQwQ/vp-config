@@ -15,7 +15,11 @@ import {
   writeRuntimeInfo
 } from '../src/oxlint-plugin/index.ts'
 import { ensureRuntimeInfo, findConfigFileFromStack } from '../src/oxlint-plugin/info.ts'
-import { loadProperVpConfigCategoryRule } from '../src/oxlint-plugin/rules.ts'
+import {
+  loadProperVpConfigCategoryRule,
+  noMixedProjectRule,
+  usePresetVpConfigRule
+} from '../src/oxlint-plugin/rules.ts'
 
 test('allows project categories from project vite config', () => {
   withTempProject(project => {
@@ -119,6 +123,23 @@ test('ensures runtime info by loading vite config from oxlint plugin', () => {
     expect(info).toMatchObject({ category: 'lib' })
     expect(info?.configKeys).toEqual(expect.arrayContaining(['lint', 'pack']))
     cleanupRuntimeInfo(project)
+  })
+})
+
+test('skips runtime info rules for orphan vite config', () => {
+  withTempProject(project => {
+    const configPath = join(project, 'vite.config.ts')
+
+    writeFileSync(
+      configPath,
+      "import { lib } from '@liangmi/vp-config'\n\nexport default lib({ lint: {}, pack: {}, plugins: [] })\n"
+    )
+
+    expect(ensureRuntimeInfo(configPath)).toBeUndefined()
+    expect(readRuntimeInfo(project)).toBeUndefined()
+    expect(runProgramRule(usePresetVpConfigRule, configPath)).toEqual([])
+    expect(runProgramRule(loadProperVpConfigCategoryRule, configPath)).toEqual([])
+    expect(runProgramRule(noMixedProjectRule, configPath)).toEqual([])
   })
 })
 
@@ -324,13 +345,17 @@ interface RuleReport {
 }
 
 function runLoadProperVpConfigCategoryRule(filename: string): RuleReport[] {
+  return runProgramRule(loadProperVpConfigCategoryRule, filename)
+}
+
+function runProgramRule(rule: unknown, filename: string): RuleReport[] {
   const reports: RuleReport[] = []
-  const rule = loadProperVpConfigCategoryRule as unknown as {
+  const programRule = rule as {
     create: (context: { filename: string; report: (report: RuleReport) => void }) => {
       Program?: (node: { type: 'Program' }) => void
     }
   }
-  const visitor = rule.create({
+  const visitor = programRule.create({
     filename,
     report: report => {
       reports.push(report)

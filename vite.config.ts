@@ -5,10 +5,6 @@ export default lib({
     '*': 'vp check --fix'
   },
   pack: {
-    dts: {
-      tsgo: true
-    },
-    entry: ['./src/index.ts', './src/oxlint-plugin/index.ts'],
-    exports: true
+    entry: ['./src/index.ts', './src/oxlint-plugin/index.ts']
   }
 })

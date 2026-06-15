@@ -1,10 +1,10 @@
 import type { PresetConfig } from '../entry.ts'
 import { fmtCli } from './fmt.ts'
 import { lintCli } from './lint.ts'
-import { testCli } from './test.ts'
+import { packCli } from './pack.ts'
 
 export const cliConfig: PresetConfig = {
   fmt: fmtCli,
   lint: lintCli,
-  test: testCli
+  pack: packCli
 }

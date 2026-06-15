@@ -1,10 +1,10 @@
 import type { PresetConfig } from '../entry.ts'
 import { fmtLib } from './fmt.ts'
 import { lintLib } from './lint.ts'
-import { testLib } from './test.ts'
+import { packLib } from './pack.ts'
 
 export const libConfig: PresetConfig = {
   fmt: fmtLib,
   lint: lintLib,
-  test: testLib
+  pack: packLib
 }

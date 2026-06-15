@@ -224,6 +224,7 @@ export const lintBase: OxlintConfig = {
 
         'vitest/no-hooks': 'off',
         'vitest/require-top-level-describe': 'off',
+        'vitest/prefer-strict-boolean-matchers': 'off',
         'vitest/max-expects': 'off',
         'vitest/prefer-expect-assertions': 'off',
         'vitest/prefer-importing-vitest-globals': 'off', // Conflict with `vite-plus/test`

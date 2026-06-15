@@ -1,5 +1,5 @@
 import type { UserConfig } from 'vite-plus'
 
-export const stagedBase: NonNullable<UserConfig['staged']> = {
+export const staged: NonNullable<UserConfig['staged']> = {
   '*': 'vp check --fix'
 }

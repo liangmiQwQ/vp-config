@@ -1,5 +1,5 @@
 import type { ConfigEnv, UserConfig } from 'vite-plus'
-import { expect, test } from 'vite-plus/test'
+import { expect, it } from 'vite-plus/test'
 
 import { createConfigEntry } from '../src/entry.ts'
 import type { PresetConfig } from '../src/entry.ts'
@@ -25,7 +25,7 @@ const presetConfig = {
   }
 } satisfies PresetConfig
 
-test('should merge preset with object config', () => {
+it('should merge preset with object config', () => {
   const config = createConfigEntry(presetConfig)
 
   expect(config({ fmt: { semi: true } })).toMatchObject({
@@ -42,7 +42,7 @@ test('should merge preset with object config', () => {
   })
 })
 
-test('should merge preset with promise config', async () => {
+it('should merge preset with promise config', async () => {
   const config = createConfigEntry(presetConfig)
 
   await expect(config(Promise.resolve({ fmt: { semi: true } }))).resolves.toMatchObject({
@@ -59,7 +59,7 @@ test('should merge preset with promise config', async () => {
   })
 })
 
-test('should merge preset with function config after Vite+ provides env', async () => {
+it('should merge preset with function config after Vite+ provides env', async () => {
   const config = createConfigEntry(presetConfig)
   const userConfig = config(env => ({
     fmt: {
@@ -68,7 +68,7 @@ test('should merge preset with function config after Vite+ provides env', async 
   }))
   const env = { command: 'serve', mode: 'test' } as ConfigEnv
 
-  expect(typeof userConfig).toBe('function')
+  expect(userConfig).toBeTypeOf('function')
   await expect(userConfig(env)).resolves.toMatchObject({
     fmt: {
       semi: true
@@ -83,7 +83,7 @@ test('should merge preset with function config after Vite+ provides env', async 
   })
 })
 
-test('should merge only selected preset parts', () => {
+it('should merge only selected preset parts', () => {
   const config = createConfigEntry(presetConfig)
   const mergedConfig = config.only(['fmt'], { staged: { '*': 'vp test' } })
 
@@ -99,7 +99,7 @@ test('should merge only selected preset parts', () => {
   expect(mergedConfig).not.toHaveProperty('pack')
 })
 
-test('should merge preset after excluding selected parts', () => {
+it('should merge preset after excluding selected parts', () => {
   const config = createConfigEntry(presetConfig)
 
   expect(config.exclude(['fmt'], { fmt: { semi: true } })).toMatchObject({
@@ -116,7 +116,7 @@ test('should merge preset after excluding selected parts', () => {
   })
 })
 
-test('should merge lint fields', () => {
+it('should merge lint fields', () => {
   const config = createConfigEntry(presetConfig)
   const userLint: NonNullable<UserConfig['lint']> = {
     options: {
@@ -140,7 +140,7 @@ test('should merge lint fields', () => {
   })
 })
 
-test('should merge pack preset with object config', () => {
+it('should merge pack preset with object config', () => {
   const config = createConfigEntry(presetConfig)
 
   expect(
@@ -159,7 +159,7 @@ test('should merge pack preset with object config', () => {
   })
 })
 
-test('should merge pack preset with every array item', () => {
+it('should merge pack preset with every array item', () => {
   const config = createConfigEntry(presetConfig)
 
   expect(

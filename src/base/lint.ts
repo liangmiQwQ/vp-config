@@ -4,7 +4,8 @@ import { cliOverride } from '../shared/lint.ts'
 
 // Rules Config
 const suspicious: DummyRuleMap = {
-  'no-shadow': 'off'
+  'no-shadow': 'off',
+  'typescript/no-unsafe-type-assertion': 'off'
 }
 
 const nursery: DummyRuleMap = {
@@ -191,8 +192,13 @@ export const lintBase: OxlintConfig = {
     ...restriction,
     ...pedantic,
     ...style,
-    'liangmi/load-vp-config-correctly': 'error',
-    'typescript/no-unsafe-type-assertion': 'off'
+
+    // `liangmi` plugin
+    'liangmi/no-orphan-vite-config': 'error',
+    'liangmi/no-useless-vp-preset-imports': 'error',
+    'liangmi/use-preset-vp-config': 'error',
+    'liangmi/load-proper-vp-config-category': 'error',
+    'liangmi/no-mixed-project': 'error'
   },
   options: {
     typeAware: true,

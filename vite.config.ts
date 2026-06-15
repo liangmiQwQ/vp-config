@@ -8,7 +8,7 @@ export default lib({
     dts: {
       tsgo: true
     },
-    entry: ['./src/index.ts', './src/oxlint-plugin.ts'],
+    entry: ['./src/index.ts', './src/oxlint-plugin/index.ts'],
     exports: true
   }
 })

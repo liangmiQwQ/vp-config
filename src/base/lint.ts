@@ -24,7 +24,7 @@ const style: DummyRuleMap = {
   'typescript/consistent-indexed-object-style': ['warn', 'record'],
   'eslint/func-names': ['warn', 'never'],
   'id-length': ['warn', { checkGeneric: false }],
-  // 'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
+  'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
   'unicorn/prefer-ternary': ['warn', 'only-single-line'],
 
   'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
@@ -47,7 +47,8 @@ const style: DummyRuleMap = {
   'import/no-nodejs-modules': 'off',
   'import/prefer-default-export': 'off',
   'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
-  'unicorn/no-null': 'off' // `null` is still meaningful in platform APIs.
+  'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
+  'eslint/prefer-named-capture-group': 'off' // Too annoying
 }
 
 // Whitelist mode

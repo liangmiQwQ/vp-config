@@ -37,14 +37,12 @@
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
-    "tinyglobby": "^0.2.17",
     "typescript": "catalog:",
-    "vite-plus": "catalog:",
-    "yaml": "^2.9.0"
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "@oxlint/plugins": "1.61.0",
-    "vite-plus": "^0.1.22"
+    "vite-plus": "^0.2.0"
   },
   "packageManager": "pnpm@11.5.2"
 }

@@ -35,3 +35,15 @@ These ideas can help solve the problem in these aspect:
 - It provides ability to generate metadata like `output` (It has ability, but not planned to implement for now)
 
 Personally, I am looking forward to seeing whether there might be further integration here. This idea might be worth subbmiting to upstream in the future.
+
+## Detail
+
+We currently only generate tasks for these commands
+
+- `vp build` (Vite)
+- `vp pack` (tsdown)
+- `vp lint` (Oxlint)
+- `vp fmt` (Oxfmt)
+- `vp format` (Oxfmt)
+- `vp check` (Oxlint + Oxfmt)
+- `vp test` (Vitest)

@@ -10,5 +10,8 @@ export const runBase: NonNullable<UserConfig['run']> = {
     cpack: 'vp pack',
     ctest: 'vp test'
   },
-  cache: false
+  cache: {
+    scripts: false,
+    tasks: true
+  }
 }

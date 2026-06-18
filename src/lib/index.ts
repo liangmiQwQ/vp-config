@@ -1,4 +1,5 @@
 import type { PresetConfig } from '../entry.ts'
+import { run } from '../shared/run.ts'
 import { staged } from '../shared/staged.ts'
 import { fmtLib } from './fmt.ts'
 import { lintLib } from './lint.ts'
@@ -8,5 +9,6 @@ export const libConfig: PresetConfig = {
   fmt: fmtLib,
   lint: lintLib,
   pack: packLib,
+  run,
   staged
 }

@@ -1,4 +1,5 @@
 import type { PresetConfig } from '../entry.ts'
+import { run } from '../shared/run.ts'
 import { staged } from '../shared/staged.ts'
 import { fmtCli } from './fmt.ts'
 import { lintCli } from './lint.ts'
@@ -8,5 +9,6 @@ export const cliConfig: PresetConfig = {
   fmt: fmtCli,
   lint: lintCli,
   pack: packCli,
+  run,
   staged
 }

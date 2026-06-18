@@ -25,13 +25,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vp pack",
-    "check": "vp pack && vp check",
+    "build": "vp run cpack",
+    "check": "vp run cpack && vp run ccheck",
     "dev": "vp pack --watch",
     "prepare": "vp config",
     "prepublishOnly": "vp run build",
     "release": "bumpp",
-    "test": "vp test"
+    "test": "vp run ctest"
   },
   "devDependencies": {
     "@types/node": "catalog:",

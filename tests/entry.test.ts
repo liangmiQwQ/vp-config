@@ -1,12 +1,9 @@
 import type { ConfigEnv, UserConfig } from 'vite-plus'
 import { expect, it } from 'vite-plus/test'
 
-import { baseConfig } from '../src/base/index.ts'
-import { cliConfig } from '../src/cli/index.ts'
 import { createConfigEntry } from '../src/entry.ts'
 import type { PresetConfig } from '../src/entry.ts'
-import { libConfig } from '../src/lib/index.ts'
-import { websiteConfig } from '../src/website/index.ts'
+import { base, cli, lib, website } from '../src/index.ts'
 
 const presetConfig = {
   fmt: {
@@ -194,9 +191,20 @@ it('should merge pack preset with every array item', () => {
   })
 })
 
-it('should include staged config in every preset category', () => {
-  for (const config of [baseConfig, cliConfig, libConfig, websiteConfig]) {
-    expect(config).toMatchObject({
+it('should include shared config in every preset category', () => {
+  for (const config of [base, cli, lib, website]) {
+    expect(config({})).toMatchObject({
+      run: {
+        tasks: {
+          cbuild: 'vp build',
+          ccheck: 'vp check',
+          cfmt: 'vp fmt',
+          cformat: 'vp format',
+          clint: 'vp lint',
+          cpack: 'vp pack',
+          ctest: 'vp test'
+        }
+      },
       staged: {
         '*': 'vp check --fix'
       }

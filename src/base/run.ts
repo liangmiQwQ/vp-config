@@ -1,6 +1,6 @@
 import type { UserConfig } from 'vite-plus'
 
-export const run: NonNullable<UserConfig['run']> = {
+export const runBase: NonNullable<UserConfig['run']> = {
   tasks: {
     cbuild: 'vp build',
     ccheck: { command: 'vp check', input: ['!node_modules/.vp-config/info.json'] },
@@ -9,5 +9,6 @@ export const run: NonNullable<UserConfig['run']> = {
     clint: { command: 'vp lint', input: ['!node_modules/.vp-config/info.json'] },
     cpack: 'vp pack',
     ctest: 'vp test'
-  }
+  },
+  cache: false
 }

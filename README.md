@@ -20,7 +20,7 @@ export default base({
 });
 ```
 
-> [!WARN]
+> [!WARNING]
 > Considering Vite+ is now still alpha, the internal API can be unstable and expected to change, please manage to use `@liangmi/vp-config` with the latest Vite+. If you found something that doesn't work expectedly, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
 ### Categories
@@ -42,7 +42,7 @@ For monorepos, different presets should be used in combination. We should use `b
 
 Each category is a wrapper of Vite+'s `defineConfig`. The config passed to it overrides and deeply merges with the preset.
 
-> [!TIPS]
+> [!TIP]
 >
 > Deep merging means your config only needs to specify what should change. Nested preset options that you do not override remain enabled, while values from your config take precedence.
 

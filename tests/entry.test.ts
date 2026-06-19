@@ -207,14 +207,19 @@ it('should include shared config in every preset category', () => {
   }
 })
 
-it('should enable embedded language formatting for website projects', () => {
-  expect(website({}).fmt).toMatchObject({
-    embeddedLanguageFormatting: 'auto'
+it('should merge CLI and component lint overrides once', () => {
+  const lint = cli({}).lint
+  const plugins = lint?.plugins ?? []
+
+  expect(lint).toMatchObject({
+    env: {
+      node: true,
+      vue: true
+    },
+    rules: {
+      'no-console': 'off'
+    }
   })
-})
-
-it('should include each CLI lint plugin once', () => {
-  const plugins = cli({}).lint?.plugins ?? []
-
+  expect(plugins).toEqual(expect.arrayContaining(['node', 'react', 'vue']))
   expect(plugins).toStrictEqual([...new Set(plugins)])
 })

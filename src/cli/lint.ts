@@ -6,5 +6,5 @@ import { componentOverride } from '../shared/lint.ts'
 
 export const lintCli: OxlintConfig = mergeConfig<OxlintConfig, OxlintConfig>(
   lintBase,
-  mergeConfig<OxlintConfig, OxlintConfig>(lintBase, componentOverride)
+  componentOverride
 )

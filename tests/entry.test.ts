@@ -206,3 +206,15 @@ it('should include shared config in every preset category', () => {
     })
   }
 })
+
+it('should enable embedded language formatting for website projects', () => {
+  expect(website({}).fmt).toMatchObject({
+    embeddedLanguageFormatting: 'auto'
+  })
+})
+
+it('should include each CLI lint plugin once', () => {
+  const plugins = cli({}).lint?.plugins ?? []
+
+  expect(plugins).toStrictEqual([...new Set(plugins)])
+})

@@ -11,7 +11,6 @@ export interface PresetConfig {
   pack?: PackUserConfig
   run?: UserConfig['run']
   staged?: UserConfig['staged']
-  test?: UserConfig['test']
 }
 
 // Keep the public call signature aligned with Vite+'s defineConfig, but merge presets by input kind:

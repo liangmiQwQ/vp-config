@@ -69,7 +69,7 @@ import { base } from "@liangmi/vp-config";
 export default base.exclude(["staged"], {});
 ```
 
-Available config parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depending on the selected category.
+Available config parts are `fmt`, `lint`, `pack`, `run`, and `staged`, depending on the selected category.
 
 ## What's included by default
 

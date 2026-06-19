@@ -34,7 +34,7 @@ We provide four config categories for different kinds of projects.
 | `lib`     | Config with library bundling defaults                  | Libraries            |
 | `website` | Config for browser environment and website development | Websites             |
 
-The `website` category is still a work in progress while waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
+The `website` category is experimental and its defaults may change before the package reaches a stable release. React and browser linting are available, but Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
 
 For monorepos, different presets should be used in combination. We should use `base` the workspace root, and use other categories as needed.
 

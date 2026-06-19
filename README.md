@@ -89,21 +89,21 @@ The included `liangmi` Oxlint plugin checks that presets are loaded correctly. I
 
 ### Format
 
-The format config follows a simple philosophy: remove syntax that does not improve readability, keep output predictable, and let the formatter handle mechanical consistency.
+The format config follows a simple philosophy: remove syntax that does not improve readability, and let the formatter handle mechanical consistency.
 
 All categories include an Oxfmt config using single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields. Embedded-language formatting is disabled for `base` and `lib`, and enabled for `cli` and `website`.
 
 ### Pack
 
-Packaging defaults focus on the expected distribution format of each category, so common output settings do not need to be repeated in every project.
+The packaging presets provide the best-practice defaults for each kind of project while leaving project-specific details explicit. Because the package entry depends on the project's source layout, you still need to define `pack.entry` manually.
 
-The `lib` preset generates declarations and package exports with fixed extensions. The `cli` preset targets Node.js, minifies output, strips `node:` protocol prefixes, and disables declaration generation.
+The `lib` preset generates `.d.ts` and package exports with fixed extensions. The `cli` preset targets Node.js, minifies output, strips `node:` protocol prefixes, and disables `dts` generation.
 
 ### Cached commands
 
-Cached commands provide command-level caching without requiring users to duplicate task definitions or enable caching for every `package.json` script.
+In order to make full use of Vite+'s powerful cache system without too much config and make it contributors-friendly, we provide cached tasks task wrappers for common Vite+ commands. This feature is included in all categories.
 
-All categories provide cached task wrappers for common Vite+ commands:
+In most cases, they should be treated more like cached versions of Vite+ commands rather than normal user-defined tasks. For example, users can run `vpr ccheck` as a cached replacement for `vp check`.
 
 | Task      | Command     |
 | --------- | ----------- |
@@ -115,7 +115,7 @@ All categories provide cached task wrappers for common Vite+ commands:
 | `ccheck`  | `vp check`  |
 | `ctest`   | `vp test`   |
 
-Run them with `vp run <task>`, such as `vp run cpack`. They can also be used in `package.json` scripts while retaining Vite+ task caching.
+Run them with `vp run <task>`, such as `vp run cpack`, or shorthand `vpr cpack`. They can also be used in `package.json` scripts while retaining Vite+ task caching.
 
 ### Staged files
 

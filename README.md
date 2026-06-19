@@ -1,8 +1,6 @@
 # @liangmi/vp-config
 
-Liang's opinionated Vite+ config presets for JavaScript development, including linting, formatting, task running and more.
-
-It is designed to work with different kinds of project, cli / tui development, library, and website development (WIP, waiting for [Oxlint's better Vue support](https://github.com/oxc-project/oxc/issues/15761))
+Liang's united [Vite+](https://viteplus.dev/) config presets for JavaScript development — opinionated, strict and designed to be universal with different kinds of projects.
 
 ## Usage
 
@@ -15,30 +13,41 @@ vp install -D @liangmi/vp-config
 And modify your `vite.config.ts` like that:
 
 ```typescript
-import { cli } from "@liangmi/vp-config";
+import { base } from "@liangmi/vp-config";
 
-export default cli({
-  /* Your personal config overrides */
+export default base({
+  /* Your personal config overrides, will be merged deeply */
 });
 ```
 
-Considering Vite+ is now still alpha, the internal API can be unstable and expected to change, please manage to use `@liangmi/vp-config` with the latest Vite+. If you found something that doesn't work expectedly, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
+> [!WARN]
+> Considering Vite+ is now still alpha, the internal API can be unstable and expected to change, please manage to use `@liangmi/vp-config` with the latest Vite+. If you found something that doesn't work expectedly, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
-## Cached commands
+### Categories
 
-The presets provide cached Vite+ task wrappers for common commands:
+We provide four config categories for different kinds of projects.
 
-| Task      | Command     |
-| --------- | ----------- |
-| `cbuild`  | `vp build`  |
-| `cpack`   | `vp pack`   |
-| `clint`   | `vp lint`   |
-| `cfmt`    | `vp fmt`    |
-| `cformat` | `vp format` |
-| `ccheck`  | `vp check`  |
-| `ctest`   | `vp test`   |
+| Category | Description | Recommended for |
+| -------- | ----------- | --------------- |
+| `base`   | <!--...-->  | Workspace root  |
 
-Run them with `vp run <task>`, such as `vp run cpack`. They can also be used in `package.json` scripts to keep the script interface while using Vite+ task caching.
+<!--...-->
+
+For monorepos, different presets should be used in combination. We should use `base` the workspace root, and use other categories as needed.
+
+### Customizable
+
+<!-- Introduce the usage of config entries. (Like `only`, `exclude`) -->
+
+## What's included by default
+
+Vite+ is a united toolchain for JavaScript development, it includes linting, formatting, library bundling, git hooks, test, task runner, website development, etc.
+
+`@liangmi/vp-config` tries to extract reusable configurations from these, in order to improve the development experience as much as possible.
+
+### Lint
+
+<!-- Lint config, and more -->
 
 ## License
 

@@ -206,3 +206,20 @@ it('should include shared config in every preset category', () => {
     })
   }
 })
+
+it('should merge CLI and component lint overrides once', () => {
+  const { lint } = cli({})
+  const plugins = lint?.plugins ?? []
+
+  expect(lint).toMatchObject({
+    env: {
+      node: true,
+      vue: true
+    },
+    rules: {
+      'no-console': 'off'
+    }
+  })
+  expect(plugins).toStrictEqual(expect.arrayContaining(['node', 'react', 'vue']))
+  expect(plugins).toStrictEqual([...new Set(plugins)])
+})

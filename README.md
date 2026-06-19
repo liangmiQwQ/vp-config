@@ -44,7 +44,7 @@ Each category is a wrapper of Vite+'s `defineConfig`. The config passed to it ov
 
 > [!TIPS]
 >
-> <!--Talk about what `deeply merge` means-->
+> Deep merging means your config only needs to specify what should change. Nested preset options that you do not override remain enabled, while values from your config take precedence.
 
 Use `.only()` to load only selected parts of a preset:
 
@@ -73,15 +73,15 @@ Available config parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, d
 
 ## What's included by default
 
-<!-- I hope it can include more about design philosophy -->
-
 Vite+ is a united toolchain for JavaScript development, it includes linting, formatting, library bundling, git hooks, test, task runner, website development, etc.
 
 `@liangmi/vp-config` tries to extract reusable configurations from these, in order to improve the development experience as much as possible.
 
 ### Lint
 
-All categories include a strict Oxlint config with type-aware linting and type checking enabled, means you do not need run `tsc` manually. Correctness, performance, suspicious, and nursery rules report errors, while style and fixable readability rules generally report warnings. Warnings also fail the lint command.
+The lint config prioritizes correctness and fast feedback. Rules that prevent bugs report errors, while style and fixable readability rules generally report warnings and are left to autofixes. Warnings also fail the lint command, keeping the codebase consistent without treating every style concern as a hand-written task.
+
+All categories include a strict Oxlint config with type-aware linting and type checking enabled, which means you do not need to run `tsc` manually. Correctness, performance, suspicious, and nursery rules report errors.
 
 `console.log` is not allowed except in the `cli` category and Node.js script files. Test files enable Vitest rules, while the `cli` and `website` categories add React and Vue component rules. The `website` category also enables browser-specific rules.
 
@@ -89,13 +89,19 @@ The included `liangmi` Oxlint plugin checks that presets are loaded correctly. I
 
 ### Format
 
+The format config follows a simple philosophy: remove syntax that does not improve readability, keep output predictable, and let the formatter handle mechanical consistency.
+
 All categories include an Oxfmt config using single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields. Embedded-language formatting is disabled for `base` and `lib`, and enabled for `cli` and `website`.
 
 ### Pack
 
+Packaging defaults focus on the expected distribution format of each category, so common output settings do not need to be repeated in every project.
+
 The `lib` preset generates declarations and package exports with fixed extensions. The `cli` preset targets Node.js, minifies output, strips `node:` protocol prefixes, and disables declaration generation.
 
 ### Cached commands
+
+Cached commands provide command-level caching without requiring users to duplicate task definitions or enable caching for every `package.json` script.
 
 All categories provide cached task wrappers for common Vite+ commands:
 
@@ -112,6 +118,8 @@ All categories provide cached task wrappers for common Vite+ commands:
 Run them with `vp run <task>`, such as `vp run cpack`. They can also be used in `package.json` scripts while retaining Vite+ task caching.
 
 ### Staged files
+
+Staged-file checks keep automatic fixes close to the commit workflow, so only code that is about to be committed is processed.
 
 All categories run `vp check --fix` for staged files. Run `vp config` to install Vite+'s commit hook.
 

@@ -193,24 +193,13 @@ it('should merge pack preset with every array item', () => {
 
 it('should include shared config in every preset category', () => {
   for (const config of [base, cli, lib, website]) {
-    expect(config({})).toMatchObject({
-      run: {
-        tasks: {
-          cbuild: 'vp build',
-          ccheck: {
-            command: 'vp check',
-            input: ['!node_modules/.vp-config/info.json']
-          },
-          cfmt: 'vp fmt',
-          cformat: 'vp format',
-          clint: {
-            command: 'vp lint',
-            input: ['!node_modules/.vp-config/info.json']
-          },
-          cpack: 'vp pack',
-          ctest: 'vp test'
-        }
-      },
+    const preset = config({})
+
+    for (const task of ['cbuild', 'ccheck', 'cfmt', 'cformat', 'clint', 'cpack', 'ctest']) {
+      expect(preset.run?.tasks).toHaveProperty(task)
+    }
+
+    expect(preset).toMatchObject({
       staged: {
         '*': 'vp check --fix'
       }

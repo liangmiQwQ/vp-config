@@ -23,7 +23,6 @@ const style: DummyRuleMap = {
   'typescript/consistent-type-definitions': ['warn', 'interface'],
   'typescript/consistent-indexed-object-style': ['warn', 'record'],
   'eslint/func-names': ['warn', 'never'],
-  'id-length': ['warn', { checkGeneric: false }],
   'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
   'unicorn/prefer-ternary': ['warn', 'only-single-line'],
 
@@ -48,7 +47,9 @@ const style: DummyRuleMap = {
   'import/prefer-default-export': 'off',
   'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
   'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
-  'eslint/prefer-named-capture-group': 'off' // Too annoying
+  'prefer-named-capture-group': 'off', // Too annoying
+  'id-length': 'off',
+  'promise/avoid-new': 'off'
 }
 
 // Whitelist mode

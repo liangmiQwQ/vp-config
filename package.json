@@ -38,7 +38,7 @@
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
     "typescript": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "^0.2.1"
   },
   "peerDependencies": {
     "@oxlint/plugins": "1.61.0",

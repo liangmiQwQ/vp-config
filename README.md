@@ -125,4 +125,4 @@ All categories run `vp check --fix` for staged files. Run `vp config` to install
 
 ## License
 
-[MIT](./LICENSE) License © 2026-PRESENT Liang
+[MIT](./LICENSE) License © 2026-PRESENT Liang & Contributors

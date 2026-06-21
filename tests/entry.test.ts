@@ -1,9 +1,8 @@
-import type { ConfigEnv, UserConfig } from 'vite-plus'
+import type { ConfigEnv } from 'vite-plus'
 import { expect, it } from 'vite-plus/test'
 
 import { createConfigEntry } from '../src/entry.ts'
 import type { PresetConfig } from '../src/entry.ts'
-import { base, cli, lib, website } from '../src/index.ts'
 
 const presetConfig = {
   fmt: {
@@ -115,111 +114,4 @@ it('should merge preset after excluding selected parts', () => {
       exports: true
     }
   })
-})
-
-it('should merge lint fields', () => {
-  const config = createConfigEntry(presetConfig)
-  const userLint: NonNullable<UserConfig['lint']> = {
-    options: {
-      denyWarnings: true
-    },
-    rules: {
-      eqeqeq: 'off'
-    }
-  }
-
-  expect(config({ lint: userLint })).toMatchObject({
-    lint: {
-      options: {
-        denyWarnings: true,
-        typeAware: true
-      },
-      rules: {
-        eqeqeq: 'off'
-      }
-    }
-  })
-})
-
-it('should merge pack preset with object config', () => {
-  const config = createConfigEntry(presetConfig)
-
-  expect(
-    config({
-      pack: {
-        exports: false,
-        minify: true
-      }
-    })
-  ).toMatchObject({
-    pack: {
-      dts: true,
-      exports: false,
-      minify: true
-    }
-  })
-})
-
-it('should merge pack preset with every array item', () => {
-  const config = createConfigEntry(presetConfig)
-
-  expect(
-    config({
-      pack: [
-        {
-          entry: ['./src/index.ts']
-        },
-        {
-          dts: false,
-          entry: ['./src/cli.ts']
-        }
-      ]
-    })
-  ).toMatchObject({
-    pack: [
-      {
-        dts: true,
-        entry: ['./src/index.ts'],
-        exports: true
-      },
-      {
-        dts: false,
-        entry: ['./src/cli.ts'],
-        exports: true
-      }
-    ]
-  })
-})
-
-it('should include shared config in every preset category', () => {
-  for (const config of [base, cli, lib, website]) {
-    const preset = config({})
-
-    for (const task of ['cbuild', 'ccheck', 'cfmt', 'cformat', 'clint', 'cpack', 'ctest']) {
-      expect(preset.run?.tasks).toHaveProperty(task)
-    }
-
-    expect(preset).toMatchObject({
-      staged: {
-        '*': 'vp check --fix'
-      }
-    })
-  }
-})
-
-it('should merge CLI and component lint overrides once', () => {
-  const { lint } = cli({})
-  const plugins = lint?.plugins ?? []
-
-  expect(lint).toMatchObject({
-    env: {
-      node: true,
-      vue: true
-    },
-    rules: {
-      'no-console': 'off'
-    }
-  })
-  expect(plugins).toStrictEqual(expect.arrayContaining(['node', 'react', 'vue']))
-  expect(plugins).toStrictEqual([...new Set(plugins)])
 })

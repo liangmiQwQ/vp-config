@@ -8,6 +8,10 @@ const suspicious: DummyRuleMap = {
   'typescript/no-unsafe-type-assertion': 'off'
 }
 
+const perf: DummyRuleMap = {
+  'no-await-in-loop': 'off'
+}
+
 const nursery: DummyRuleMap = {
   // We hope typescript can process them.
   'no-undef': 'off',
@@ -57,8 +61,6 @@ const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
   'class-methods-use-this': 'error',
   'default-case': 'error',
-  'typescript/explicit-function-return-type': 'error',
-  'typescript/explicit-module-boundary-types': 'error',
   'import/extensions': ['error', 'always', { checkTypeImports: true, ignorePackages: true }],
   'unicorn/no-abusive-eslint-disable': 'error',
   'no-alert': 'error',
@@ -68,7 +70,6 @@ const restriction: DummyRuleMap = {
   'no-console': 'error',
   'import/no-cycle': 'error',
   'oxc/no-const-enum': 'error',
-  'typescript/no-dynamic-delete': 'error',
   'no-dynamic-require': 'error', // For the case like loading config, we should use oxlint-disable to skip this rule.
   'no-empty': 'error',
   'no-empty-function': 'error',
@@ -129,7 +130,6 @@ const pedantic: DummyRuleMap = {
   'typescript/prefer-nullish-coalescing': 'error',
   'typescript/prefer-promise-reject-errors': 'error',
   'typescript/require-await': 'error',
-  'require-unicode-regexp': 'error',
   'typescript/return-await': ['error', 'never'],
 
   // Rules are reported as `warn`. Most of them are fixable, mainly about readability and style.
@@ -187,9 +187,10 @@ export const lintBase: OxlintConfig = {
   ],
   plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
   rules: {
-    // Enable all `correctness` and `perf` config
+    // Enable all `correctness` config
     ...suspicious,
     ...nursery,
+    ...perf,
 
     ...restriction,
     ...pedantic,

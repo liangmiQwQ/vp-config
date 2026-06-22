@@ -1,6 +1,6 @@
 import type { UserConfig } from 'vite-plus'
 
-const lintInput = ['!node_modules/.vp-config/info.json', 'index.html']
+const lintInput = [{ auto: true }, '!node_modules/.vp-config/info.json', 'index.html']
 
 export const runBase: NonNullable<UserConfig['run']> = {
   tasks: {

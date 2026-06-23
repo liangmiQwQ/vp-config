@@ -53,7 +53,9 @@ const style: DummyRuleMap = {
   'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
   'prefer-named-capture-group': 'off', // Too annoying
   'id-length': 'off',
-  'promise/avoid-new': 'off'
+  'promise/avoid-new': 'off',
+  'eslint/new-cap': 'off',
+  'eslint/no-template-curly-in-string': 'off'
 }
 
 // Whitelist mode

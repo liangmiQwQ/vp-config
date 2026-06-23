@@ -15,7 +15,11 @@ const browserEnvironmentOverride: OxlintConfig = {
     'prefer-dom-node-remove': 'warn',
     'prefer-blob-reading-methods': 'warn',
 
-    'import/no-unassigned-import': ['error', { allow: ['**/*.css'] }]
+    'import/no-unassigned-import': ['error', { allow: ['**/*.css'] }],
+
+    // Some meta framework use default export to create middlewares or apis
+    'import/no-default-export': 'off',
+    'unicorn/filename-case': 'off'
   }
 }
 

@@ -63,6 +63,8 @@ For `lib` and `cli`, define `pack.entry` explicitly from the project's real sour
 
 Only select parts provided by the chosen category. Do not import a preset outside `vite.config.ts`.
 
+Since we already use vp config preset, most of the config items can be omiited. For example, we do not need to define `lint`, `staged`, and `fmt` config most of the time, `dts` generation, `fixedExtendions`, `export` generation or `minify` in `pack` are also set by default. If you are doing migration works, please handle them as well.
+
 ## Work with preset defaults
 
 Assume these defaults unless the project explicitly overrides them:

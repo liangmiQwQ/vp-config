@@ -23,6 +23,11 @@ export default base({
 > [!WARNING]
 > Considering Vite+ is now still alpha, the internal API can be unstable and expected to change, please manage to use `@liangmi/vp-config` with the latest Vite+. If you found something that doesn't work expectedly, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
+Here are some real-world examples using `@liangmi/vp-config`.
+
+- `mo` is cli and tui tool to help you manage your opensource projects.
+- `@liangmi/vp-config` uses itself to manage its own codebase.
+
 ### Categories
 
 We provide four config categories for different kinds of projects.

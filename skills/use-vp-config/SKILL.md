@@ -88,6 +88,12 @@ Use the generated cached tasks when suitable:
 
 Run them with `vp run <task>` or `vpr <task>`. Package scripts may call them, for example `"build": "vp run cpack"`. If there is existing scripts calling `vp <command>` inside package.json, you are supposed to change them to `vp run c<xxx>` (Only for commands listed above.).
 
+## Migration
+
+`@liangmi/vp-config` has a stricter ruleset, to make the linting pass after migration, you need to change runtime code to fix linting errors.
+
+If you meet cases that can't fix easily, we prefer `// oxlint-disable-xxxx` than disabling one rules global in `vite.config.ts`.
+
 ## Validate changes
 
 After editing:

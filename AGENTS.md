@@ -4,6 +4,8 @@
 
 View [RFCS](/rfcs) directory to learn more about project architecture and the road map.
 
+Keep the distributable agent guidance in [`skills/use-vp-config`](skills/use-vp-config) synchronized with the public preset API and documented usage.
+
 ## Development and dog fooding
 
 This project itself is using Vite+, and `@liangmi/vp-config` (`lib` category). It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.

@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Use Liangmi VP Config'
+  short_description: 'Configure projects with Liangmi’s Vite+ presets'
+  default_prompt: 'Use $use-vp-config to configure this project with @liangmi/vp-config.'

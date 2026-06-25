@@ -90,7 +90,7 @@ Vite+ is a united toolchain for JavaScript development, it includes linting, for
 
 ### Lint
 
-The lint config prioritizes correctness and fast feedback. Rules that prevent bugs report errors, while style and fixable readability rules generally report warnings and are left to autofixes. Warnings also fail the lint command, keeping the codebase consistent without treating every style concern as a hand-written task.
+The lint config prioritizes correctness and fast feedback. Rules that prevent bugs report errors, while selected style and fixable readability rules report warnings and are left to autofixes. Warnings also fail the lint command, keeping the codebase consistent without enabling every style concern from Oxlint.
 
 All categories include a strict Oxlint config with type-aware linting and type checking enabled, which means you do not need to run `tsc` manually. Correctness, performance, suspicious, and nursery rules report errors.
 

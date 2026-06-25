@@ -21,6 +21,7 @@ const nursery: DummyRuleMap = {
   'no-restricted-exports': 'off'
 }
 
+// Whitelist mode
 const style: DummyRuleMap = {
   // Rules need configure
   'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
@@ -175,9 +176,9 @@ export const lintBase: OxlintConfig = {
     perf: 'error',
     suspicious: 'error',
     nursery: 'error',
-    style: 'warn',
 
-    // White list mode
+    // Whitelist mode
+    style: 'off',
     restriction: 'off',
     pedantic: 'off'
   },

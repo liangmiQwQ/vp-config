@@ -53,3 +53,17 @@ it('should merge CLI and component lint overrides once', () => {
   expect(plugins).toStrictEqual(expect.arrayContaining(['node', 'react', 'vue']))
   expect(plugins).toStrictEqual([...new Set(plugins)])
 })
+
+it('should enable style rules with whitelist mode', () => {
+  const { lint } = cli({})
+
+  expect(lint).toMatchObject({
+    categories: {
+      style: 'off'
+    },
+    rules: {
+      'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
+      'import/exports-last': 'off'
+    }
+  })
+})

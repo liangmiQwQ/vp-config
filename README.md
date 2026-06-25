@@ -47,7 +47,7 @@ We provide four config categories for different kinds of projects.
 
 The `website` category is experimental and its defaults may change before the package reaches a stable release. React and browser linting are available, but Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
 
-For monorepos, different presets should be used in combination. We should use `base` the workspace root, and use other categories as needed.
+For monorepos, [Vite+ do not support nested `lint`/`fmt` config for now](https://github.com/voidzero-dev/vite-plus/issues/997). In the future, different presets should be used in combination. We should use `base` the workspace root, and use other categories as needed.
 
 ### Customizable
 

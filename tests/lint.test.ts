@@ -56,14 +56,15 @@ it('should merge CLI and component lint overrides once', () => {
 
 it('should enable style rules with whitelist mode', () => {
   const { lint } = cli({})
+  const rules = lint?.rules ?? {}
 
   expect(lint).toMatchObject({
     categories: {
       style: 'off'
     },
     rules: {
-      'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
-      'import/exports-last': 'off'
+      'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }]
     }
   })
+  expect(rules).not.toHaveProperty('import/exports-last')
 })

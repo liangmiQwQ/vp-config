@@ -29,34 +29,7 @@ const style: DummyRuleMap = {
   'typescript/consistent-indexed-object-style': ['warn', 'record'],
   'eslint/func-names': ['warn', 'never'],
   'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
-  'unicorn/prefer-ternary': ['warn', 'only-single-line'],
-
-  'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
-  'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.
-  'init-declarations': 'off', // We should be able to init it through control flow.
-  'import/no-anonymous-default-export': 'off',
-  'unicorn/no-await-expression-member': 'off',
-  'max-params': 'off',
-  'max-statements': 'off',
-  'no-continue': 'off',
-  'no-nested-ternary': 'off',
-  'unicorn/no-nested-ternary': 'off', // The same as `no-nested-ternary`
-  'no-magic-numbers': 'off',
-  'import/no-namespace': 'off', // We need `node:*`
-  'import/no-named-export': 'off', // We need named export
-  'no-ternary': 'off',
-  'sort-imports': 'off', // Let Oxfmt to handle it
-  'sort-keys': 'off',
-  'import/group-exports': 'off',
-  'import/no-nodejs-modules': 'off',
-  'import/prefer-default-export': 'off',
-  'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
-  'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
-  'prefer-named-capture-group': 'off', // Too annoying
-  'id-length': 'off',
-  'promise/avoid-new': 'off',
-  'eslint/new-cap': 'off',
-  'eslint/no-template-curly-in-string': 'off'
+  'unicorn/prefer-ternary': ['warn', 'only-single-line']
 }
 
 // Whitelist mode

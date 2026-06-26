@@ -1,4 +1,5 @@
-import type { OxlintConfig } from 'vite-plus/lint'
+import { mergeConfig } from 'vite-plus'
+import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
 // Some lint shard override.
 // They should be used in combination mostly.
@@ -13,7 +14,7 @@ export const cliOverride: OxlintConfig = {
     'unicorn/no-process-exit': 'off',
     'node/no-path-concat': 'error'
   }
-}
+} satisfies Omit<OxlintOverride, 'files'>
 
 // For React and Vue component. There is no web-specific or node-specific rules so it can be used for both cli and website
 export const componentOverride: OxlintConfig = {
@@ -55,4 +56,9 @@ export const componentOverride: OxlintConfig = {
     'react/no-redundant-should-component-update': 'off',
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
   }
-}
+} satisfies Omit<OxlintOverride, 'files'>
+
+export const tuiOverride: OxlintConfig = mergeConfig<OxlintConfig, OxlintConfig>(
+  cliOverride,
+  componentOverride
+) satisfies Omit<OxlintOverride, 'files'>

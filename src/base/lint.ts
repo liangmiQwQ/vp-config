@@ -213,6 +213,7 @@ export const lintBase: OxlintConfig = {
     // We hope to use `oxlint-disable-next-line` instead of `eslint-xxx`
     respectEslintDisableDirectives: false
   },
+  ignorePatterns: ['bin/**'],
   overrides: [
     // Test override, can be used for all catelogries
     {

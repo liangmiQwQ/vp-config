@@ -1,3 +1,4 @@
+import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
 // Some lint shard override.
@@ -56,3 +57,8 @@ export const componentOverride: OxlintConfig = {
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
   }
 } satisfies Omit<OxlintOverride, 'files'>
+
+export const tuiOverride: OxlintConfig = mergeConfig<OxlintConfig, OxlintConfig>(
+  cliOverride,
+  componentOverride
+) satisfies Omit<OxlintOverride, 'files'>

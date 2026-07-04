@@ -1,5 +1,5 @@
 import { defineConfig, mergeConfig } from 'vite-plus'
-import type { ConfigEnv, UserConfig } from 'vite-plus'
+import type { UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'
 
 import type { ConfigName } from './oxlint-plugin/constants.ts'
@@ -32,7 +32,6 @@ export function createConfigEntry<const Config extends PresetConfig>(
 type ConfigArgs = Parameters<typeof defineConfig>
 type ConfigInput = ConfigArgs[0]
 type ConfigResult = ReturnType<typeof defineConfig>
-type ConfigFunctionInput = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
 type StagedObjectConfig = Extract<NonNullable<UserConfig['staged']>, Record<string, unknown>>
 
 // This recursive tuple check is intentionally narrow: it rejects duplicate literal parts without widening them to string[].
@@ -63,9 +62,9 @@ function defineMergedConfig(
   if (typeof config === 'function') {
     // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
     return defineConfig(async env => {
-      const userConfig = await (config as ConfigFunctionInput)(env)
+      const userConfig = await config(env)
       return trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
-    }) as ConfigResult
+    })
   }
 
   if (config instanceof Promise) {
@@ -74,13 +73,11 @@ function defineMergedConfig(
       config.then(userConfig =>
         trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
       )
-    ) as ConfigResult
+    )
   }
 
   // Plain objects can be merged eagerly because they do not depend on ConfigEnv.
-  return defineConfig(
-    trackRuntimeInfo(mergePresetConfig(presetConfig, config), category)
-  ) as ConfigResult
+  return defineConfig(trackRuntimeInfo(mergePresetConfig(presetConfig, config), category))
 }
 
 // Pick by explicit keys instead of mutating the preset object shared by other entries.
@@ -88,7 +85,7 @@ function pickPresetConfig<Config extends PresetConfig>(
   presetConfig: Config,
   parts: readonly ConfigPart<Config>[]
 ): PresetConfig {
-  return Object.fromEntries(parts.map(part => [part, presetConfig[part]])) as PresetConfig
+  return Object.fromEntries(parts.map(part => [part, presetConfig[part]]))
 }
 
 function omitPresetConfig<Config extends PresetConfig>(
@@ -100,7 +97,7 @@ function omitPresetConfig<Config extends PresetConfig>(
   // Object.entries loses keyof information, so the result is cast back to PresetConfig.
   return Object.fromEntries(
     Object.entries(presetConfig).filter(([part]) => !excludedParts.has(part))
-  ) as PresetConfig
+  )
 }
 
 function mergePresetConfig(presetConfig: PresetConfig, userConfig: UserConfig): UserConfig {

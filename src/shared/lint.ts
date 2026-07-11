@@ -12,7 +12,8 @@ export const cliOverride: OxlintConfig = {
   rules: {
     'no-console': 'off',
     'unicorn/no-process-exit': 'off',
-    'node/no-path-concat': 'error'
+    'node/no-path-concat': 'error',
+    'node/no-sync': ['error', { allowAtRootLevel: true }]
   }
 } satisfies Omit<OxlintOverride, 'files'>
 

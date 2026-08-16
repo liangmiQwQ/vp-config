@@ -29,6 +29,7 @@ const style: DummyRuleMap = {
   'eslint/func-names': ['warn', 'never'],
   'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
   'unicorn/prefer-ternary': ['warn', 'only-single-line'],
+  'prefer-destructuring': ['warn', { array: false }],
 
   'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
   'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.

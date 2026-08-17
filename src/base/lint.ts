@@ -75,7 +75,6 @@ const restriction: DummyRuleMap = {
   'oxc/no-const-enum': 'error',
   'no-dynamic-require': 'error', // For the case like loading config, we should use oxlint-disable to skip this rule.
   'no-empty': 'error',
-  'no-explicit-any': 'error',
   'no-implicit-globals': 'error',
   'typescript/no-import-type-side-effects': 'error',
   'typescript/no-invalid-void-type': 'error',

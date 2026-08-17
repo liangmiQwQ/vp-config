@@ -2,7 +2,7 @@ import type { UserConfig } from 'vite-plus'
 import { expect, it } from 'vite-plus/test'
 
 import { createConfigEntry } from '../src/entry.ts'
-import { cli } from '../src/index.ts'
+import { base, cli } from '../src/index.ts'
 
 it('should merge lint fields', () => {
   const config = createConfigEntry({
@@ -52,4 +52,18 @@ it('should merge CLI and component lint overrides once', () => {
   })
   expect(plugins).toStrictEqual(expect.arrayContaining(['node', 'react', 'vue']))
   expect(plugins).toStrictEqual([...new Set(plugins)])
+})
+
+it('should keep selected upstream rules disabled', () => {
+  const { lint } = base({})
+
+  expect(lint?.rules).toMatchObject({
+    'unicorn/explicit-timer-delay': 'off'
+  })
+  expect(lint?.overrides?.[0]).toMatchObject({
+    files: ['*.test.ts', '*.spec.ts'],
+    rules: {
+      'vitest/padding-around-test-blocks': 'off'
+    }
+  })
 })

@@ -38,11 +38,12 @@
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
     "typescript": "catalog:",
-    "vite-plus": "^0.2.2"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "@oxlint/plugins": "1.61.0",
-    "vite-plus": ">=0.2.0"
+    "vite-plus": "0.2.9"
   },
   "packageManager": "pnpm@11.5.2"
 }

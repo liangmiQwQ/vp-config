@@ -36,6 +36,7 @@ const style: DummyRuleMap = {
   'init-declarations': 'off', // We should be able to init it through control flow.
   'import/no-anonymous-default-export': 'off',
   'unicorn/no-await-expression-member': 'off',
+  'unicorn/explicit-timer-delay': 'off',
   'max-params': 'off',
   'max-statements': 'off',
   'no-continue': 'off',
@@ -234,6 +235,7 @@ export const lintBase: OxlintConfig = {
         'vitest/prefer-expect-assertions': 'off',
         'vitest/prefer-importing-vitest-globals': 'off', // Conflict with `vite-plus/test`
         'vitest/no-importing-vitest-globals': 'off',
+        'vitest/padding-around-test-blocks': 'off',
         'vitest/no-large-snapshots': 'off',
         'vitest/no-restricted-matchers': 'off',
         'vitest/no-restricted-vi-methods': 'off'

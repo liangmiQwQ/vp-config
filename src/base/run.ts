@@ -11,9 +11,5 @@ export const runBase: NonNullable<UserConfig['run']> = {
     clint: { command: 'vp lint', input: lintInput },
     cpack: 'vp pack',
     ctest: 'vp test'
-  },
-  cache: {
-    scripts: false,
-    tasks: true
   }
 }

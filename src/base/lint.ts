@@ -57,7 +57,8 @@ const style: DummyRuleMap = {
   'id-length': 'off',
   'promise/avoid-new': 'off',
   'eslint/new-cap': 'off',
-  'eslint/no-template-curly-in-string': 'off'
+  'eslint/no-template-curly-in-string': 'off',
+  'eslint/one-var': 'off'
 }
 
 // Whitelist mode

@@ -70,6 +70,7 @@ Since we already use vp config preset, most of the config items can be omiited. 
 Assume these defaults unless the project explicitly overrides them:
 
 - Linting uses strict, type-aware Oxlint with type checking and warnings denied. Do not add a separate `tsc` check solely for type checking.
+- Style rules are explicitly allowlisted to keep lint behavior stable across Oxlint upgrades. New upstream style rules stay disabled until they are reviewed and added.
 - `console.log` is rejected except in the `cli` category and Node.js script overrides.
 - Formatting uses Oxfmt with single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields.
 - `lib` packaging generates declarations and package exports with fixed extensions.

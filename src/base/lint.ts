@@ -21,6 +21,7 @@ const nursery: DummyRuleMap = {
   'no-restricted-exports': 'off'
 }
 
+// Keep style rules in whitelist mode so Oxlint upgrades do not enable new rules automatically.
 const style: DummyRuleMap = {
   // Rules need configure
   'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
@@ -31,37 +32,130 @@ const style: DummyRuleMap = {
   'unicorn/prefer-ternary': ['warn', 'only-single-line'],
   'prefer-destructuring': ['warn', { array: false }],
 
-  'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
-  'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.
-  'init-declarations': 'off', // We should be able to init it through control flow.
-  'import/no-anonymous-default-export': 'off',
-  'unicorn/no-await-expression-member': 'off',
-  'unicorn/explicit-timer-delay': 'off',
-  'max-params': 'off',
-  'max-statements': 'off',
-  'no-continue': 'off',
-  'no-nested-ternary': 'off',
-  'unicorn/no-nested-ternary': 'off', // The same as `no-nested-ternary`
-  'no-magic-numbers': 'off',
-  'import/no-namespace': 'off', // We need `node:*`
-  'import/no-named-export': 'off', // We need named export
-  'no-ternary': 'off',
-  'sort-imports': 'off', // Let Oxfmt to handle it
-  'sort-keys': 'off',
-  'import/group-exports': 'off',
-  'import/no-nodejs-modules': 'off',
-  'import/prefer-default-export': 'off',
-  'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
-  'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
-  'prefer-named-capture-group': 'off', // Too annoying
-  'id-length': 'off',
-  'promise/avoid-new': 'off',
-  'eslint/new-cap': 'off',
-  'eslint/no-template-curly-in-string': 'off',
-  'eslint/one-var': 'off'
+  // Core
+  'arrow-body-style': 'warn',
+  'capitalized-comments': 'warn',
+  curly: 'warn',
+  'default-case-last': 'warn',
+  'default-param-last': 'warn',
+  'func-name-matching': 'warn',
+  'grouped-accessor-pairs': 'warn',
+  'guard-for-in': 'warn',
+  'id-denylist': 'warn',
+  'id-match': 'warn',
+  'logical-assignment-operators': 'warn',
+  'no-extra-label': 'warn',
+  'no-implicit-coercion': 'warn',
+  'no-label-var': 'warn',
+  'no-labels': 'warn',
+  'no-lone-blocks': 'warn',
+  'no-multi-assign': 'warn',
+  'no-multi-str': 'warn',
+  'no-new-func': 'warn',
+  'no-return-assign': 'warn',
+  'no-script-url': 'warn',
+  'no-useless-computed-key': 'warn',
+  'object-shorthand': 'warn',
+  'operator-assignment': 'warn',
+  'prefer-arrow-callback': 'warn',
+  'prefer-const': 'warn',
+  'prefer-exponentiation-operator': 'warn',
+  'prefer-numeric-literals': 'warn',
+  'prefer-object-has-own': 'warn',
+  'prefer-object-spread': 'warn',
+  'prefer-regex-literals': 'warn',
+  'prefer-rest-params': 'warn',
+  'prefer-spread': 'warn',
+  'prefer-template': 'warn',
+  'vars-on-top': 'warn',
+  yoda: 'warn',
+
+  // Import
+  'import/consistent-type-specifier-style': 'warn',
+  'import/first': 'warn',
+  'import/newline-after-import': 'warn',
+  'import/no-duplicates': 'warn',
+  'import/no-mutable-exports': 'warn',
+  'import/no-named-default': 'warn',
+
+  // Promise
+  'promise/no-nesting': 'warn',
+  'promise/no-return-wrap': 'warn',
+  'promise/param-names': 'warn',
+  'promise/prefer-await-to-callbacks': 'warn',
+  'promise/prefer-catch': 'warn',
+
+  // TypeScript
+  'typescript/adjacent-overload-signatures': 'warn',
+  'typescript/array-type': 'warn',
+  'typescript/ban-tslint-comment': 'warn',
+  'typescript/class-literal-property-style': 'warn',
+  'typescript/consistent-generic-constructors': 'warn',
+  'typescript/consistent-type-assertions': 'warn',
+  'typescript/consistent-type-exports': 'warn',
+  'typescript/consistent-type-imports': 'warn',
+  'typescript/dot-notation': 'warn',
+  'typescript/no-empty-interface': 'warn',
+  'typescript/no-inferrable-types': 'warn',
+  'typescript/no-unnecessary-qualifier': 'warn',
+  'typescript/parameter-properties': 'warn',
+  'typescript/prefer-find': 'warn',
+  'typescript/prefer-for-of': 'warn',
+  'typescript/prefer-function-type': 'warn',
+  'typescript/prefer-readonly': 'warn',
+  'typescript/prefer-reduce-type-parameter': 'warn',
+  'typescript/prefer-regexp-exec': 'warn',
+  'typescript/prefer-return-this-type': 'warn',
+  'typescript/prefer-string-starts-ends-with': 'warn',
+  'typescript/unified-signatures': 'warn',
+
+  // Unicorn
+  'unicorn/catch-error-name': 'warn',
+  'unicorn/consistent-date-clone': 'warn',
+  'unicorn/consistent-existence-index-check': 'warn',
+  'unicorn/consistent-template-literal-escape': 'warn',
+  'unicorn/custom-error-definition': 'warn',
+  'unicorn/empty-brace-spaces': 'warn',
+  'unicorn/error-message': 'warn',
+  'unicorn/filename-case': 'warn',
+  'unicorn/max-nested-calls': 'warn',
+  'unicorn/no-array-method-this-argument': 'warn',
+  'unicorn/no-console-spaces': 'warn',
+  'unicorn/no-unreadable-array-destructuring': 'warn',
+  'unicorn/no-useless-collection-argument': 'warn',
+  'unicorn/no-zero-fractions': 'warn',
+  'unicorn/number-literal-case': 'warn',
+  'unicorn/numeric-separators-style': 'warn',
+  'unicorn/prefer-array-index-of': 'warn',
+  'unicorn/prefer-bigint-literals': 'warn',
+  'unicorn/prefer-class-fields': 'warn',
+  'unicorn/prefer-classlist-toggle': 'warn',
+  'unicorn/prefer-default-parameters': 'warn',
+  'unicorn/prefer-dom-node-text-content': 'warn',
+  'unicorn/prefer-export-from': 'warn',
+  'unicorn/prefer-global-this': 'warn',
+  'unicorn/prefer-includes': 'warn',
+  'unicorn/prefer-keyboard-event-key': 'warn',
+  'unicorn/prefer-logical-operator-over-ternary': 'warn',
+  'unicorn/prefer-modern-dom-apis': 'warn',
+  'unicorn/prefer-negative-index': 'warn',
+  'unicorn/prefer-object-from-entries': 'warn',
+  'unicorn/prefer-optional-catch-binding': 'warn',
+  'unicorn/prefer-reflect-apply': 'warn',
+  'unicorn/prefer-response-static-json': 'warn',
+  'unicorn/prefer-spread': 'warn',
+  'unicorn/prefer-string-raw': 'warn',
+  'unicorn/prefer-string-trim-start-end': 'warn',
+  'unicorn/prefer-structured-clone': 'warn',
+  'unicorn/relative-url-style': 'warn',
+  'unicorn/require-array-join-separator': 'warn',
+  'unicorn/require-module-attributes': 'warn',
+  'unicorn/switch-case-braces': 'warn',
+  'unicorn/switch-case-break-position': 'warn',
+  'unicorn/text-encoding-identifier-case': 'warn',
+  'unicorn/throw-new-error': 'warn'
 }
 
-// Whitelist mode
 const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
   'class-methods-use-this': 'error',
@@ -176,9 +270,9 @@ export const lintBase: OxlintConfig = {
     perf: 'error',
     suspicious: 'error',
     nursery: 'error',
-    style: 'warn',
 
-    // White list mode
+    // Whitelist mode
+    style: 'off',
     restriction: 'off',
     pedantic: 'off'
   },

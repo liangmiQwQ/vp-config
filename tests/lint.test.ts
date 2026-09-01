@@ -54,12 +54,18 @@ it('should merge CLI and component lint overrides once', () => {
   expect(plugins).toStrictEqual([...new Set(plugins)])
 })
 
-it('should keep selected upstream rules disabled', () => {
+it('should only enable selected style rules', () => {
   const { lint } = base({})
 
-  expect(lint?.rules).toMatchObject({
-    'unicorn/explicit-timer-delay': 'off'
+  expect(lint).toMatchObject({
+    categories: {
+      style: 'off'
+    },
+    rules: {
+      'typescript/consistent-type-definitions': ['warn', 'interface']
+    }
   })
+  expect(lint?.rules).not.toHaveProperty('unicorn/explicit-timer-delay')
   expect(lint?.overrides?.[0]).toMatchObject({
     files: ['*.test.ts', '*.spec.ts'],
     rules: {

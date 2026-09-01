@@ -54,7 +54,7 @@ it('should merge CLI and component lint overrides once', () => {
   expect(plugins).toStrictEqual([...new Set(plugins)])
 })
 
-it('should only enable selected style rules', () => {
+it('should preserve style rules through an allowlist', () => {
   const { lint } = base({})
 
   expect(lint).toMatchObject({
@@ -62,6 +62,7 @@ it('should only enable selected style rules', () => {
       style: 'off'
     },
     rules: {
+      curly: 'warn',
       'typescript/consistent-type-definitions': ['warn', 'interface']
     }
   })

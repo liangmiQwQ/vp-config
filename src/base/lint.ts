@@ -21,22 +21,29 @@ const nursery: DummyRuleMap = {
   'no-restricted-exports': 'off'
 }
 
-// Whitelist mode
+// Keep style rules in whitelist mode so Oxlint upgrades do not enable new rules automatically.
 const style: DummyRuleMap = {
+  // Rules need configure
+  'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
+  'typescript/consistent-type-definitions': ['warn', 'interface'],
+  'typescript/consistent-indexed-object-style': ['warn', 'record'],
+  'eslint/func-names': ['warn', 'never'],
+  'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
+  'unicorn/prefer-ternary': ['warn', 'only-single-line'],
+  'prefer-destructuring': ['warn', { array: false }],
+
   // Core
   'arrow-body-style': 'warn',
   'capitalized-comments': 'warn',
   curly: 'warn',
   'default-case-last': 'warn',
   'default-param-last': 'warn',
-  'eslint/func-names': ['warn', 'never'],
   'func-name-matching': 'warn',
   'grouped-accessor-pairs': 'warn',
   'guard-for-in': 'warn',
   'id-denylist': 'warn',
   'id-match': 'warn',
   'logical-assignment-operators': 'warn',
-  'no-duplicate-imports': ['warn', { allowSeparateTypeImports: true }],
   'no-extra-label': 'warn',
   'no-implicit-coercion': 'warn',
   'no-label-var': 'warn',
@@ -52,7 +59,6 @@ const style: DummyRuleMap = {
   'operator-assignment': 'warn',
   'prefer-arrow-callback': 'warn',
   'prefer-const': 'warn',
-  'prefer-destructuring': ['warn', { array: false }],
   'prefer-exponentiation-operator': 'warn',
   'prefer-numeric-literals': 'warn',
   'prefer-object-has-own': 'warn',
@@ -85,13 +91,10 @@ const style: DummyRuleMap = {
   'typescript/ban-tslint-comment': 'warn',
   'typescript/class-literal-property-style': 'warn',
   'typescript/consistent-generic-constructors': 'warn',
-  'typescript/consistent-indexed-object-style': ['warn', 'record'],
   'typescript/consistent-type-assertions': 'warn',
-  'typescript/consistent-type-definitions': ['warn', 'interface'],
   'typescript/consistent-type-exports': 'warn',
   'typescript/consistent-type-imports': 'warn',
   'typescript/dot-notation': 'warn',
-  'typescript/method-signature-style': ['warn', 'property'], // Wait Vite+ upgrade dependencies
   'typescript/no-empty-interface': 'warn',
   'typescript/no-inferrable-types': 'warn',
   'typescript/no-unnecessary-qualifier': 'warn',
@@ -144,14 +147,43 @@ const style: DummyRuleMap = {
   'unicorn/prefer-string-raw': 'warn',
   'unicorn/prefer-string-trim-start-end': 'warn',
   'unicorn/prefer-structured-clone': 'warn',
-  'unicorn/prefer-ternary': ['warn', 'only-single-line'],
   'unicorn/relative-url-style': 'warn',
   'unicorn/require-array-join-separator': 'warn',
   'unicorn/require-module-attributes': 'warn',
   'unicorn/switch-case-braces': 'warn',
   'unicorn/switch-case-break-position': 'warn',
   'unicorn/text-encoding-identifier-case': 'warn',
-  'unicorn/throw-new-error': 'warn'
+  'unicorn/throw-new-error': 'warn',
+
+  // Disabled rules
+  'import/exports-last': 'off', // This is considering the script itself may use the exported items. I also personally prefer put exports on the top.
+  'func-style': 'off', // 'func-style': ['warn', 'declaration'], We hope to enable it in the future after we got auto fix.
+  'init-declarations': 'off', // We should be able to init it through control flow.
+  'import/no-anonymous-default-export': 'off',
+  'unicorn/no-await-expression-member': 'off',
+  'unicorn/explicit-timer-delay': 'off',
+  'max-params': 'off',
+  'max-statements': 'off',
+  'no-continue': 'off',
+  'no-nested-ternary': 'off',
+  'unicorn/no-nested-ternary': 'off', // The same as `no-nested-ternary`
+  'no-magic-numbers': 'off',
+  'import/no-namespace': 'off', // We need `node:*`
+  'import/no-named-export': 'off', // We need named export
+  'no-ternary': 'off',
+  'sort-imports': 'off', // Let Oxfmt to handle it
+  'sort-keys': 'off',
+  'import/group-exports': 'off',
+  'import/no-nodejs-modules': 'off',
+  'import/prefer-default-export': 'off',
+  'prefer-await-to-then': 'off', // `.then` is still useful for some cases.
+  'unicorn/no-null': 'off', // `null` is still meaningful in platform APIs.
+  'prefer-named-capture-group': 'off', // Too annoying
+  'id-length': 'off',
+  'promise/avoid-new': 'off',
+  'eslint/new-cap': 'off',
+  'eslint/no-template-curly-in-string': 'off',
+  'eslint/one-var': 'off'
 }
 
 const restriction: DummyRuleMap = {

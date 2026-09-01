@@ -63,10 +63,10 @@ it('should preserve style rules through an allowlist', () => {
     },
     rules: {
       curly: 'warn',
-      'typescript/consistent-type-definitions': ['warn', 'interface']
+      'typescript/consistent-type-definitions': ['warn', 'interface'],
+      'unicorn/explicit-timer-delay': 'off'
     }
   })
-  expect(lint?.rules).not.toHaveProperty('unicorn/explicit-timer-delay')
   expect(lint?.overrides?.[0]).toMatchObject({
     files: ['*.test.ts', '*.spec.ts'],
     rules: {

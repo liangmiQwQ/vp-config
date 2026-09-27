@@ -41,7 +41,7 @@ vp install -D @liangmi/vp-config
 
 Do not use `npm` or `pnpm` directly when the project is managed by Vite+.
 
-Keep `vite-plus` current because both Vite+ and the preset may change while Vite+ is pre-stable. Respect an existing compatible version constraint unless the task requires an upgrade.
+This preset requires `vite-plus@1.0.0-rc.1`. Align the installed version with the preset's peer dependency; keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version.
 
 ## Configure `vite.config.ts`
 
@@ -73,9 +73,11 @@ Assume these defaults unless the project explicitly overrides them:
 - Style rules are explicitly allowlisted to keep lint behavior stable across Oxlint upgrades. New upstream style rules stay disabled until they are reviewed and added.
 - `console.log` is rejected except in the `cli` category and Node.js script overrides.
 - Formatting uses Oxfmt with single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields.
-- `lib` packaging generates declarations and package exports with fixed extensions.
+- `lib` packaging generates declarations with `dts.generator: 'tsgo'` and package exports with fixed extensions.
 - `cli` packaging targets Node.js, minifies, strips `node:` prefixes, and disables declaration generation.
 - Staged files run `vp check --fix`.
+
+Put task cache options (`input`, `output`, `env`, and `untrackedEnv`) inside `run.tasks.<name>.cache`.
 
 Use the generated cached tasks when suitable:
 

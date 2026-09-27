@@ -32,7 +32,7 @@ Here are some real-world examples using `@liangmi/vp-config`.
 - `@liangmi/vp-config` uses itself to manage its own codebase.
 
 > [!WARNING]
-> Considering Vite+ is now still alpha, the internal API can be unstable and expected to change, please manage to use `@liangmi/vp-config` with the latest Vite+. If you found something that doesn't work expectedly, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
+> This preset requires `vite-plus@1.0.0-rc.1`. Vite+ is still pre-stable, so keep the installed version aligned with the preset's peer dependency. If something does not work as expected, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
 ### Categories
 
@@ -125,6 +125,8 @@ In most cases, they should be treated more like cached versions of Vite+ command
 | `cformat` | `vp format` |
 | `ccheck`  | `vp check`  |
 | `ctest`   | `vp test`   |
+
+Task cache options belong under `run.tasks.<name>.cache`, including `input`, `output`, `env`, and `untrackedEnv`.
 
 Run them with `vp run <task>`, such as `vp run cpack`, or shorthand `vpr cpack`. They can also be used in `package.json` scripts while retaining Vite+ task caching.
 

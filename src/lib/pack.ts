@@ -4,6 +4,6 @@ export const packLib: UserConfig = {
   fixedExtension: true,
   exports: true,
   dts: {
-    tsgo: true
+    generator: 'tsgo'
   }
 }

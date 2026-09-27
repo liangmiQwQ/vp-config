@@ -1,7 +1,7 @@
 import { dirname } from 'node:path'
 
-import { defineRule } from '@oxlint/plugins'
-import type { ESTree, Rule } from '@oxlint/plugins'
+import { defineRule } from 'vite-plus/lint/plugins'
+import type { ESTree, Rule } from 'vite-plus/lint/plugins'
 
 import { isStringLiteral, isVpConfigSpecifier } from './ast.ts'
 import { packageName, projectConfigNames, rootConfigNames } from './constants.ts'

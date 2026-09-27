@@ -1,4 +1,4 @@
-import { definePlugin } from '@oxlint/plugins'
+import { definePlugin } from 'vite-plus/lint/plugins'
 
 import { pluginName } from './constants.ts'
 import { rules } from './rules.ts'

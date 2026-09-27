@@ -18,6 +18,8 @@ Vite+ is used as the project manager. Use `vp install` to install dependencies, 
 
 Run `vp check` (lint and format) after you make changes.
 
+Import Oxlint plugin helpers and types from `vite-plus/lint/plugins` so the plugin API stays aligned with the bundled linter.
+
 Keep AGENTS.md updated with the project codebase. Consider if there is need to modify AGENTS.md after your changes. Don't store meaningless things like project structure or project status in AGENTS.md.
 
 Keep code functional. Never use classes. Write simple code and make function reusable if possible. Use Unix philosophy to design your code (Every function should only do one thing and should not be too long or complex).

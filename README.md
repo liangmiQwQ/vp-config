@@ -43,7 +43,7 @@ Each project is described by facts, which are detected from committed files.
 | Fact         | Detected from                                                               |
 | ------------ | --------------------------------------------------------------------------- |
 | `runtime`    | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
-| `frameworks` | `react`, `vue`, `ink` and `tailwindcss` in `package.json` dependencies      |
+| `frameworks` | `react`, `vue` and `tailwindcss` in `package.json` dependencies             |
 | `lib`        | `exports` in `package.json`                                                 |
 | `cli`        | `bin` in `package.json`                                                     |
 

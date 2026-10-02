@@ -25,7 +25,7 @@ it('should detect project facts from committed files', () => {
   expect(facts).toStrictEqual({
     '.': { runtime: 'universal', frameworks: [], lib: false, cli: false },
     'apps/web': { runtime: 'browser', frameworks: ['vue', 'tailwindcss'], lib: false, cli: false },
-    'packages/cli': { runtime: 'node', frameworks: ['ink'], lib: false, cli: true },
+    'packages/cli': { runtime: 'node', frameworks: ['react'], lib: false, cli: true },
     'packages/lib': { runtime: 'node', frameworks: ['react'], lib: true, cli: false }
   })
 })
@@ -63,7 +63,7 @@ it('should resolve a member with its own facts only', () => {
     {
       path: 'packages/cli',
       scope: { files: ['packages/cli/**'] },
-      facts: { runtime: 'node', frameworks: ['ink'], lib: true, cli: true }
+      facts: { runtime: 'node', frameworks: ['react'], lib: true, cli: true }
     }
   ])
 })

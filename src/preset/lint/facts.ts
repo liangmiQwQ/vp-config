@@ -109,11 +109,7 @@ function factOverrides(facts: ProjectFacts): OxlintConfig[] {
     facts.runtime === 'node' ? nodeOverride : undefined,
     facts.runtime === 'browser' ? browserOverride : undefined,
     facts.cli ? cliOverride : undefined,
-    isReactProject(facts) ? reactOverride : undefined,
+    facts.frameworks.includes('react') ? reactOverride : undefined,
     facts.frameworks.includes('vue') ? vueOverride : undefined
   ].filter(override => override !== undefined)
-}
-
-function isReactProject(facts: ProjectFacts): boolean {
-  return facts.frameworks.includes('react') || facts.frameworks.includes('ink')
 }

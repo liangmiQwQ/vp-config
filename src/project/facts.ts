@@ -8,7 +8,7 @@ import { listDependencies, readPackageJson } from './manifest.ts'
 import type { PackageJson } from './manifest.ts'
 
 export type Runtime = 'node' | 'browser' | 'universal'
-export type Framework = 'react' | 'vue' | 'ink' | 'tailwindcss'
+export type Framework = 'react' | 'vue' | 'tailwindcss'
 
 export interface ProjectFacts {
   runtime: Runtime
@@ -17,7 +17,7 @@ export interface ProjectFacts {
   cli: boolean
 }
 
-const frameworks: Framework[] = ['react', 'vue', 'ink', 'tailwindcss']
+const frameworks: Framework[] = ['react', 'vue', 'tailwindcss']
 
 // Facts are detected from committed files, so the root config can read them without executing member configs.
 export function detectFacts(directory: string): ProjectFacts {

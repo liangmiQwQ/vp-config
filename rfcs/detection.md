@@ -6,7 +6,7 @@ Each project is described with these facts:
 
 - `node`: whether the project runs in Node
 - `browser`: whether the project runs in browsers
-- `frameworks`: like `react`, `vue`, `ink` and `tailwindcss`
+- `frameworks`: like `react`, `vue` and `tailwindcss`
 - `lib`: whether the project ships a library
 - `cli`: whether the project ships an executable
 

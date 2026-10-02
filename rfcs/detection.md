@@ -4,7 +4,8 @@ Lint and fmt config are only emitted by the workspace root, see [Config Entry](.
 
 Each project is described with these facts:
 
-- `runtime`: `node`, `browser` or `universal`
+- `node`: whether the project runs in Node
+- `browser`: whether the project runs in browsers
 - `frameworks`: like `react`, `vue`, `ink` and `tailwindcss`
 - `lib`: whether the project ships a library
 - `cli`: whether the project ships an executable
@@ -18,12 +19,12 @@ Projects are the workspace members and the workspace root. Directories with thei
 Facts are detected from committed files by default.
 
 - `exports` in `package.json`: `lib`
-- `bin` in `package.json`: `cli` and `node` runtime
+- `bin` in `package.json`: `cli` and `node`
 - Dependencies in `package.json`: frameworks
-- `index.html` near `vite.config.ts`: `browser` runtime
-- `lib` and `types` in `tsconfig.json`: `DOM` in `lib` means `browser` runtime, `node` in `types` means `node` runtime
+- `index.html` near `vite.config.ts`: `browser`
+- `lib` and `types` in `tsconfig.json`: `DOM` in `lib` means `browser`, `node` in `types` means `node`
 
-When there is evidence for both `browser` and `node` runtimes, the project is `universal`.
+`node` and `browser` are independent, so a universal project has both of them.
 
 `vp pack` never creates `exports` or `bin`. It only refines the fields which already exist, so they are always committed and can be detected reliably.
 
@@ -35,7 +36,7 @@ When detection is wrong, facts can be declared with `.option()` in the root conf
 import { liangmi } from '@liangmi/vp-config'
 
 export default await liangmi({}).option([
-  { path: 'apps/api', runtime: 'node' },
+  { path: 'apps/api', node: true },
   { path: 'tools/codegen', cli: true }
 ])
 ```
@@ -46,14 +47,14 @@ A `path` that is not a workspace member adds that directory as a project.
 
 Every tool's config is derived from the same facts.
 
-| Fact              | lint              | fmt                         | test                | pack                            |
-| ----------------- | ----------------- | --------------------------- | ------------------- | ------------------------------- |
-| `node` runtime    | Node rules        | —                           | Node environment    | —                               |
-| `lib`             | —                 | —                           | —                   | Declarations, refined `exports` |
-| `cli`             | `console` allowed | —                           | —                   | Node target, minified           |
-| `browser` runtime | Browser rules     | —                           | Browser environment | —                               |
-| `react` / `vue`   | Component rules   | JSX and embedded formatting | —                   | —                               |
-| `tailwindcss`     | —                 | Tailwind CSS sorting        | —                   | —                               |
+| Fact            | lint              | fmt                         | test                | pack                            |
+| --------------- | ----------------- | --------------------------- | ------------------- | ------------------------------- |
+| `node`          | Node rules        | —                           | Node environment    | —                               |
+| `lib`           | —                 | —                           | —                   | Declarations, refined `exports` |
+| `cli`           | `console` allowed | —                           | —                   | Node target, minified           |
+| `browser`       | Browser rules     | —                           | Browser environment | —                               |
+| `react` / `vue` | Component rules   | JSX and embedded formatting | —                   | —                               |
+| `tailwindcss`   | —                 | Tailwind CSS sorting        | —                   | —                               |
 
 File roles (tests, scripts, config files) are applied by globs inside each project, and the globs are rebased under the project path. For example, `scripts/**` of `packages/foo` becomes `packages/foo/scripts/**`.
 

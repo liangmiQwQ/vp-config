@@ -137,7 +137,7 @@ The packaging presets provide the best-practice defaults for each kind of projec
 
 ### Cached commands
 
-In order to make full use of Vite+'s powerful cache system without too much config and make it contributors-friendly, we provide cached tasks task wrappers for common Vite+ commands. This feature is included in every config.
+To make full use of Vite+'s cache system with minimal config and keep it contributor-friendly, we provide cached task wrappers for common Vite+ commands. This feature is included in every config.
 
 In most cases, they should be treated more like cached versions of Vite+ commands rather than normal user-defined tasks. For example, users can run `vpr ccheck` as a cached replacement for `vp check`.
 

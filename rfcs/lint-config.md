@@ -24,7 +24,7 @@ If a rule require runtime information, but there is not any, just simply ignore 
 
 ### Concept
 
-Projects and their facts follow the project model in [Config Entry](./config-entry.md). The plugin reads the resolved project model from runtime information instead of inferring categories by itself.
+Projects and their facts follow the project model in [Config Entry](./config-entry.md). The plugin reads the resolved project model from runtime information.
 
 ### Rules
 

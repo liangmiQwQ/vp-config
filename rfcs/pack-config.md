@@ -1,8 +1,5 @@
 # RFC: pack config
 
-> [!NOTE]
-> This RFC is a draft. The API shape is not fixed and may change before it is implemented.
-
 `pack` is derived from the `lib` and `cli` facts of the [project model](./detection.md). `pack.entry` is still written by hand.
 
 ```ts

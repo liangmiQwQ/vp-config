@@ -1,8 +1,5 @@
 # Config Entry
 
-> [!NOTE]
-> This RFC is a draft. The API shape is not fixed and may change before it is implemented.
-
 ## Background
 
 Vite+ reads `lint` and `fmt` from the workspace root `vite.config.ts` only. Package-level `lint` and `fmt` blocks are ignored, and package-specific behavior must be expressed as root `overrides`. Other parts like `pack`, `build` and `test` are still read from each package's own `vite.config.ts`.

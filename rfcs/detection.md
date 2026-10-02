@@ -1,8 +1,5 @@
 # RFC: Project detection
 
-> [!NOTE]
-> This RFC is a draft. The API shape is not fixed and may change before it is implemented.
-
 Lint and fmt config are only emitted by the workspace root, see [Config Entry](./config-entry.md). The root config has to know about every project to generate `lint.overrides` and `fmt.overrides`. It can't execute member configs, so the facts of each project must be statically readable.
 
 Each project is described with these facts:

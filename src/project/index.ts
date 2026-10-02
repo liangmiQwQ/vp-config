@@ -1,14 +1,16 @@
 import { join, relative, resolve, sep } from 'node:path'
 
-import { detectFacts } from './facts.ts'
-import type { ProjectFacts } from './facts.ts'
+import { detectFacts } from './facts/index.ts'
+import type { ProjectFacts } from './facts/index.ts'
 import { rebaseGlobs } from './globs.ts'
+import type { ProjectTraits } from './traits.ts'
 import { findWorkspaceRoot, listWorkspaceMembers } from './workspace.ts'
 
-export type { Framework, ProjectFacts, Runtime } from './facts.ts'
+export type { ProjectFacts } from './facts/index.ts'
+export type { ProjectTraits, Runtime } from './traits.ts'
 
-// Project facts declared in config, keyed by paths relative to the config directory.
-export type DeclaredProjects = Record<string, Partial<ProjectFacts>>
+// Project traits declared in config, keyed by paths relative to the config directory.
+export type DeclaredProjects = Record<string, Partial<ProjectTraits>>
 
 export interface Project {
   // POSIX path relative to the workspace root, `.` for the root project.
@@ -16,6 +18,8 @@ export interface Project {
   // Globs relative to the workspace root covering the files owned by this project.
   scope: ProjectScope
   facts: ProjectFacts
+  // Traits which override the ones derived from facts.
+  declared: Partial<ProjectTraits>
 }
 
 export interface ProjectScope {
@@ -34,7 +38,7 @@ export function resolveProjectContext(
   declared: DeclaredProjects = {}
 ): ProjectContext {
   const root = findWorkspaceRoot(configDirectory) ?? configDirectory
-  const declaredFacts = normalizeDeclared(root, configDirectory, declared)
+  const declaredTraits = normalizeDeclared(root, configDirectory, declared)
 
   if (resolve(root) !== resolve(configDirectory)) {
     const path = toProjectPath(root, configDirectory)
@@ -42,12 +46,12 @@ export function resolveProjectContext(
     return {
       position: 'member',
       projects: [
-        createProject(root, path, { files: rebaseGlobs(['**'], path) }, declaredFacts[path])
+        createProject(root, path, { files: rebaseGlobs(['**'], path) }, declaredTraits[path])
       ]
     }
   }
 
-  return { position: 'root', projects: listProjects(root, declaredFacts) }
+  return { position: 'root', projects: listProjects(root, declaredTraits) }
 }
 
 function listProjects(root: string, declared: DeclaredProjects): Project[] {
@@ -72,9 +76,9 @@ function createProject(
   root: string,
   path: string,
   scope: ProjectScope,
-  declared: Partial<ProjectFacts> = {}
+  declared: Partial<ProjectTraits> = {}
 ): Project {
-  return { path, scope, facts: { ...detectFacts(join(root, path)), ...declared } }
+  return { path, scope, facts: detectFacts(join(root, path)), declared }
 }
 
 // Declared paths are relative to the config directory, project paths are relative to the workspace root.
@@ -84,9 +88,9 @@ function normalizeDeclared(
   declared: DeclaredProjects
 ): DeclaredProjects {
   return Object.fromEntries(
-    Object.entries(declared).map(([path, facts]) => [
+    Object.entries(declared).map(([path, traits]) => [
       toProjectPath(root, resolve(configDirectory, path)),
-      facts
+      traits
     ])
   )
 }

@@ -4,17 +4,13 @@ import { expect, it } from 'vite-plus/test'
 
 import { deriveLint } from '../src/preset/lint/index.ts'
 import { resolveProjectContext } from '../src/project/index.ts'
-import type { Project } from '../src/project/index.ts'
+import { createTestProject } from './project-fixture.ts'
 
 const workspace = join(import.meta.dirname, 'fixtures/workspace')
 
-const cliProject: Project = {
-  path: '.',
-  scope: { files: ['**'] },
-  facts: { runtime: 'node', frameworks: ['react'], lib: false, cli: true }
-}
+const cliProject = createTestProject({ packageBin: true, packageDependencies: ['react'] })
 
-it('should merge facts into the top level for a single project', () => {
+it('should merge traits into the top level for a single project', () => {
   const lint = deriveLint([cliProject])
   const plugins = lint.plugins ?? []
 
@@ -75,7 +71,7 @@ it('should generate scoped overrides for workspace projects', () => {
   expect(overrides[2]?.rules).not.toHaveProperty('no-console')
 })
 
-it('should rebase file roles under each project after project facts', () => {
+it('should rebase file roles under each project after project traits', () => {
   const { projects } = resolveProjectContext(workspace)
   const files = deriveLint(projects)
     .overrides?.slice(3)

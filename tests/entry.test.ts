@@ -61,7 +61,7 @@ it('should exclude selected parts', async () => {
   expect(config).toHaveProperty('lint')
 })
 
-it('should apply declared project facts', async () => {
+it('should apply declared project traits', async () => {
   const config = await liangmi({}).option({ projects: { '.': { runtime: 'browser' } } })
 
   expect(config.lint).toMatchObject({ env: { browser: true } })

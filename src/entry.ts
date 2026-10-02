@@ -8,7 +8,7 @@ import { findConfigDirectory } from './project/config-file.ts'
 import type { DeclaredProjects } from './project/index.ts'
 
 export interface LiangmiOptions {
-  // Project facts which override the detected ones, keyed by paths relative to this config.
+  // Project traits which override the derived ones, keyed by paths relative to this config.
   projects?: DeclaredProjects
 }
 
@@ -106,7 +106,7 @@ function assertMemberConfig(preset: Preset, userConfig: UserConfig, configDirect
 
   if (preset.position === 'member' && ignoredParts.length > 0) {
     throw new Error(
-      `[@liangmi/vp-config] \`${ignoredParts.join('` and `')}\` in ${configDirectory} is ignored by Vite+, which only reads them from the workspace root. Declare the project facts with \`.option({ projects })\` or add overrides in the workspace root config instead.`
+      `[@liangmi/vp-config] \`${ignoredParts.join('` and `')}\` in ${configDirectory} is ignored by Vite+, which only reads them from the workspace root. Declare the project traits with \`.option({ projects })\` or add overrides in the workspace root config instead.`
     )
   }
 }

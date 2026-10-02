@@ -18,7 +18,7 @@ Vite+ is used as the project manager. Use `vp install` to install dependencies, 
 
 Run `vp check` (lint and format) after you make changes.
 
-Project facts must stay statically detectable from committed files, because the workspace root config can't execute member configs. Generated globs are relative to the workspace root; rebase project-relative globs with the project path.
+Project facts must stay statically detectable from committed files, because the workspace root config can't execute member configs. Facts store raw data grouped by source file (e.g. `src/project/facts/tsconfig.ts`); interpret them with trait helpers like `isVue()` in `src/project/traits.ts` where needed, instead of adding interpreted fields to facts. Generated globs are relative to the workspace root; rebase project-relative globs with the project path.
 
 Keep AGENTS.md updated with the project codebase. Consider if there is need to modify AGENTS.md after your changes. Don't store meaningless things like project structure or project status in AGENTS.md.
 

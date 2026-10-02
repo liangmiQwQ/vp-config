@@ -2,18 +2,26 @@ import { expect, it } from 'vite-plus/test'
 
 import { mergePresetConfig } from '../src/merge.ts'
 import { derivePack } from '../src/preset/pack.ts'
-import type { ProjectFacts } from '../src/project/index.ts'
+import { createTestProject } from './project-fixture.ts'
 
-const facts: ProjectFacts = { runtime: 'node', frameworks: [], lib: false, cli: false }
+it('should derive pack config from lib and cli traits', () => {
+  expect(derivePack(createTestProject({}))).toBeUndefined()
+  expect(derivePack(createTestProject({ packageExports: true }))).toMatchObject({
+    exports: true,
+    minify: false
+  })
+  expect(derivePack(createTestProject({ packageBin: true }))).toMatchObject({
+    dts: false,
+    minify: true
+  })
+})
 
-it('should derive pack config from lib and cli facts', () => {
-  expect(derivePack(facts)).toBeUndefined()
-  expect(derivePack({ ...facts, lib: true })).toMatchObject({ exports: true, minify: false })
-  expect(derivePack({ ...facts, cli: true })).toMatchObject({ dts: false, minify: true })
+it('should prefer declared traits over facts', () => {
+  expect(derivePack(createTestProject({ packageExports: true }, { lib: false }))).toBeUndefined()
 })
 
 it('should prefer lib defaults for a project shipping both', () => {
-  expect(derivePack({ ...facts, lib: true, cli: true })).toStrictEqual({
+  expect(derivePack(createTestProject({ packageExports: true, packageBin: true }))).toStrictEqual({
     dts: { generator: 'tsgo' },
     exports: true,
     fixedExtension: true,

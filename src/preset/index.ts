@@ -29,16 +29,13 @@ export interface Preset {
 // Only emit the parts Vite+ reads from the position of the config.
 export function derivePreset(configDirectory: string, declared?: DeclaredProjects): Preset {
   const { position, projects } = resolveProjectContext(configDirectory, declared)
-  const config =
-    position === 'root'
-      ? rootPreset(projects, configDirectory)
-      : memberPreset(projects, configDirectory)
+  const config = position === 'root' ? rootPreset(projects) : memberPreset(projects)
 
   return { position, config: removeUndefined(config) }
 }
 
 // A single-package repo only has the root project, so it also gets the project parts.
-function rootPreset(projects: Project[], directory: string): PresetConfig {
+function rootPreset(projects: Project[]): PresetConfig {
   const [onlyProject] = projects
   const workspaceConfig: PresetConfig = {
     fmt: deriveFmt(projects),
@@ -48,20 +45,20 @@ function rootPreset(projects: Project[], directory: string): PresetConfig {
   }
 
   return projects.length === 1
-    ? { ...workspaceConfig, ...projectPreset(onlyProject, directory) }
+    ? { ...workspaceConfig, ...projectPreset(onlyProject) }
     : workspaceConfig
 }
 
-function memberPreset(projects: Project[], directory: string): PresetConfig {
+function memberPreset(projects: Project[]): PresetConfig {
   const [project] = projects
 
-  return { run: runBase, ...projectPreset(project, directory) }
+  return { run: runBase, ...projectPreset(project) }
 }
 
-function projectPreset(project: Project, directory: string): PresetConfig {
+function projectPreset(project: Project): PresetConfig {
   return {
-    pack: derivePack(project.facts),
-    test: deriveTest(project.facts, directory)
+    pack: derivePack(project),
+    test: deriveTest(project)
   }
 }
 

@@ -38,18 +38,18 @@ Here are some real-world examples using `@liangmi/vp-config`.
 
 ### Project model
 
-Each project is described by facts, which are detected from committed files.
+Each project is described by traits, which are derived from facts detected in committed files.
 
-| Fact         | Detected from                                                               |
-| ------------ | --------------------------------------------------------------------------- |
-| `runtime`    | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
-| `frameworks` | `react`, `vue` and `tailwindcss` in `package.json` dependencies             |
-| `lib`        | `exports` in `package.json`                                                 |
-| `cli`        | `bin` in `package.json`                                                     |
+| Trait                         | Derived from                                                                |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| `runtime`                     | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
+| `react`, `vue`, `tailwindcss` | `package.json` dependencies, including dev, peer and optional ones          |
+| `lib`                         | `exports` in `package.json`                                                 |
+| `cli`                         | `bin` in `package.json`                                                     |
 
 `runtime` is `node`, `browser`, or `universal` when the signals conflict or are missing. Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
 
-When detection is wrong, declare the facts with `.option()`. Paths are relative to the config file, and directories that are not workspace members can be added as projects.
+When a derived trait is wrong, declare it with `.option()`. Paths are relative to the config file, and directories that are not workspace members can be added as projects.
 
 ```typescript
 import { liangmi } from "@liangmi/vp-config";
@@ -57,6 +57,7 @@ import { liangmi } from "@liangmi/vp-config";
 export default await liangmi({}).option({
   projects: {
     "apps/api": { runtime: "node" },
+    "packages/ui": { vue: true },
   },
 });
 ```

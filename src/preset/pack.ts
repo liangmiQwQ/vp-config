@@ -1,7 +1,8 @@
 import { mergeConfig } from 'vite-plus'
 import type { UserConfig } from 'vite-plus/pack'
 
-import type { ProjectFacts } from '../project/index.ts'
+import type { Project } from '../project/index.ts'
+import { isCli, isLib } from '../project/traits.ts'
 
 export const packLib: UserConfig = {
   fixedExtension: true,
@@ -20,14 +21,17 @@ export const packCli: UserConfig = {
 }
 
 // When a project ships both a library and an executable, library defaults take priority where they conflict.
-export function derivePack(facts: ProjectFacts): UserConfig | undefined {
-  if (facts.lib && facts.cli) {
+export function derivePack(project: Project): UserConfig | undefined {
+  const lib = isLib(project)
+  const cli = isCli(project)
+
+  if (lib && cli) {
     return mergeConfig<UserConfig, UserConfig>(packCli, packLib)
   }
 
-  if (facts.lib) {
+  if (lib) {
     return packLib
   }
 
-  return facts.cli ? packCli : undefined
+  return cli ? packCli : undefined
 }

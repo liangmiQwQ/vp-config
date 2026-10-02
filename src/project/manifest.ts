@@ -9,6 +9,7 @@ export interface PackageJson {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
+  optionalDependencies?: Record<string, string>
 }
 
 export function readPackageJson(directory: string): PackageJson | undefined {
@@ -21,6 +22,7 @@ export function listDependencies(packageJson: PackageJson | undefined): string[]
   return [
     ...Object.keys(packageJson?.dependencies ?? {}),
     ...Object.keys(packageJson?.devDependencies ?? {}),
-    ...Object.keys(packageJson?.peerDependencies ?? {})
+    ...Object.keys(packageJson?.peerDependencies ?? {}),
+    ...Object.keys(packageJson?.optionalDependencies ?? {})
   ]
 }

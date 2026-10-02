@@ -4,7 +4,7 @@
 
 Vite+ reads `lint` and `fmt` from the workspace root `vite.config.ts` only. Package-level `lint` and `fmt` blocks are ignored, and package-specific behavior must be expressed as root `overrides`. Other parts like `pack`, `build` and `test` are still read from each package's own `vite.config.ts`.
 
-A project is described by several independent questions: the runtime (node or browser), the frameworks (React, Vue), the file roles (tests, scripts) and the build output (library or CLI). They are combined freely, for example a React component library or an Ink CLI, so the config is derived from these facts. See [Project detection](./detection.md) for how they are detected and [pack config](./pack-config.md) for the build output.
+A project is described by several independent questions: the runtime (node or browser), the frameworks (React, Vue), the file roles (tests, scripts) and the build output (library or CLI). They are combined freely, for example a React component library or an Ink CLI, so the config is derived from these traits. See [Project detection](./detection.md) for how they are detected and [pack config](./pack-config.md) for the build output.
 
 ## Single entry
 
@@ -42,4 +42,4 @@ export default await liangmi({}).exclude(['staged'])
 
 `liangmi` resolves its position and the project model while the config is loaded, so it reports problems directly.
 
-- A workspace member passes `lint` or `fmt`, which Vite+ ignores. Report an error and suggest declaring the project facts or overrides in the root config.
+- A workspace member passes `lint` or `fmt`, which Vite+ ignores. Report an error and suggest declaring the project traits or overrides in the root config.

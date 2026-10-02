@@ -18,16 +18,16 @@ Before editing:
 
 ## Understand the project model
 
-There are no categories to choose. Every `vite.config.ts` uses the same `liangmi` entry, and the config is derived from facts detected from committed files:
+There are no categories to choose. Every `vite.config.ts` uses the same `liangmi` entry, and the config is derived from traits, which are derived from facts detected in committed files:
 
-| Fact         | Detected from                                                               |
-| ------------ | --------------------------------------------------------------------------- |
-| `runtime`    | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
-| `frameworks` | `react`, `vue` and `tailwindcss` in `package.json` dependencies             |
-| `lib`        | `exports` in `package.json`                                                 |
-| `cli`        | `bin` in `package.json`                                                     |
+| Trait                         | Derived from                                                                |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| `runtime`                     | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
+| `react`, `vue`, `tailwindcss` | `package.json` dependencies, including dev, peer and optional ones          |
+| `lib`                         | `exports` in `package.json`                                                 |
+| `cli`                         | `bin` in `package.json`                                                     |
 
-Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare facts with `.option({ projects })` only when detection is wrong.
+Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare traits with `.option({ projects })` only when a derived trait is wrong.
 
 In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, it throws an error. Put project-specific lint or format changes in the root config's `overrides` instead.
 
@@ -61,14 +61,15 @@ export default await liangmi({
 
 The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
 
-Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`), and `.option({ projects })` to declare facts:
+Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`), and `.option({ projects })` to declare traits:
 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
 export default await liangmi({}).option({
   projects: {
-    'apps/api': { runtime: 'node' }
+    'apps/api': { runtime: 'node' },
+    'packages/ui': { vue: true }
   }
 })
 ```

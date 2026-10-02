@@ -1,10 +1,11 @@
 import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
-import type { ProjectFacts } from '../../project/facts.ts'
+import type { Project } from '../../project/index.ts'
+import { getRuntime, isCli, isReact, isVue } from '../../project/traits.ts'
 
-// Lint overrides derived from project facts.
-// They are merged together for each project, so every override only describes one fact.
+// Lint overrides derived from project traits.
+// They are merged together for each project, so every override only describes one trait.
 
 // For code that's sure running on Node.js.
 export const nodeOverride: OxlintConfig = {
@@ -94,22 +95,24 @@ export const vueOverride: OxlintConfig = {
   }
 } satisfies Omit<OxlintOverride, 'files'>
 
-export function lintFacts(facts: ProjectFacts): OxlintConfig {
+export function lintTraits(project: Project): OxlintConfig {
   let config: OxlintConfig = {}
 
-  for (const override of factOverrides(facts)) {
+  for (const override of traitOverrides(project)) {
     config = mergeConfig<OxlintConfig, OxlintConfig>(config, override)
   }
 
   return config
 }
 
-function factOverrides(facts: ProjectFacts): OxlintConfig[] {
+function traitOverrides(project: Project): OxlintConfig[] {
+  const runtime = getRuntime(project)
+
   return [
-    facts.runtime === 'node' ? nodeOverride : undefined,
-    facts.runtime === 'browser' ? browserOverride : undefined,
-    facts.cli ? cliOverride : undefined,
-    facts.frameworks.includes('react') ? reactOverride : undefined,
-    facts.frameworks.includes('vue') ? vueOverride : undefined
+    runtime === 'node' ? nodeOverride : undefined,
+    runtime === 'browser' ? browserOverride : undefined,
+    isCli(project) ? cliOverride : undefined,
+    isReact(project) ? reactOverride : undefined,
+    isVue(project) ? vueOverride : undefined
   ].filter(override => override !== undefined)
 }

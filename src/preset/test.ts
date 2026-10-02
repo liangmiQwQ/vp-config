@@ -1,24 +1,25 @@
 import type { UserConfig } from 'vite-plus'
 
-import type { ProjectFacts } from '../project/index.ts'
-import { listDependencies, readPackageJson } from '../project/manifest.ts'
+import type { Project } from '../project/index.ts'
+import { getRuntime, hasDependency } from '../project/traits.ts'
 
 type TestConfig = NonNullable<UserConfig['test']>
 
 // Browser-like environments need their own package, so only use the one the project installs.
 const domEnvironments = ['happy-dom', 'jsdom'] as const
 
-export function deriveTest(facts: ProjectFacts, directory: string): TestConfig | undefined {
-  if (facts.runtime === 'node') {
+export function deriveTest(project: Project): TestConfig | undefined {
+  const runtime = getRuntime(project)
+
+  if (runtime === 'node') {
     return { environment: 'node' }
   }
 
-  if (facts.runtime !== 'browser') {
+  if (runtime !== 'browser') {
     return undefined
   }
 
-  const dependencies = new Set(listDependencies(readPackageJson(directory)))
-  const environment = domEnvironments.find(name => dependencies.has(name))
+  const environment = domEnvironments.find(name => hasDependency(project.facts, name))
 
   return environment ? { environment } : undefined
 }

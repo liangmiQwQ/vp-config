@@ -4,29 +4,18 @@ import { expect, it } from 'vite-plus/test'
 
 import { deriveFmt } from '../src/preset/fmt.ts'
 import { resolveProjectContext } from '../src/project/index.ts'
+import { createTestProject } from './project-fixture.ts'
 
 const workspace = join(import.meta.dirname, 'fixtures/workspace')
 
 it('should disable embedded language formatting by default', () => {
   expect(
-    deriveFmt([
-      {
-        path: '.',
-        scope: { files: ['**'] },
-        facts: { runtime: 'node', frameworks: [], lib: true, cli: false }
-      }
-    ])
+    deriveFmt([createTestProject({ packageExports: true, tsconfigTypes: ['node'] })])
   ).toMatchObject({ embeddedLanguageFormatting: 'off' })
 })
 
 it('should enable embedded language formatting for a single component project', () => {
-  const fmt = deriveFmt([
-    {
-      path: '.',
-      scope: { files: ['**'] },
-      facts: { runtime: 'browser', frameworks: ['react'], lib: false, cli: false }
-    }
-  ])
+  const fmt = deriveFmt([createTestProject({ indexHtml: true, packageDependencies: ['react'] })])
 
   expect(fmt).toMatchObject({ embeddedLanguageFormatting: 'auto', jsxSingleQuote: true })
   expect(fmt).not.toHaveProperty('overrides')

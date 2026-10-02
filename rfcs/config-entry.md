@@ -1,39 +1,45 @@
 # Config Entry
 
-We have four categories of presets, they are designed for different kinds of projects.
+## Background
 
-`base` - pure and basic config, used for workspace or unclear projects.
-`cli` - for cli and tui development
-`lib` - for libraries which may be depended on by other projects.
-`website` - for website development
+Vite+ reads `lint` and `fmt` from the workspace root `vite.config.ts` only. Package-level `lint` and `fmt` blocks are ignored, and package-specific behavior must be expressed as root `overrides`. Other parts like `pack`, `build` and `test` are still read from each package's own `vite.config.ts`.
 
-Each category is exported as a named export.
+A project is described by several independent questions: the runtime (node or browser), the frameworks (React, Vue), the file roles (tests, scripts) and the build output (library or CLI). They are combined freely, for example a React component library or an Ink CLI, so the config is derived from these facts. See [Project detection](./detection.md) for how they are detected and [pack config](./pack-config.md) for the build output.
 
-```ts
-import { base, cli, lib, website } from "@liangmi/vp-config";
-```
+## Single entry
 
-They can be directly called as a function, as a wrapper of `defineConfig` from `vite-plus`, it receive one param just like `vite-plus`'s `defineConfig`, it can override the config in the preset and will be deeply merged.
+Every `vite.config.ts` uses the same entry, `liangmi`. It is a wrapper of `defineConfig` from `vite-plus`, and the config passed to it is deeply merged with the generated defaults.
+
+`liangmi()` returns a thenable object. Its methods are chained to set options, and the config is resolved when it is awaited.
 
 ```ts
-import { base } from "@liangmi/vp-config";
+import { liangmi } from '@liangmi/vp-config'
 
-export default base({ fmt: { semi: true } });
+export default await liangmi({
+  /* Your personal config overrides, will be merged deeply */
+})
 ```
 
-Since one preset can include multiple part (linting, formatting), these categories can also be treated as object, it has `.only` and `.exclude()` function, which receive strings to enable whitelist or blacklist mode, thereby achieving the goal of loading only certain configurations.
+`liangmi` knows where it is loaded from by finding the workspace root, and only emits the parts Vite+ reads in that position.
 
-For example
+| Position            | `lint` / `fmt` / `staged`                         | `pack` / `build` / `test` / `run` |
+| ------------------- | ------------------------------------------------- | --------------------------------- |
+| Single-package repo | Top-level, for the only project                   | For the root project              |
+| Workspace root      | For the whole workspace, with generated overrides | Root-level tasks only             |
+| Workspace member    | Not emitted                                       | For this package                  |
+
+A single-package repo is not a special mode. Its project list only contains the root, so the config is emitted without `overrides`.
+
+`.only()` and `.exclude()` are chained to load only selected parts.
 
 ```ts
-import { base } from "@liangmi/vp-config";
+import { liangmi } from '@liangmi/vp-config'
 
-export default base.only(["lint", "fmt"], {
-  lint: {
-    /* Your own linting config */
-  },
-  fmt: {
-    /* Your own formatting config */
-  },
-});
+export default await liangmi({}).exclude(['staged'])
 ```
+
+## Diagnostics
+
+`liangmi` resolves its position and the project model while the config is loaded, so it reports problems directly.
+
+- A workspace member passes `lint` or `fmt`, which Vite+ ignores. Report an error and suggest declaring the project facts or overrides in the root config.

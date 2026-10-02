@@ -6,8 +6,8 @@ The format config follows `simple` philosophy, it removes unused parts of code, 
 
 For example, we do not add `;` or `,` for unnecessary places.
 
-## Presets
+## Project facts
 
-We normally disable embedded language formatting for `base` and `lib` presets.
+Format config is only emitted by the workspace root (or the only project in a single-package repo). Project-specific options are generated as `fmt.overrides` from the project model, see [Project detection](./detection.md).
 
-Considering there can be Vue Tui / React Ink in cli / tui project, we use the same config as `website` for `cli` preset.
+We normally disable embedded language formatting. It is enabled for projects using component frameworks like React or Vue, including Vue TUI / React Ink in CLI projects.

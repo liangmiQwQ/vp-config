@@ -21,13 +21,15 @@ Facts are detected from committed files by default.
 - `bin` in `package.json`: `cli` and `node` runtime
 - Dependencies in `package.json`: frameworks
 - `index.html` near `vite.config.ts`: `browser` runtime
-- `lib` and `types` in `tsconfig.json`: `browser` or `node` runtime
+- `lib` and `types` in `tsconfig.json`: `DOM` in `lib` means `browser` runtime, `node` in `types` means `node` runtime
+
+When there is evidence for both `browser` and `node` runtimes, the project is `universal`.
 
 `vp pack` never creates `exports` or `bin`. It only refines the fields which already exist, so they are always committed and can be detected reliably.
 
 ## Declaration
 
-When detection is wrong, facts can be declared with `.option()` in the root config.
+When detection is wrong, facts can be declared with `.option()` in the root config. Declared facts override the detected ones.
 
 ```ts
 import { liangmi } from '@liangmi/vp-config'

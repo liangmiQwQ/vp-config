@@ -6,7 +6,9 @@ We enable `typeAware` and `typeCheck` linting by default.
 
 We mark as `warn` for code format lint rules that process with linter (e.g. `import/first`), and other rules should report `error`.
 
-`console.log` is not allowed, except in `cli` category.
+`console.log` is not allowed, except in `cli` projects and script files.
+
+Lint config is only emitted by the workspace root (or the only project in a single-package repo). Project-specific rules are generated as `overrides` from the project model, see [Config Entry](./config-entry.md).
 
 ## `liangmi` Oxlint Plugin
 
@@ -22,25 +24,7 @@ If a rule require runtime information, but there is not any, just simply ignore 
 
 ### Concept
 
-#### Is a website project
-
-If any one of these conditions is satisfied, the directory of `vite.config.ts` is a website project.
-
-- There is a `index.html` near `vite.config.ts` (Static analyze)
-- There is at least one vite-specific configure field like `build`, `preview`, `plugins` (Just exclude Vite+ ones like `lint`). (Runtime-based analyze)
-
-#### Is it a lib project
-
-If any one of these conditions is satisfied, the directory of `vite.config.ts` is a library project.
-
-- There is `pack` field passed in `vite.config.ts` (Runtime-based analyze)
-
-#### Is it a project
-
-If any one of these conditions is satisfied, the directory of `vite.config.ts` is a project.
-
-- If it is a website project
-- If it is a lib project
+Projects and their facts follow the project model in [Config Entry](./config-entry.md). The plugin reads the resolved project model from runtime information instead of inferring categories by itself.
 
 ### Rules
 
@@ -66,21 +50,14 @@ The error span should be the whole `vite.config.ts` file.
 
 Report an error if a `vite.config.ts` does not have a corresponding `info.json`.
 
-#### `liangmi/load-proper-vp-config-category`
+#### `liangmi/no-ineffective-vp-config-parts`
 
 This rule need runtime information, the error span should be the whole `vite.config.ts` file.
 
-We hope users load project in these way:
+Vite+ only reads `lint` and `fmt` from the workspace root. If a workspace member's `vite.config.ts` passes `lint` or `fmt` to `vpConfig`, report an error and suggest declaring the project facts or overrides in the root config.
 
-- `base` category for `vite.config.ts` not in a project (workspace root).
-- `cli` | `lib` | `website` category for `vite.config.ts` in a project.
+#### `liangmi/report-project-model`
 
-If a user uses the wrong category, report an error.
+This rule need runtime information.
 
-Note: We don't strictly check the category, it only reports the wrong type across workspace root and project. For example, if users use `website` category but it is inferred as a `lib` category, just ignore it.
-
-#### `liangmi/no-mixed-project`
-
-This rule need runtime information, the error span should be the whole `vite.config.ts` file.
-
-If the project is inferred as both `lib` and `website`, report an error
+Report the detected facts of a project as a hint on its `vite.config.ts` when detection and declaration disagree, so users can see what is applied.

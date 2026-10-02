@@ -28,7 +28,7 @@ There are no categories to choose. Every `vite.config.ts` uses the same `liangmi
 | `lib`                         | `exports` in `package.json`                                        |
 | `cli`                         | `bin` in `package.json`                                            |
 
-Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare traits with `.option()` only when a derived trait is wrong.
+Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare traits with `.option()` only when a derived trait is wrong and fixing the committed files is too complicated.
 
 In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, it throws an error. Put project-specific lint or format changes in the root config's `overrides` instead.
 
@@ -62,9 +62,9 @@ export default await liangmi({
 
 The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
 
-Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`).
+Chaining `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`) is not recommended. Keep every part loaded and override individual options instead.
 
-Chaining `.option([...])` in the root config to declare traits of projects by their `path` relative to the workspace root is not recommended. Prefer fixing the committed files the traits are derived from, and use it only as a last resort:
+Avoid chaining `.option([...])` in the root config to declare traits of projects by their `path` relative to the workspace root. Fix the committed files the traits are derived from instead, and use it only when that fix is too complicated:
 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'

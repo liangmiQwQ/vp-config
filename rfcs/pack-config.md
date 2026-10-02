@@ -1,6 +1,6 @@
 # RFC: pack config
 
-`pack` is derived from the `lib` and `cli` facts of the [project model](./detection.md). `pack.entry` is still written by hand.
+`pack` is derived from the `lib` and `cli` traits of the [project model](./detection.md). `pack.entry` is still written by hand.
 
 ```ts
 import { liangmi } from '@liangmi/vp-config'

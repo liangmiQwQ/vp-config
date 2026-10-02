@@ -1,0 +1,4 @@
+{
+  // JSONC is supported
+  "compilerOptions": { "types": ["node"] }
+}

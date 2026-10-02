@@ -18,7 +18,6 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
-    "./oxlint-plugin": "./dist/oxlint-plugin/index.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -37,12 +36,23 @@
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
+    "get-tsconfig": "catalog:",
+    "tinyglobby": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "yaml": "catalog:"
   },
   "peerDependencies": {
     "vite-plus": "1.0.0-rc.1"
   },
-  "packageManager": "pnpm@12.6.0"
+  "packageManager": "pnpm@12.6.0",
+  "inlinedDependencies": {
+    "fdir": "6.5.0",
+    "get-tsconfig": "4.14.3",
+    "picomatch": "4.0.7",
+    "resolve-pkg-maps": "1.0.0",
+    "tinyglobby": "0.2.17",
+    "yaml": "2.9.1"
+  }
 }

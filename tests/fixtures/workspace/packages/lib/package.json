@@ -1,0 +1,7 @@
+{
+  "name": "lib",
+  "exports": "./dist/index.mjs",
+  "devDependencies": {
+    "react": "^19.0.0"
+  }
+}

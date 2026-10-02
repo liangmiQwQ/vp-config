@@ -1,117 +1,101 @@
+import { join } from 'node:path'
+
 import type { ConfigEnv } from 'vite-plus'
-import { expect, it } from 'vite-plus/test'
+import { afterEach, expect, it, vi } from 'vite-plus/test'
 
-import { createConfigEntry } from '../src/entry.ts'
-import type { PresetConfig } from '../src/entry.ts'
+import { liangmi } from '../src/index.ts'
 
-const presetConfig = {
-  fmt: {
-    semi: false
-  },
-  lint: {
-    options: {
-      typeAware: true
-    },
-    rules: {
-      eqeqeq: 'error'
-    }
-  },
-  pack: {
-    dts: true,
-    exports: true
-  },
-  staged: {
-    '*': 'vp check'
-  }
-} satisfies PresetConfig
+const workspace = join(import.meta.dirname, 'fixtures/workspace')
 
-it('should merge preset with object config', () => {
-  const config = createConfigEntry(presetConfig)
+// Tests are not loaded from a vite.config.ts, so the entry falls back to the working directory.
+function useWorkingDirectory(directory: string): void {
+  vi.spyOn(process, 'cwd').mockReturnValue(directory)
+}
 
-  expect(config({ fmt: { semi: true } })).toMatchObject({
-    fmt: {
-      semi: true
-    },
-    staged: {
-      '*': 'vp check'
-    },
-    pack: {
-      dts: true,
-      exports: true
-    }
-  })
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+it('should emit every part for a single-package repo', async () => {
+  const config = await liangmi({ fmt: { semi: true } })
+
+  expect(config.fmt).toMatchObject({ semi: true, singleQuote: true })
+  expect(config.lint).toMatchObject({ env: { node: true } })
+  expect(config.pack).toMatchObject({ exports: true })
+  expect(config.test).toMatchObject({ environment: 'node' })
+  expect(config.staged).toMatchObject({ '*': 'vp check --fix' })
+  expect(config.run?.tasks).toHaveProperty('ccheck')
 })
 
 it('should merge preset with promise config', async () => {
-  const config = createConfigEntry(presetConfig)
+  const config = await liangmi(Promise.resolve({ pack: { minify: true } }))
 
-  await expect(config(Promise.resolve({ fmt: { semi: true } }))).resolves.toMatchObject({
-    fmt: {
-      semi: true
-    },
-    staged: {
-      '*': 'vp check'
-    },
-    pack: {
-      dts: true,
-      exports: true
-    }
-  })
+  expect(config.pack).toMatchObject({ exports: true, minify: true })
 })
 
 it('should merge preset with function config after Vite+ provides env', async () => {
-  const config = createConfigEntry(presetConfig)
-  const userConfig = config(env => ({
-    fmt: {
-      semi: env.mode === 'test'
-    }
-  }))
+  const config = await liangmi((env: ConfigEnv) => ({ fmt: { semi: env.mode === 'test' } }))
   const env = { command: 'serve', mode: 'test' } as ConfigEnv
 
-  expect(userConfig).toBeTypeOf('function')
-  await expect(userConfig(env)).resolves.toMatchObject({
-    fmt: {
-      semi: true
-    },
-    staged: {
-      '*': 'vp check'
-    },
-    pack: {
-      dts: true,
-      exports: true
-    }
+  expect(config).toBeTypeOf('function')
+  await expect(config(env)).resolves.toMatchObject({
+    fmt: { semi: true },
+    staged: { '*': 'vp check --fix' }
   })
 })
 
-it('should merge only selected preset parts', () => {
-  const config = createConfigEntry(presetConfig)
-  const mergedConfig = config.only(['fmt'], { staged: { '*': 'vp test' } })
+it('should load only selected parts', async () => {
+  const config = await liangmi({ staged: { '*': 'vp test' } }).only(['fmt'])
 
-  expect(mergedConfig).toMatchObject({
-    fmt: {
-      semi: false
-    },
-    staged: {
-      '*': 'vp test'
-    }
-  })
-  expect(mergedConfig).not.toHaveProperty('lint')
-  expect(mergedConfig).not.toHaveProperty('pack')
+  expect(config.fmt).toMatchObject({ semi: false })
+  expect(config.staged).toStrictEqual({ '*': 'vp test' })
+  expect(config).not.toHaveProperty('lint')
+  expect(config).not.toHaveProperty('pack')
 })
 
-it('should merge preset after excluding selected parts', () => {
-  const config = createConfigEntry(presetConfig)
+it('should exclude selected parts', async () => {
+  const config = await liangmi({}).exclude(['staged', 'pack'])
 
-  expect(config.exclude(['fmt'], { fmt: { semi: true } })).toMatchObject({
-    fmt: {
-      semi: true
-    },
-    staged: {
-      '*': 'vp check'
-    },
-    pack: {
-      dts: true,
-      exports: true
-    }
-  })
+  expect(config).not.toHaveProperty('staged')
+  expect(config).not.toHaveProperty('pack')
+  expect(config).toHaveProperty('lint')
+})
+
+it('should apply declared project traits', async () => {
+  const config = await liangmi({}).option([{ path: '.', node: false, browser: true }])
+
+  expect(config.lint).toMatchObject({ env: { browser: true } })
+  expect(config.test).toBeUndefined()
+})
+
+it('should emit workspace parts at the workspace root', async () => {
+  useWorkingDirectory(workspace)
+
+  const config = await liangmi({})
+
+  expect(config.lint?.overrides?.[0]).toMatchObject({ files: ['apps/web/**'] })
+  expect(config).toHaveProperty('staged')
+  expect(config).toHaveProperty('run')
+  expect(config).not.toHaveProperty('pack')
+  expect(config).not.toHaveProperty('test')
+})
+
+it('should emit project parts for a workspace member', async () => {
+  useWorkingDirectory(join(workspace, 'apps/web'))
+
+  const config = await liangmi({})
+
+  expect(config.test).toStrictEqual({ environment: 'happy-dom' })
+  expect(config).toHaveProperty('run')
+  expect(config).not.toHaveProperty('lint')
+  expect(config).not.toHaveProperty('fmt')
+  expect(config).not.toHaveProperty('staged')
+})
+
+it('should reject lint and fmt in a workspace member', async () => {
+  useWorkingDirectory(join(workspace, 'packages/lib'))
+
+  await expect(liangmi({ lint: { rules: {} } })).rejects.toThrow(
+    /`lint` in .* is ignored by Vite\+/u
+  )
 })

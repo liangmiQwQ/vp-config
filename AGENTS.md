@@ -8,7 +8,7 @@ Keep the distributable agent guidance in [`skills/use-vp-config`](skills/use-vp-
 
 ## Development and dog fooding
 
-This project itself is using Vite+, and `@liangmi/vp-config` (`lib` category). It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.
+This project itself is using Vite+, and `@liangmi/vp-config` (detected as a `node` `lib` project). It handles library bundling (tsdown) and linting, testing, formatting (Oxlint, Vitest, Oxfmt). Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite.
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
@@ -18,7 +18,7 @@ Vite+ is used as the project manager. Use `vp install` to install dependencies, 
 
 Run `vp check` (lint and format) after you make changes.
 
-Import Oxlint plugin helpers and types from `vite-plus/lint/plugins` so the plugin API stays aligned with the bundled linter.
+Project facts must stay statically detectable from committed files, because the workspace root config can't execute member configs. Facts store raw data grouped by source file (e.g. `src/project/facts/tsconfig.ts`); interpret them with trait helpers like `isVue()` in `src/project/traits.ts` where needed, instead of adding interpreted fields to facts. Generated globs are relative to the workspace root; rebase project-relative globs with the project path.
 
 Keep AGENTS.md updated with the project codebase. Consider if there is need to modify AGENTS.md after your changes. Don't store meaningless things like project structure or project status in AGENTS.md.
 

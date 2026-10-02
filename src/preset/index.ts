@@ -1,3 +1,5 @@
+// Assembles the preset config parts for the position of the config, from the projects it can see.
+
 import type { UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'
 
@@ -7,8 +9,11 @@ import { deriveFmt } from './fmt.ts'
 import { deriveLint } from './lint/index.ts'
 import { derivePack } from './pack.ts'
 import { runBase } from './run.ts'
-import { stagedBase } from './staged.ts'
 import { deriveTest } from './test.ts'
+
+const stagedBase: NonNullable<UserConfig['staged']> = {
+  '*': 'vp check --fix'
+}
 
 export interface PresetConfig {
   fmt?: UserConfig['fmt']

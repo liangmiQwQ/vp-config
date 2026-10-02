@@ -1,3 +1,5 @@
+// Interprets project facts into traits, which declared traits take precedence over.
+
 import type { ProjectFacts } from './facts/index.ts'
 
 export type Runtime = 'node' | 'browser' | 'universal'

@@ -1,3 +1,5 @@
+// Vitest preset derived from the runtime of a project.
+
 import type { UserConfig } from 'vite-plus'
 
 import type { Project } from '../project/index.ts'

@@ -1,3 +1,5 @@
+// Collects every raw fact of a project from its committed files.
+
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'

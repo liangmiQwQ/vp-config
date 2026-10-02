@@ -1,3 +1,5 @@
+// Pack (tsdown) preset derived from the lib and cli traits of a project.
+
 import { mergeConfig } from 'vite-plus'
 import type { UserConfig } from 'vite-plus/pack'
 

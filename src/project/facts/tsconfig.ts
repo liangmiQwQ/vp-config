@@ -1,3 +1,5 @@
+// Reads `tsconfig.json`, and extracts the raw facts of a project from it.
+
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'

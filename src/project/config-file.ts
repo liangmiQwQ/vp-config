@@ -1,3 +1,5 @@
+// Locates the directory of the `vite.config.ts` calling the entry, from a stack trace.
+
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, dirname } from 'node:path'

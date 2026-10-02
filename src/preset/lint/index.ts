@@ -1,3 +1,5 @@
+// Oxlint preset: combines the base rules, trait overrides and file role overrides of the visible projects.
+
 import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 

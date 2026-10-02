@@ -1,8 +1,9 @@
+// Resolves the projects visible from a config directory, with their scopes, facts and declared traits.
+
 import { join, relative, resolve, sep } from 'node:path'
 
 import { detectFacts } from './facts/index.ts'
 import type { ProjectFacts } from './facts/index.ts'
-import { rebaseGlobs } from './globs.ts'
 import type { ProjectTraits } from './traits.ts'
 import { findWorkspaceRoot, listWorkspaceMembers } from './workspace.ts'
 
@@ -97,4 +98,9 @@ function normalizeDeclared(
 
 function toProjectPath(root: string, directory: string): string {
   return relative(root, directory).split(sep).join('/') || '.'
+}
+
+// Globs of a project are written relative to the project, and rebased to be relative to the workspace root.
+export function rebaseGlobs(globs: string[], projectPath: string): string[] {
+  return globs.map(glob => `${projectPath}/${glob}`)
 }

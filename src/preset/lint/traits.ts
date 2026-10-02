@@ -1,11 +1,11 @@
+// Lint overrides derived from project traits.
+// They are merged together for each project, so every override only describes one trait.
+
 import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
 import type { Project } from '../../project/index.ts'
 import { getRuntime, isCli, isReact, isVue } from '../../project/traits.ts'
-
-// Lint overrides derived from project traits.
-// They are merged together for each project, so every override only describes one trait.
 
 // For code that's sure running on Node.js.
 export const nodeOverride: OxlintConfig = {

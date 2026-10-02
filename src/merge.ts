@@ -1,3 +1,5 @@
+// Selects preset config parts, and merges the user config on top of them part by part.
+
 import { mergeConfig } from 'vite-plus'
 import type { UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'

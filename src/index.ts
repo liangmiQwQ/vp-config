@@ -1,3 +1,5 @@
+// Public API of the package.
+
 export { liangmi } from './entry.ts'
 export type { LiangmiConfig, LiangmiOptions, UserConfigFunction } from './entry.ts'
 export type { ConfigPart } from './preset/index.ts'

@@ -1,3 +1,5 @@
+// The `liangmi()` entry: a chainable, awaitable builder that derives the preset and merges it with the user config.
+
 import { defineConfig } from 'vite-plus'
 import type { ConfigEnv, UserConfig } from 'vite-plus'
 

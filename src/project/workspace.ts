@@ -1,3 +1,5 @@
+// Finds the workspace root, and lists its members from `pnpm-workspace.yaml` or `package.json` workspaces.
+
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, posix } from 'node:path'
@@ -5,7 +7,7 @@ import { dirname, join, posix } from 'node:path'
 import { globSync } from 'tinyglobby'
 import { parse } from 'yaml'
 
-import { readPackageJson } from './manifest.ts'
+import { readPackageJson } from './facts/manifest.ts'
 
 // Walk up until a pnpm workspace file or a package.json with `workspaces` is found.
 export function findWorkspaceRoot(directory: string): string | undefined {

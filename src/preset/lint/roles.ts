@@ -1,10 +1,10 @@
+// Lint overrides for file roles. Globs are relative to the project and rebased under the project path.
+
 import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
-import { rebaseGlobs } from '../../project/globs.ts'
+import { rebaseGlobs } from '../../project/index.ts'
 import { cliOverride, nodeOverride } from './traits.ts'
-
-// Lint overrides for file roles. Globs are relative to the project and rebased under the project path.
 
 const testOverride: OxlintOverride = {
   env: {

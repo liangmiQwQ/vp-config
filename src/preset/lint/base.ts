@@ -1,3 +1,5 @@
+// Base Oxlint rules applied to every file of every project.
+
 import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
 
 // Rules Config

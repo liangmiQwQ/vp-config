@@ -1,3 +1,5 @@
+// Oxfmt preset: base options, plus options derived from project traits.
+
 import type { OxfmtConfig, OxfmtOverrideConfig } from 'vite-plus/fmt'
 
 import type { Project } from '../project/index.ts'

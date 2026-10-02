@@ -1,44 +1,44 @@
 import { expect, it } from 'vite-plus/test'
 
-import { createConfigEntry } from '../src/entry.ts'
+import { mergePresetConfig } from '../src/merge.ts'
+import { derivePack } from '../src/preset/pack.ts'
+import type { ProjectFacts } from '../src/project/index.ts'
 
-const config = createConfigEntry({
-  pack: {
-    dts: true,
-    exports: true
-  }
+const facts: ProjectFacts = { runtime: 'node', frameworks: [], lib: false, cli: false }
+
+it('should derive pack config from lib and cli facts', () => {
+  expect(derivePack(facts)).toBeUndefined()
+  expect(derivePack({ ...facts, lib: true })).toMatchObject({ exports: true, minify: false })
+  expect(derivePack({ ...facts, cli: true })).toMatchObject({ dts: false, minify: true })
 })
 
-it('should merge pack preset with object config', () => {
-  expect(
-    config({
-      pack: {
-        exports: false,
-        minify: true
-      }
-    })
-  ).toMatchObject({
-    pack: {
-      dts: true,
-      exports: false,
-      minify: true
-    }
+it('should prefer lib defaults for a project shipping both', () => {
+  expect(derivePack({ ...facts, lib: true, cli: true })).toStrictEqual({
+    dts: { generator: 'tsgo' },
+    exports: true,
+    fixedExtension: true,
+    minify: false,
+    nodeProtocol: 'strip',
+    platform: 'node'
   })
 })
 
 it('should merge pack preset with every array item', () => {
   expect(
-    config({
-      pack: [
-        {
-          entry: ['./src/index.ts']
-        },
-        {
-          dts: false,
-          entry: ['./src/cli.ts']
-        }
-      ]
-    })
+    mergePresetConfig(
+      { pack: { dts: true, exports: true } },
+      {
+        pack: [
+          {
+            entry: ['./src/index.ts']
+          },
+          {
+            dts: false,
+            entry: ['./src/cli.ts']
+          }
+        ]
+      }
+    )
   ).toMatchObject({
     pack: [
       {

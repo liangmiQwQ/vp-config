@@ -4,7 +4,10 @@ catalog:
   '@types/node': ^26.6.3
   '@typescript/native-preview': 7.0.0-dev.20260707.2
   bumpp: ^12.3.0
+  get-tsconfig: ^4.14.3
+  tinyglobby: ^0.2.17
   typescript: ^7.0.2
+  yaml: ^2.9.1
 minimumReleaseAgeExclude:
   - '@voidzero-dev/vite-plus-core@0.2.9'
   - '@voidzero-dev/vite-plus-darwin-arm64@0.2.9'

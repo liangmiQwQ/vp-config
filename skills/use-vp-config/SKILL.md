@@ -16,20 +16,22 @@ Before editing:
 3. Check local Vite+ documentation in `node_modules/vite-plus/docs` when an option is uncertain. Use <https://viteplus.dev/guide/> only when local docs are unavailable or outdated.
 4. Preserve project-specific overrides instead of replacing them blindly.
 
-## Select a preset
+## Understand the project model
 
-Choose one category for each `vite.config.ts`:
+There are no categories to choose. Every `vite.config.ts` uses the same `liangmi` entry, and the config is derived from facts detected from committed files:
 
-| Category  | Use for                                             | Included parts                         |
-| --------- | --------------------------------------------------- | -------------------------------------- |
-| `base`    | Workspace roots and projects without a clearer role | `fmt`, `lint`, `run`, `staged`         |
-| `cli`     | Node.js CLI, TUI, React Ink, or Vue TUI projects    | `fmt`, `lint`, `pack`, `run`, `staged` |
-| `lib`     | Published or reusable libraries                     | `fmt`, `lint`, `pack`, `run`, `staged` |
-| `website` | Browser applications and websites                   | `fmt`, `lint`, `run`, `staged`         |
+| Fact         | Detected from                                                               |
+| ------------ | --------------------------------------------------------------------------- |
+| `runtime`    | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
+| `frameworks` | `react`, `vue`, `ink` and `tailwindcss` in `package.json` dependencies      |
+| `lib`        | `exports` in `package.json`                                                 |
+| `cli`        | `bin` in `package.json`                                                     |
 
-In a monorepo, use `base` at the workspace root and choose `cli`, `lib`, or `website` for member projects. Do not mix library and website signals in one project.
+Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare facts with `.option({ projects })` only when detection is wrong.
 
-Treat `website` as experimental. It supports browser and component linting, but Vue template linting depends on improved upstream Oxlint support.
+In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, it throws an error. Put project-specific lint or format changes in the root config's `overrides` instead.
+
+Vue template linting depends on improved upstream Oxlint support.
 
 ## Install with Vite+
 
@@ -45,23 +47,35 @@ This preset requires `vite-plus@1.0.0-rc.1`. Align the installed version with th
 
 ## Configure `vite.config.ts`
 
-Wrap the configuration with the selected named export:
+Await the `liangmi` entry:
 
 ```typescript
-import { lib } from '@liangmi/vp-config'
+import { liangmi } from '@liangmi/vp-config'
 
-export default lib({
+export default await liangmi({
   pack: {
     entry: './src/index.ts'
   }
 })
 ```
 
-The wrapper accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
+The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
 
-For `lib` and `cli`, define `pack.entry` explicitly from the project's real source entry points. The preset cannot infer the package's intended public entries.
+Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`), and `.option({ projects })` to declare facts:
 
-Only select parts provided by the chosen category. Do not import a preset outside `vite.config.ts`.
+```typescript
+import { liangmi } from '@liangmi/vp-config'
+
+export default await liangmi({}).option({
+  projects: {
+    'apps/api': { runtime: 'node' }
+  }
+})
+```
+
+For `lib` and `cli` projects, define `pack.entry` explicitly from the project's real source entry points. The preset cannot infer the package's intended public entries.
+
+Do not import the preset outside `vite.config.ts`.
 
 Since we already use vp config preset, most of the config items can be omiited. For example, we do not need to define `lint`, `staged`, and `fmt` config most of the time, `dts` generation, `fixedExtendions`, `export` generation or `minify` in `pack` are also set by default. If you are doing migration works, please handle them as well.
 
@@ -71,10 +85,11 @@ Assume these defaults unless the project explicitly overrides them:
 
 - Linting uses strict, type-aware Oxlint with type checking and warnings denied. Do not add a separate `tsc` check solely for type checking.
 - Style rules are explicitly allowlisted to keep lint behavior stable across Oxlint upgrades. New upstream style rules stay disabled until they are reviewed and added.
-- `console.log` is rejected except in the `cli` category and Node.js script overrides.
-- Formatting uses Oxfmt with single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields.
+- `console.log` is rejected except in `cli` projects and Node.js script overrides.
+- Formatting uses Oxfmt with single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields. React and Vue projects enable embedded-language formatting, and Tailwind CSS projects sort classes.
 - `lib` packaging generates declarations with `dts.generator: 'tsgo'` and package exports with fixed extensions.
-- `cli` packaging targets Node.js, minifies, strips `node:` prefixes, and disables declaration generation.
+- `cli` packaging targets Node.js, minifies, strips `node:` prefixes, and disables declaration generation. `lib` defaults win for projects that are both.
+- `node` projects test in the Node.js environment, and `browser` projects use an installed `happy-dom` or `jsdom`.
 - Staged files run `vp check --fix`.
 
 Put task cache options (`input`, `output`, `env`, and `untrackedEnv`) inside `run.tasks.<name>.cache`.
@@ -106,4 +121,4 @@ After editing:
 1. Run `vp config` when commit-hook configuration needs to be installed or refreshed.
 2. Run `vp check`.
 3. Run the relevant build, package, or test task for the changed project.
-4. Fix preset-plugin errors rather than disabling them. They detect orphan configs, imports outside `vite.config.ts`, missing preset wrappers, improper root or project categories, and mixed library and website signals.
+4. If a member config throws because it passes `lint` or `fmt`, move that config into the workspace root.

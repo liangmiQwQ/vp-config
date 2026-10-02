@@ -1,38 +1,22 @@
-import { defineConfig, mergeConfig } from 'vite-plus'
-import type { UserConfig } from 'vite-plus'
-import type { PackUserConfig } from 'vite-plus/pack'
+import { defineConfig } from 'vite-plus'
+import type { ConfigEnv, UserConfig } from 'vite-plus'
 
-import type { ConfigName } from './oxlint-plugin/constants.ts'
-import { writeRuntimeInfo } from './oxlint-plugin/info.ts'
+import { mergePresetConfig, omitPresetConfig, pickPresetConfig } from './merge.ts'
+import { derivePreset } from './preset/index.ts'
+import type { ConfigPart, Preset, PresetConfig } from './preset/index.ts'
+import { findConfigDirectory } from './project/config-file.ts'
+import type { DeclaredProjects } from './project/index.ts'
 
-export interface PresetConfig {
-  fmt?: UserConfig['fmt']
-  lint?: UserConfig['lint']
-  pack?: PackUserConfig
-  run?: UserConfig['run']
-  staged?: UserConfig['staged']
+export interface LiangmiOptions {
+  // Project facts which override the detected ones, keyed by paths relative to this config.
+  projects?: DeclaredProjects
 }
 
-// Keep the public call signature aligned with Vite+'s defineConfig, but merge presets by input kind:
-// Objects are merged immediately, promises are merged after resolution, and functions are wrapped until Vite+ provides ConfigEnv.
-export function createConfigEntry<const Config extends PresetConfig>(
-  presetConfig: Config,
-  category?: ConfigName
-): ConfigEntry<Config> {
-  const entry = ((config: ConfigInput) =>
-    defineMergedConfig(presetConfig, config, category)) as typeof defineConfig
-  const only: ConfigEntry<Config>['only'] = (parts, ...args) =>
-    defineMergedConfig(pickPresetConfig(presetConfig, parts), args[0], category)
-  const exclude: ConfigEntry<Config>['exclude'] = (parts, ...args) =>
-    defineMergedConfig(omitPresetConfig(presetConfig, parts), args[0], category)
-
-  return Object.assign(entry, { only, exclude })
-}
-
-type ConfigArgs = Parameters<typeof defineConfig>
-type ConfigInput = ConfigArgs[0]
-type ConfigResult = ReturnType<typeof defineConfig>
-type StagedObjectConfig = Extract<NonNullable<UserConfig['staged']>, Record<string, unknown>>
+export type UserConfigFunction = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
+type UserConfigInput = UserConfig | Promise<UserConfig> | UserConfigFunction
+type ResolvedConfig<Input> = Input extends UserConfigFunction
+  ? (env: ConfigEnv) => Promise<UserConfig>
+  : UserConfig
 
 // This recursive tuple check is intentionally narrow: it rejects duplicate literal parts without widening them to string[].
 export type Unique<T extends readonly unknown[]> = T extends readonly [infer Head, ...infer Tail]
@@ -40,134 +24,89 @@ export type Unique<T extends readonly unknown[]> = T extends readonly [infer Hea
     ? never
     : readonly [Head, ...Unique<Tail>]
   : T
-export type ConfigPart<PresetConfig> = Extract<keyof NonNullable<PresetConfig>, string>
 
-export type ConfigFunction<PresetConfig> = <
-  const Parts extends readonly ConfigPart<PresetConfig>[]
->(
-  parts: Parts & Unique<Parts>,
-  ...args: ConfigArgs
-) => ConfigResult
+export type PartsFunction<Result> = <const Parts extends readonly ConfigPart[]>(
+  parts: Parts & Unique<Parts>
+) => LiangmiConfig<Result>
 
-export type ConfigEntry<PresetConfig> = {
-  only: ConfigFunction<PresetConfig>
-  exclude: ConfigFunction<PresetConfig>
-} & typeof defineConfig
+export interface LiangmiConfig<Result> extends PromiseLike<Result> {
+  only: PartsFunction<Result>
+  exclude: PartsFunction<Result>
+  option: (options: LiangmiOptions) => LiangmiConfig<Result>
+}
 
-function defineMergedConfig(
-  presetConfig: PresetConfig,
-  config: ConfigInput,
-  category?: ConfigName
-): ConfigResult {
+interface EntryState {
+  config: UserConfigInput
+  configDirectory: string
+  options: LiangmiOptions
+  filter: (presetConfig: PresetConfig) => PresetConfig
+}
+
+// The config directory is read from the stack synchronously, before Vite removes its bundled config file.
+export function liangmi<const Input extends UserConfigInput = UserConfig>(
+  config?: Input
+): LiangmiConfig<ResolvedConfig<Input>> {
+  return createLiangmiConfig({
+    config: config ?? {},
+    configDirectory: findConfigDirectory(new Error('Find vite config').stack) ?? process.cwd(),
+    options: {},
+    filter: presetConfig => presetConfig
+  })
+}
+
+function createLiangmiConfig<Result>(state: EntryState): LiangmiConfig<Result> {
+  return {
+    only: parts =>
+      createLiangmiConfig({
+        ...state,
+        filter: config => pickPresetConfig(state.filter(config), parts)
+      }),
+    exclude: parts =>
+      createLiangmiConfig({
+        ...state,
+        filter: config => omitPresetConfig(state.filter(config), parts)
+      }),
+    option: options => createLiangmiConfig({ ...state, options: { ...state.options, ...options } }),
+    // oxlint-disable-next-line unicorn/no-thenable -- The entry is awaited in vite.config.ts to resolve the config.
+    then: (onFulfilled, onRejected) => resolveConfig<Result>(state).then(onFulfilled, onRejected)
+  }
+}
+
+async function resolveConfig<Result>(state: EntryState): Promise<Result> {
+  const preset = derivePreset(state.configDirectory, state.options.projects)
+  const presetConfig = state.filter(preset.config)
+  const { config } = state
+
   if (typeof config === 'function') {
     // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
-    return defineConfig(async env => {
-      const userConfig = await config(env)
-      return trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
-    })
+    return defineConfig(async (env: ConfigEnv) =>
+      mergeUserConfig(preset, presetConfig, await config(env), state.configDirectory)
+    ) as Result
   }
 
-  if (config instanceof Promise) {
-    // Preserve async config shape instead of awaiting here, matching defineConfig's Promise overload.
-    return defineConfig(
-      config.then(userConfig =>
-        trackRuntimeInfo(mergePresetConfig(presetConfig, userConfig), category)
-      )
+  return defineConfig(
+    mergeUserConfig(preset, presetConfig, await config, state.configDirectory)
+  ) as Result
+}
+
+function mergeUserConfig(
+  preset: Preset,
+  presetConfig: PresetConfig,
+  userConfig: UserConfig,
+  configDirectory: string
+): UserConfig {
+  assertMemberConfig(preset, userConfig, configDirectory)
+
+  return mergePresetConfig(presetConfig, userConfig)
+}
+
+// Vite+ only reads `lint` and `fmt` from the workspace root, so they would be silently ignored here.
+function assertMemberConfig(preset: Preset, userConfig: UserConfig, configDirectory: string): void {
+  const ignoredParts = (['lint', 'fmt'] as const).filter(part => userConfig[part] !== undefined)
+
+  if (preset.position === 'member' && ignoredParts.length > 0) {
+    throw new Error(
+      `[@liangmi/vp-config] \`${ignoredParts.join('` and `')}\` in ${configDirectory} is ignored by Vite+, which only reads them from the workspace root. Declare the project facts with \`.option({ projects })\` or add overrides in the workspace root config instead.`
     )
   }
-
-  // Plain objects can be merged eagerly because they do not depend on ConfigEnv.
-  return defineConfig(trackRuntimeInfo(mergePresetConfig(presetConfig, config), category))
-}
-
-// Pick by explicit keys instead of mutating the preset object shared by other entries.
-function pickPresetConfig<Config extends PresetConfig>(
-  presetConfig: Config,
-  parts: readonly ConfigPart<Config>[]
-): PresetConfig {
-  return Object.fromEntries(parts.map(part => [part, presetConfig[part]]))
-}
-
-function omitPresetConfig<Config extends PresetConfig>(
-  presetConfig: Config,
-  parts: readonly ConfigPart<Config>[]
-): PresetConfig {
-  const excludedParts = new Set<string>(parts)
-
-  // Object.entries loses keyof information, so the result is cast back to PresetConfig.
-  return Object.fromEntries(
-    Object.entries(presetConfig).filter(([part]) => !excludedParts.has(part))
-  )
-}
-
-function mergePresetConfig(presetConfig: PresetConfig, userConfig: UserConfig): UserConfig {
-  const config = { ...userConfig }
-
-  if (presetConfig.fmt) {
-    config.fmt = mergeConfig(presetConfig.fmt, userConfig.fmt ?? {}) as UserConfig['fmt']
-  }
-
-  if (presetConfig.lint) {
-    config.lint = mergeLintConfig(presetConfig.lint, userConfig.lint)
-  }
-
-  if (presetConfig.pack) {
-    config.pack = mergePackConfig(presetConfig.pack, userConfig.pack)
-  }
-
-  if (presetConfig.run) {
-    config.run = mergeConfig(presetConfig.run, userConfig.run ?? {}) as UserConfig['run']
-  }
-
-  if (presetConfig.staged) {
-    config.staged = mergeStagedConfig(presetConfig.staged, userConfig.staged)
-  }
-
-  return config
-}
-
-function trackRuntimeInfo(config: UserConfig, category?: ConfigName): UserConfig {
-  writeRuntimeInfo({
-    category,
-    config: config as Record<string, unknown>
-  })
-
-  return config
-}
-
-function mergeLintConfig(
-  presetLint: NonNullable<PresetConfig['lint']>,
-  userLint: UserConfig['lint']
-): UserConfig['lint'] {
-  return mergeConfig(presetLint, userLint ?? {}) as UserConfig['lint']
-}
-
-function mergePackConfig(
-  presetPack: NonNullable<PresetConfig['pack']>,
-  userPack: UserConfig['pack']
-): UserConfig['pack'] {
-  if (Array.isArray(userPack)) {
-    return userPack.map(packConfig => mergeConfig(presetPack, packConfig) as PackUserConfig)
-  }
-
-  return mergeConfig(presetPack, userPack ?? {}) as PackUserConfig
-}
-
-function mergeStagedConfig(
-  presetStaged: NonNullable<PresetConfig['staged']>,
-  userStaged: UserConfig['staged']
-): UserConfig['staged'] {
-  if (!isStagedObjectConfig(presetStaged)) {
-    return userStaged ?? presetStaged
-  }
-
-  if (userStaged && !isStagedObjectConfig(userStaged)) {
-    return userStaged
-  }
-
-  return mergeConfig(presetStaged, userStaged ?? {}) as UserConfig['staged']
-}
-
-function isStagedObjectConfig(config: UserConfig['staged']): config is StagedObjectConfig {
-  return typeof config === 'object'
 }

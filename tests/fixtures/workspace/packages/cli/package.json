@@ -1,0 +1,7 @@
+{
+  "name": "cli",
+  "bin": "./dist/cli.mjs",
+  "dependencies": {
+    "ink": "^6.0.0"
+  }
+}

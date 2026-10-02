@@ -4,13 +4,22 @@ import { expect, it } from 'vite-plus/test'
 
 import { resolveProjectContext } from '../src/project/index.ts'
 import type { Project } from '../src/project/index.ts'
-import { getRuntime, isCli, isLib, isReact, isTailwindcss, isVue } from '../src/project/traits.ts'
+import {
+  isBrowser,
+  isCli,
+  isLib,
+  isNode,
+  isReact,
+  isTailwindcss,
+  isVue
+} from '../src/project/traits.ts'
 
 const workspace = join(import.meta.dirname, 'fixtures/workspace')
 
 function deriveTraits(project: Project): Record<string, unknown> {
   return {
-    runtime: getRuntime(project),
+    node: isNode(project),
+    browser: isBrowser(project),
     lib: isLib(project),
     cli: isCli(project),
     react: isReact(project),
@@ -47,13 +56,21 @@ it('should detect raw project facts from committed files', () => {
 it('should derive project traits from facts', () => {
   const { projects } = resolveProjectContext(workspace)
   const traits = Object.fromEntries(projects.map(project => [project.path, deriveTraits(project)]))
-  const none = { lib: false, cli: false, react: false, vue: false, tailwindcss: false }
+  const none = {
+    node: false,
+    browser: false,
+    lib: false,
+    cli: false,
+    react: false,
+    vue: false,
+    tailwindcss: false
+  }
 
   expect(traits).toStrictEqual({
-    '.': { ...none, runtime: 'universal' },
-    'apps/web': { ...none, runtime: 'browser', vue: true, tailwindcss: true },
-    'packages/cli': { ...none, runtime: 'node', cli: true, react: true },
-    'packages/lib': { ...none, runtime: 'node', lib: true, react: true }
+    '.': none,
+    'apps/web': { ...none, browser: true, vue: true, tailwindcss: true },
+    'packages/cli': { ...none, node: true, cli: true, react: true },
+    'packages/lib': { ...none, node: true, lib: true, react: true }
   })
 })
 
@@ -68,24 +85,26 @@ it('should scope the root project outside members', () => {
 })
 
 it('should add and override projects with declared traits', () => {
-  const { projects } = resolveProjectContext(workspace, {
-    tools: { runtime: 'node' },
-    'apps/web': { runtime: 'universal', react: true }
-  })
+  const { projects } = resolveProjectContext(workspace, [
+    { path: 'tools', node: true },
+    { path: './apps/web/', node: true },
+    { path: 'apps/web', react: true }
+  ])
   const findProject = (path: string): Project => projects.find(project => project.path === path)!
 
-  expect(getRuntime(findProject('tools'))).toBe('node')
+  expect(isNode(findProject('tools'))).toBe(true)
   expect(deriveTraits(findProject('apps/web'))).toMatchObject({
-    runtime: 'universal',
+    node: true,
+    browser: true,
     react: true,
     vue: true
   })
 })
 
 it('should resolve a member with its own traits only', () => {
-  const { position, projects } = resolveProjectContext(join(workspace, 'packages/cli'), {
-    '.': { lib: true }
-  })
+  const { position, projects } = resolveProjectContext(join(workspace, 'packages/cli'), [
+    { path: 'packages/cli', lib: true }
+  ])
   const [project] = projects
 
   expect(position).toBe('member')
@@ -95,7 +114,7 @@ it('should resolve a member with its own traits only', () => {
     scope: { files: ['packages/cli/**'] },
     declared: { lib: true }
   })
-  expect(deriveTraits(project)).toMatchObject({ runtime: 'node', lib: true, cli: true })
+  expect(deriveTraits(project)).toMatchObject({ node: true, lib: true, cli: true })
 })
 
 it('should treat a workspace without members as a single project', () => {
@@ -104,7 +123,8 @@ it('should treat a workspace without members as a single project', () => {
   expect(position).toBe('root')
   expect(projects).toHaveLength(1)
   expect(deriveTraits(projects[0])).toStrictEqual({
-    runtime: 'node',
+    node: true,
+    browser: false,
     lib: true,
     cli: false,
     react: false,

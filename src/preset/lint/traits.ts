@@ -5,7 +5,7 @@ import { mergeConfig } from 'vite-plus'
 import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
 import type { Project } from '../../project/index.ts'
-import { getRuntime, isCli, isReact, isVue } from '../../project/traits.ts'
+import { isBrowser, isCli, isNode, isReact, isVue } from '../../project/traits.ts'
 
 // For code that's sure running on Node.js.
 export const nodeOverride: OxlintConfig = {
@@ -106,11 +106,9 @@ export function lintTraits(project: Project): OxlintConfig {
 }
 
 function traitOverrides(project: Project): OxlintConfig[] {
-  const runtime = getRuntime(project)
-
   return [
-    runtime === 'node' ? nodeOverride : undefined,
-    runtime === 'browser' ? browserOverride : undefined,
+    isNode(project) ? nodeOverride : undefined,
+    isBrowser(project) ? browserOverride : undefined,
     isCli(project) ? cliOverride : undefined,
     isReact(project) ? reactOverride : undefined,
     isVue(project) ? vueOverride : undefined

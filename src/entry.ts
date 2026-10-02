@@ -7,12 +7,7 @@ import { mergePresetConfig, omitPresetConfig, pickPresetConfig } from './merge.t
 import { derivePreset } from './preset/index.ts'
 import type { ConfigPart, Preset, PresetConfig } from './preset/index.ts'
 import { findConfigDirectory } from './project/config-file.ts'
-import type { DeclaredProjects } from './project/index.ts'
-
-export interface LiangmiOptions {
-  // Project traits which override the derived ones, keyed by paths relative to this config.
-  projects?: DeclaredProjects
-}
+import type { DeclaredProject } from './project/index.ts'
 
 export type UserConfigFunction = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
 type UserConfigInput = UserConfig | Promise<UserConfig> | UserConfigFunction
@@ -34,13 +29,14 @@ export type PartsFunction<Result> = <const Parts extends readonly ConfigPart[]>(
 export interface LiangmiConfig<Result> extends PromiseLike<Result> {
   only: PartsFunction<Result>
   exclude: PartsFunction<Result>
-  option: (options: LiangmiOptions) => LiangmiConfig<Result>
+  // Declares project traits which override the derived ones.
+  option: (projects: DeclaredProject[]) => LiangmiConfig<Result>
 }
 
 interface EntryState {
   config: UserConfigInput
   configDirectory: string
-  options: LiangmiOptions
+  declared: DeclaredProject[]
   filter: (presetConfig: PresetConfig) => PresetConfig
 }
 
@@ -51,7 +47,7 @@ export function liangmi<const Input extends UserConfigInput = UserConfig>(
   return createLiangmiConfig({
     config: config ?? {},
     configDirectory: findConfigDirectory(new Error('Find vite config').stack) ?? process.cwd(),
-    options: {},
+    declared: [],
     filter: presetConfig => presetConfig
   })
 }
@@ -68,14 +64,15 @@ function createLiangmiConfig<Result>(state: EntryState): LiangmiConfig<Result> {
         ...state,
         filter: config => omitPresetConfig(state.filter(config), parts)
       }),
-    option: options => createLiangmiConfig({ ...state, options: { ...state.options, ...options } }),
+    option: projects =>
+      createLiangmiConfig({ ...state, declared: [...state.declared, ...projects] }),
     // oxlint-disable-next-line unicorn/no-thenable -- The entry is awaited in vite.config.ts to resolve the config.
     then: (onFulfilled, onRejected) => resolveConfig<Result>(state).then(onFulfilled, onRejected)
   }
 }
 
 async function resolveConfig<Result>(state: EntryState): Promise<Result> {
-  const preset = derivePreset(state.configDirectory, state.options.projects)
+  const preset = derivePreset(state.configDirectory, state.declared)
   const presetConfig = state.filter(preset.config)
   const { config } = state
 
@@ -108,7 +105,7 @@ function assertMemberConfig(preset: Preset, userConfig: UserConfig, configDirect
 
   if (preset.position === 'member' && ignoredParts.length > 0) {
     throw new Error(
-      `[@liangmi/vp-config] \`${ignoredParts.join('` and `')}\` in ${configDirectory} is ignored by Vite+, which only reads them from the workspace root. Declare the project traits with \`.option({ projects })\` or add overrides in the workspace root config instead.`
+      `[@liangmi/vp-config] \`${ignoredParts.join('` and `')}\` in ${configDirectory} is ignored by Vite+, which only reads them from the workspace root. Declare the project traits with \`.option()\` or add overrides in the workspace root config instead.`
     )
   }
 }

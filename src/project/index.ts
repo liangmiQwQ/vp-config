@@ -8,10 +8,14 @@ import type { ProjectTraits } from './traits.ts'
 import { findWorkspaceRoot, listWorkspaceMembers } from './workspace.ts'
 
 export type { ProjectFacts } from './facts/index.ts'
-export type { ProjectTraits, Runtime } from './traits.ts'
+export type { ProjectTraits } from './traits.ts'
 
-// Project traits declared in config, keyed by paths relative to the config directory.
-export type DeclaredProjects = Record<string, Partial<ProjectTraits>>
+// Project traits declared in config, for the project at `path` relative to the workspace root.
+export interface DeclaredProject extends Partial<ProjectTraits> {
+  path: string
+}
+
+type DeclaredTraits = Record<string, Partial<ProjectTraits>>
 
 export interface Project {
   // POSIX path relative to the workspace root, `.` for the root project.
@@ -36,10 +40,10 @@ export interface ProjectContext {
 
 export function resolveProjectContext(
   configDirectory: string,
-  declared: DeclaredProjects = {}
+  declared: DeclaredProject[] = []
 ): ProjectContext {
   const root = findWorkspaceRoot(configDirectory) ?? configDirectory
-  const declaredTraits = normalizeDeclared(root, configDirectory, declared)
+  const declaredTraits = groupDeclared(root, declared)
 
   if (resolve(root) !== resolve(configDirectory)) {
     const path = toProjectPath(root, configDirectory)
@@ -55,7 +59,7 @@ export function resolveProjectContext(
   return { position: 'root', projects: listProjects(root, declaredTraits) }
 }
 
-function listProjects(root: string, declared: DeclaredProjects): Project[] {
+function listProjects(root: string, declared: DeclaredTraits): Project[] {
   const paths = [...new Set([...listWorkspaceMembers(root), ...Object.keys(declared)])].filter(
     path => path !== '.'
   )
@@ -82,18 +86,17 @@ function createProject(
   return { path, scope, facts: detectFacts(join(root, path)), declared }
 }
 
-// Declared paths are relative to the config directory, project paths are relative to the workspace root.
-function normalizeDeclared(
-  root: string,
-  configDirectory: string,
-  declared: DeclaredProjects
-): DeclaredProjects {
-  return Object.fromEntries(
-    Object.entries(declared).map(([path, traits]) => [
-      toProjectPath(root, resolve(configDirectory, path)),
-      traits
-    ])
-  )
+// Later declarations of the same project override the earlier ones.
+function groupDeclared(root: string, declared: DeclaredProject[]): DeclaredTraits {
+  const grouped: DeclaredTraits = {}
+
+  for (const { path, ...traits } of declared) {
+    const projectPath = toProjectPath(root, resolve(root, path))
+
+    grouped[projectPath] = { ...grouped[projectPath], ...traits }
+  }
+
+  return grouped
 }
 
 function toProjectPath(root: string, directory: string): string {

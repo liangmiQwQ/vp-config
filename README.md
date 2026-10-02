@@ -40,26 +40,25 @@ Here are some real-world examples using `@liangmi/vp-config`.
 
 Each project is described by traits, which are derived from facts detected in committed files.
 
-| Trait                         | Derived from                                                                |
-| ----------------------------- | --------------------------------------------------------------------------- |
-| `runtime`                     | `bin` in `package.json`, `index.html`, `lib` and `types` in `tsconfig.json` |
-| `react`, `vue`, `tailwindcss` | `package.json` dependencies, including dev, peer and optional ones          |
-| `lib`                         | `exports` in `package.json`                                                 |
-| `cli`                         | `bin` in `package.json`                                                     |
+| Trait                         | Derived from                                                       |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `node`                        | `bin` in `package.json`, `node` in `types` of `tsconfig.json`      |
+| `browser`                     | `index.html`, `DOM` in `lib` of `tsconfig.json`                    |
+| `react`, `vue`, `tailwindcss` | `package.json` dependencies, including dev, peer and optional ones |
+| `lib`                         | `exports` in `package.json`                                        |
+| `cli`                         | `bin` in `package.json`                                            |
 
-`runtime` is `node`, `browser`, or `universal` when the signals conflict or are missing. Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
+`node` and `browser` are independent, so a universal project has both of them. Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
 
-When a derived trait is wrong, declare it with `.option()`. Paths are relative to the config file, and directories that are not workspace members can be added as projects.
+When a derived trait is wrong, declare it with `.option()` in the root config. It takes a flat list of projects identified by their `path` relative to the workspace root. Undeclared traits are still derived, and paths that are not workspace members are added as projects.
 
 ```typescript
 import { liangmi } from "@liangmi/vp-config";
 
-export default await liangmi({}).option({
-  projects: {
-    "apps/api": { runtime: "node" },
-    "packages/ui": { vue: true },
-  },
-});
+export default await liangmi({}).option([
+  { path: "apps/api", node: true },
+  { path: "packages/ui", vue: true },
+]);
 ```
 
 ### Monorepos

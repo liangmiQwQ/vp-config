@@ -11,7 +11,7 @@ Each project is described with these facts:
 
 ## Project discovery
 
-Projects are the workspace members and the workspace root. Directories with their own `package.json` that are not workspace members can be added by the `projects` option in the root config.
+Projects are the workspace members and the workspace root. Directories with their own `package.json` that are not workspace members can be added by declaring them in the root config, see [Declaration](#declaration).
 
 ## Detection
 
@@ -29,17 +29,18 @@ When there is evidence for both `browser` and `node` runtimes, the project is `u
 
 ## Declaration
 
-When detection is wrong, facts can be declared with `.option()` in the root config. Declared facts override the detected ones.
+When detection is wrong, facts can be declared with `.option()` in the root config. It takes a flat list of projects, each one identified by its `path` relative to the workspace root. Declared facts override the detected ones, and undeclared facts are still detected.
 
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).option({
-  projects: {
-    'apps/api': { runtime: 'node' }
-  }
-})
+export default await liangmi({}).option([
+  { path: 'apps/api', runtime: 'node' },
+  { path: 'tools/codegen', cli: true }
+])
 ```
+
+A `path` that is not a workspace member adds that directory as a project.
 
 ## Derivation
 

@@ -42,8 +42,6 @@ Use Vite+ for package management:
 vp install -D @liangmi/vp-config
 ```
 
-Do not use `npm` or `pnpm` directly when the project is managed by Vite+.
-
 This preset requires `vite-plus@1.0.0-rc.1`. Align the installed version with the preset's peer dependency; keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version.
 
 ## Configure `vite.config.ts`

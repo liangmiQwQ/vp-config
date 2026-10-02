@@ -62,7 +62,9 @@ export default await liangmi({
 
 The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
 
-Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`), and `.option([...])` in the root config to declare traits of projects by their `path` relative to the workspace root:
+Chain `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`).
+
+Chaining `.option([...])` in the root config to declare traits of projects by their `path` relative to the workspace root is not recommended. Prefer fixing the committed files the traits are derived from, and use it only as a last resort:
 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'

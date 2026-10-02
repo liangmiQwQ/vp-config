@@ -115,15 +115,8 @@ When a project is both `lib` and `cli`, the `lib` defaults take priority where t
 
 Website projects have neither fact, they use Vite's `build`.
 
-All tasks in `run` are generated no matter what the detection result is.
-
 ## Diagnostics
 
 `liangmi` resolves its position and the project model while the config is loaded, so it reports problems directly.
 
 - A workspace member passes `lint` or `fmt`, which Vite+ ignores. Report an error and suggest declaring the project facts or overrides in the root config.
-- A `vite.config.ts` has no `package.json` next to it. Report a warning, since it can't be discovered as a project.
-
-## Open questions
-
-- Whether project facts should be declared in each `package.json` instead of the root `projects` option.

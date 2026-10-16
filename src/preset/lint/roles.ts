@@ -1,18 +1,23 @@
 // Lint overrides for file roles. Globs are relative to the project and rebased under the project path.
 
+import { category } from 'oxlint-flat-config/vite-plus'
+import type { ScopedConfigItem } from 'oxlint-flat-config/vite-plus'
 import { mergeConfig } from 'vite-plus'
-import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
 
 import { rebaseGlobs } from '../../project/index.ts'
-import { cliOverride, nodeOverride } from './traits.ts'
+import { lintCategories } from './base.ts'
+import { cliOverride, lintName, nodeOverride } from './traits.ts'
+import type { LintOverride } from './traits.ts'
 
-const testOverride: OxlintOverride = {
+type RoleOverride = LintOverride & { files: string[] }
+
+const testOverride: RoleOverride = {
   env: {
     node: true,
     // We do not use jest
     vitest: true
   },
-  plugins: ['vitest'],
+  extends: [category({ ...lintCategories, plugins: ['vitest'] })],
   rules: {
     // Style
     'vitest/consistent-test-filename': ['warn', { pattern: '.*.test.ts$' }],
@@ -34,12 +39,12 @@ const testOverride: OxlintOverride = {
 }
 
 // Scripts are Node.js programs printing to the terminal.
-const scriptOverride: OxlintOverride = {
-  ...mergeConfig<OxlintConfig, OxlintConfig>(nodeOverride, cliOverride),
+const scriptOverride: RoleOverride = {
+  ...mergeConfig<LintOverride, LintOverride>(nodeOverride, cliOverride),
   files: ['scripts/**', 'script/**', '*.ts', '*.js']
 }
 
-const configFileOverride: OxlintOverride = {
+const configFileOverride: RoleOverride = {
   rules: {
     'import/no-default-export': 'off',
     'no-console': 'error'
@@ -47,12 +52,22 @@ const configFileOverride: OxlintOverride = {
   files: ['**/*.config.ts']
 }
 
-const roleOverrides = [testOverride, scriptOverride, configFileOverride]
-
-export function lintRoles(projectPath: string): OxlintOverride[] {
-  return roleOverrides.map(override => rebaseOverride(override, projectPath))
+const roleOverrides: Record<string, RoleOverride> = {
+  test: testOverride,
+  script: scriptOverride,
+  'config-file': configFileOverride
 }
 
-function rebaseOverride(override: OxlintOverride, projectPath: string): OxlintOverride {
-  return { ...override, files: rebaseGlobs(override.files, projectPath) }
+export function lintRoles(projectPath: string): ScopedConfigItem[] {
+  return Object.entries(roleOverrides).map(([role, override]) =>
+    rebaseOverride(override, lintName(projectPath, role), projectPath)
+  )
+}
+
+function rebaseOverride(
+  override: RoleOverride,
+  name: string,
+  projectPath: string
+): ScopedConfigItem {
+  return { ...override, name, files: rebaseGlobs(override.files, projectPath) }
 }

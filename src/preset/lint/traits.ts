@@ -1,33 +1,37 @@
 // Lint overrides derived from project traits.
-// They are merged together for each project, so every override only describes one trait.
+// Each one becomes a config object scoped to the project, so every override only describes one trait.
 
-import { mergeConfig } from 'vite-plus'
-import type { OxlintConfig, OxlintOverride } from 'vite-plus/lint'
+import { category } from 'oxlint-flat-config/vite-plus'
+import type { ScopedConfigItem } from 'oxlint-flat-config/vite-plus'
 
 import type { Project } from '../../project/index.ts'
 import { isBrowser, isCli, isNode, isReact, isVue } from '../../project/traits.ts'
+import type { ProjectTraits } from '../../project/traits.ts'
+import { lintCategories } from './base.ts'
+
+export type LintOverride = Pick<ScopedConfigItem, 'env' | 'extends' | 'rules'>
 
 // For code that's sure running on Node.js.
-export const nodeOverride: OxlintConfig = {
+export const nodeOverride: LintOverride = {
   env: { node: true },
   // We don't enable most of the rules in this plugin, just follow the configure in lintBase.
-  plugins: ['node'],
+  extends: [category({ ...lintCategories, plugins: ['node'] })],
   rules: {
     'node/no-path-concat': 'error',
     'node/no-sync': ['error', { allowAtRootLevel: true }]
   }
-} satisfies Omit<OxlintOverride, 'files'>
+}
 
 // For executables, which print to the terminal and exit with status codes.
-export const cliOverride: OxlintConfig = {
+export const cliOverride: LintOverride = {
   rules: {
     'no-console': 'off',
     'unicorn/no-process-exit': 'off'
   }
-} satisfies Omit<OxlintOverride, 'files'>
+}
 
 // This is incomplete, Oxlint's better Vue support (template support) is needed since I personally mainly develop website with Vue.js
-export const browserOverride: OxlintConfig = {
+export const browserOverride: LintOverride = {
   env: { browser: true },
   rules: {
     'prefer-dom-node-append': 'warn',
@@ -43,11 +47,11 @@ export const browserOverride: OxlintConfig = {
     'import/no-default-export': 'off',
     'unicorn/filename-case': 'off'
   }
-} satisfies Omit<OxlintOverride, 'files'>
+}
 
 // For React components, including React Ink.
-export const reactOverride: OxlintConfig = {
-  plugins: ['react', 'react-perf'],
+export const reactOverride: LintOverride = {
+  extends: [category({ ...lintCategories, plugins: ['react', 'react-perf'] })],
   rules: {
     // Suspicious
     'react/react-in-jsx-scope': 'off', // React 17+ JSX transform does not require `import React`.
@@ -77,12 +81,12 @@ export const reactOverride: OxlintConfig = {
     'react/no-redundant-should-component-update': 'off',
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
   }
-} satisfies Omit<OxlintOverride, 'files'>
+}
 
 // For Vue components, including Vue TUI. WIP, waiting for Oxlint's Vue template support.
-export const vueOverride: OxlintConfig = {
+export const vueOverride: LintOverride = {
   env: { vue: true },
-  plugins: ['vue'],
+  extends: [category({ ...lintCategories, plugins: ['vue'] })],
   rules: {
     'vue/no-import-compiler-macros': 'warn',
 
@@ -93,24 +97,29 @@ export const vueOverride: OxlintConfig = {
 
     'vue/require-prop-types': 'off'
   }
-} satisfies Omit<OxlintOverride, 'files'>
-
-export function lintTraits(project: Project): OxlintConfig {
-  let config: OxlintConfig = {}
-
-  for (const override of traitOverrides(project)) {
-    config = mergeConfig<OxlintConfig, OxlintConfig>(config, override)
-  }
-
-  return config
 }
 
-function traitOverrides(project: Project): OxlintConfig[] {
-  return [
-    isNode(project) ? nodeOverride : undefined,
-    isBrowser(project) ? browserOverride : undefined,
-    isCli(project) ? cliOverride : undefined,
-    isReact(project) ? reactOverride : undefined,
-    isVue(project) ? vueOverride : undefined
-  ].filter(override => override !== undefined)
+export function lintTraits(project: Project): ScopedConfigItem[] {
+  return Object.entries(traitOverrides(project)).map(([trait, override]) =>
+    scopeOverride(override, lintName(project.path, trait), project)
+  )
+}
+
+// Names stay unique across projects, so the composer methods can find each one.
+export function lintName(projectPath: string, kind: string): string {
+  return projectPath === '.' ? `liangmi/${kind}` : `liangmi/${projectPath}/${kind}`
+}
+
+function scopeOverride(override: LintOverride, name: string, project: Project): ScopedConfigItem {
+  return { ...override, name, files: project.scope.files, ignores: project.scope.excludeFiles }
+}
+
+function traitOverrides(project: Project): Partial<Record<keyof ProjectTraits, LintOverride>> {
+  return {
+    ...(isNode(project) ? { node: nodeOverride } : {}),
+    ...(isBrowser(project) ? { browser: browserOverride } : {}),
+    ...(isCli(project) ? { cli: cliOverride } : {}),
+    ...(isReact(project) ? { react: reactOverride } : {}),
+    ...(isVue(project) ? { vue: vueOverride } : {})
+  }
 }

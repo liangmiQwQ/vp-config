@@ -8,7 +8,7 @@ A project is described by several independent questions: the runtime (node or br
 
 ## Single entry
 
-Every `vite.config.ts` uses the same entry, `liangmi`. It is a wrapper of `defineConfig` from `vite-plus`, and the config passed to it is deeply merged with the generated defaults.
+Every `vite.config.ts` uses the same entry, `liangmi`. It is a wrapper of `defineConfig` from `vite-plus`, and the config passed to it is deeply merged with the generated defaults, except `lint`, which is a flat config appended after the preset, see [lint config](./lint-config.md).
 
 `liangmi()` returns a thenable object. Its methods are chained to set options, and the config is resolved when it is awaited.
 

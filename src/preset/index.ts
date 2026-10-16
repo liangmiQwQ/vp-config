@@ -1,5 +1,6 @@
 // Assembles the preset config parts for the position of the config, from the projects it can see.
 
+import type { FlatConfigItem } from 'oxlint-flat-config/vite-plus'
 import type { UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'
 
@@ -17,7 +18,7 @@ const stagedBase: NonNullable<UserConfig['staged']> = {
 
 export interface PresetConfig {
   fmt?: UserConfig['fmt']
-  lint?: UserConfig['lint']
+  lint?: FlatConfigItem[]
   pack?: PackUserConfig
   run?: UserConfig['run']
   staged?: UserConfig['staged']

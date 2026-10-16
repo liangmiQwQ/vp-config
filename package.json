@@ -32,6 +32,10 @@
     "release": "bumpp",
     "test": "vp run ctest"
   },
+  "dependencies": {
+    "@oxlint-flat-config/composer": "catalog:",
+    "oxlint-flat-config": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",

@@ -1,6 +1,16 @@
 // Base Oxlint rules applied to every file of every project.
 
-import type { DummyRuleMap, OxlintConfig } from 'vite-plus/lint'
+import { category, globalIgnores } from 'oxlint-flat-config/vite-plus'
+import type { FlatConfigItem } from 'oxlint-flat-config/vite-plus'
+import type { DummyRuleMap, RuleCategories } from 'vite-plus/lint'
+
+// Every rule is off until configured, so the other categories stay in whitelist mode.
+export const lintCategories: RuleCategories = {
+  correctness: 'error',
+  perf: 'error',
+  suspicious: 'error',
+  nursery: 'error'
+}
 
 // Rules Config
 const suspicious: DummyRuleMap = {
@@ -264,36 +274,32 @@ const pedantic: DummyRuleMap = {
   'no-negated-condition': 'warn'
 }
 
-export const lintBase: OxlintConfig = {
-  categories: {
-    correctness: 'error',
-    perf: 'error',
-    suspicious: 'error',
-    nursery: 'error',
+// Named so that users can find them with the composer methods.
+export const lintBase: FlatConfigItem[] = [
+  globalIgnores(['bin/**'], 'liangmi/ignores'),
+  category(
+    { ...lintCategories, plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'] },
+    { name: 'liangmi/categories' }
+  ),
+  {
+    name: 'liangmi/base',
+    rules: {
+      // Enable all `correctness` config
+      ...suspicious,
+      ...nursery,
+      ...perf,
 
-    // Whitelist mode
-    style: 'off',
-    restriction: 'off',
-    pedantic: 'off'
-  },
-  plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'],
-  rules: {
-    // Enable all `correctness` config
-    ...suspicious,
-    ...nursery,
-    ...perf,
-
-    ...restriction,
-    ...pedantic,
-    ...style
-  },
-  options: {
-    typeAware: true,
-    typeCheck: true,
-    denyWarnings: true,
-    reportUnusedDisableDirectives: 'warn',
-    // We hope to use `oxlint-disable-next-line` instead of `eslint-xxx`
-    respectEslintDisableDirectives: false
-  },
-  ignorePatterns: ['bin/**']
-}
+      ...restriction,
+      ...pedantic,
+      ...style
+    },
+    options: {
+      typeAware: true,
+      typeCheck: true,
+      denyWarnings: true,
+      reportUnusedDisableDirectives: 'warn',
+      // We hope to use `oxlint-disable-next-line` instead of `eslint-xxx`
+      respectEslintDisableDirectives: false
+    }
+  }
+]

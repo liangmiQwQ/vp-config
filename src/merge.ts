@@ -1,7 +1,7 @@
 // Selects preset config parts, and merges the user config on top of them part by part.
 
+import type { UserConfig } from 'oxlint-flat-config/vite-plus'
 import { mergeConfig } from 'vite-plus'
-import type { UserConfig } from 'vite-plus'
 import type { PackUserConfig } from 'vite-plus/pack'
 
 import type { ConfigPart, PresetConfig } from './preset/index.ts'
@@ -34,8 +34,9 @@ export function mergePresetConfig(presetConfig: PresetConfig, userConfig: UserCo
     config.fmt = mergeConfig(presetConfig.fmt, userConfig.fmt ?? {}) as UserConfig['fmt']
   }
 
+  // Flat config applies in order, so user config objects override the preset ones.
   if (presetConfig.lint) {
-    config.lint = mergeConfig(presetConfig.lint, userConfig.lint ?? {}) as UserConfig['lint']
+    config.lint = [presetConfig.lint, userConfig.lint]
   }
 
   if (presetConfig.pack) {

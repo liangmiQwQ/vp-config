@@ -34,7 +34,7 @@ Here are some real-world examples using `@liangmi/vp-config`.
 - `@liangmi/vp-config` uses itself to manage its own codebase.
 
 > [!WARNING]
-> This preset requires `vite-plus@1.0.0-rc.1`. Vite+ is still pre-stable, so keep the installed version aligned with the preset's peer dependency. If something does not work as expected, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
+> This preset requires `vite-plus@1.0.0` or later. If something does not work as expected, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
 ### Project model
 
@@ -71,11 +71,11 @@ export default await liangmi({}).option([
 | Workspace root      | For the whole workspace, with generated overrides | Root-level tasks only   |
 | Workspace member    | Not emitted                                       | For this package        |
 
-The workspace root generates `lint.overrides` and `fmt.overrides` scoped to each project, so use `liangmi` in the root `vite.config.ts` and in every member. Passing `lint` or `fmt` in a member config throws an error, since Vite+ would ignore it.
+The workspace root generates `lint.overrides` and `fmt.overrides` scoped to each project, so use `liangmi` in the root `vite.config.ts` and in every member. Passing `lint` or `fmt` in a member config, or chaining the [lint composer methods](#flat-lint-config) there, throws an error, since Vite+ would ignore it.
 
 ### Customizable
 
-`liangmi` is a wrapper of Vite+'s `defineConfig`. The config passed to it overrides and deeply merges with the preset.
+`liangmi` is a wrapper of Vite+'s `defineConfig`. The config passed to it overrides and deeply merges with the preset, except `lint`, which is a [flat config](#flat-lint-config).
 
 > [!TIP]
 >
@@ -87,9 +87,9 @@ Use `.only()` to load only selected parts of a preset:
 import { liangmi } from "@liangmi/vp-config";
 
 export default await liangmi({
-  lint: {
-    /* Your own lint config */
-  },
+  lint: [
+    /* Your own flat config objects */
+  ],
 }).only(["lint", "fmt"]);
 ```
 
@@ -102,6 +102,43 @@ export default await liangmi({}).exclude(["staged"]);
 ```
 
 Available config parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depending on the position of the config.
+
+### Flat lint config
+
+`lint` is written as an ESLint-style flat config array with [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config), instead of an Oxlint config object. Your config objects are applied after the preset, so a later object overrides an earlier one instead of being deeply merged. Paths in `files` are relative to the workspace root.
+
+```typescript
+import { liangmi } from "@liangmi/vp-config";
+
+export default await liangmi({
+  lint: [
+    { rules: { "no-console": "warn" } },
+    { files: ["packages/cli/**"], rules: { "no-console": "off" } },
+  ],
+});
+```
+
+Every preset object has a name, and the methods of [`@oxlint-flat-config/composer`](https://github.com/liangmiQwQ/oxlint-flat-config/blob/main/docs/composer.md) can be chained on `liangmi()` to change them: `append`, `prepend`, `insertBefore`, `insertAfter`, `override`, `replace`, `remove`, `overrideRules` and `removeRules`. They run after your config objects are appended.
+
+```typescript
+import { liangmi } from "@liangmi/vp-config";
+
+// Keep the preset, without its style rules and type checking.
+export default await liangmi({})
+  .remove("liangmi/style")
+  .override("liangmi/options", { options: { typeCheck: false } });
+```
+
+| Name                  | Content                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `liangmi/ignores`     | Global ignores                                                                     |
+| `liangmi/options`     | Oxlint options, like `typeAware`, `typeCheck` and `denyWarnings`                   |
+| `liangmi/<category>`  | All `correctness`, `perf`, `suspicious` and `nursery` rules of the default plugins |
+| `liangmi/<category>`  | Selected `restriction`, `pedantic` and `style` rules                               |
+| `liangmi/<trait>`     | Rules of the `node`, `browser`, `cli`, `react`, and `vue` traits of the project    |
+| `liangmi/<file role>` | Rules of `test`, `script`, and `config-file` files of the project                  |
+
+In a workspace, the objects of a member contain its path, like `liangmi/packages/cli/react`.
 
 ## What's included by default
 

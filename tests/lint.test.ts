@@ -10,76 +10,74 @@ const workspace = join(import.meta.dirname, 'fixtures/workspace')
 
 const cliProject = createTestProject({ packageBin: true, packageDependencies: ['react'] })
 
-it('should merge traits into the top level for a single project', () => {
+it('should name an object for each trait and role of a single project', () => {
   const lint = deriveLint([cliProject])
-  const plugins = lint.plugins ?? []
 
-  expect(lint).toMatchObject({
-    env: { node: true },
-    rules: {
-      'no-console': 'off',
-      'react/rules-of-hooks': 'error'
-    }
-  })
-  expect(plugins).toStrictEqual(expect.arrayContaining(['node', 'react']))
-  expect(plugins).toStrictEqual([...new Set(plugins)])
-  expect(lint.overrides?.map(override => override.files)).toStrictEqual([
-    ['./**/*.test.ts', './**/*.spec.ts'],
-    ['./scripts/**', './script/**', './*.ts', './*.js'],
-    ['./**/*.config.ts']
+  expect(lint.map(item => item.name)).toStrictEqual([
+    'liangmi/ignores',
+    'liangmi/options',
+    'liangmi/correctness',
+    'liangmi/perf',
+    'liangmi/suspicious',
+    'liangmi/nursery',
+    'liangmi/restriction',
+    'liangmi/pedantic',
+    'liangmi/style',
+    'liangmi/node',
+    'liangmi/cli',
+    'liangmi/react',
+    'liangmi/test',
+    'liangmi/script',
+    'liangmi/config-file'
   ])
+  expect(lint).toContainEqual(
+    expect.objectContaining({
+      name: 'liangmi/react',
+      rules: expect.objectContaining({ 'react/rules-of-hooks': 'error' })
+    })
+  )
 })
 
 it('should preserve style rules through an allowlist', () => {
   const lint = deriveLint([cliProject])
+  const rules = lint.flatMap(item => Object.keys(item.rules ?? {}))
 
-  expect(lint).toMatchObject({
-    categories: {
-      style: 'off'
-    },
-    rules: {
-      curly: 'warn',
-      'typescript/consistent-type-definitions': ['warn', 'interface']
-    }
-  })
-  expect(lint.rules).not.toHaveProperty('unicorn/explicit-timer-delay')
+  expect(lint).toContainEqual(
+    expect.objectContaining({
+      name: 'liangmi/style',
+      rules: expect.objectContaining({
+        curly: 'warn',
+        'typescript/consistent-type-definitions': ['warn', 'interface']
+      })
+    })
+  )
+  expect(rules).not.toContain('unicorn/explicit-timer-delay')
 })
 
-it('should generate scoped overrides for workspace projects', () => {
+it('should scope trait objects to each workspace project', () => {
   const { projects } = resolveProjectContext(workspace)
   const lint = deriveLint(projects)
-  const overrides = lint.overrides ?? []
+  const findItem = (name: string) => lint.find(item => item.name === name)
 
-  expect(lint.env).toBeUndefined()
-  expect(overrides.slice(0, 3)).toStrictEqual([
-    expect.objectContaining({
-      files: ['apps/web/**'],
-      env: { browser: true, vue: true },
-      plugins: ['vue']
-    }),
-    expect.objectContaining({
-      files: ['packages/cli/**'],
-      env: { node: true },
-      plugins: ['node', 'react', 'react-perf']
-    }),
-    expect.objectContaining({
-      files: ['packages/lib/**'],
-      env: { node: true }
-    })
-  ])
-  expect(overrides[1]?.rules).toMatchObject({ 'no-console': 'off' })
-  expect(overrides[2]?.rules).not.toHaveProperty('no-console')
+  expect(findItem('liangmi/apps/web/vue')).toMatchObject({
+    files: ['apps/web/**'],
+    env: { vue: true }
+  })
+  expect(findItem('liangmi/packages/cli/cli')).toMatchObject({
+    files: ['packages/cli/**'],
+    rules: { 'no-console': 'off' }
+  })
+  expect(findItem('liangmi/packages/lib/cli')).toBeUndefined()
 })
 
 it('should rebase file roles under each project after project traits', () => {
   const { projects } = resolveProjectContext(workspace)
-  const files = deriveLint(projects)
-    .overrides?.slice(3)
-    .map(override => override.files)
+  const lint = deriveLint(projects)
+  const firstRole = lint.findIndex(item => item.name === 'liangmi/test')
+  const roles = lint.slice(firstRole)
 
-  expect(files).toHaveLength(projects.length * 3)
-  expect(files).toContainEqual(['./scripts/**', './script/**', './*.ts', './*.js'])
-  expect(files).toContainEqual([
+  expect(roles).toHaveLength(projects.length * 3)
+  expect(roles.map(item => item.files)).toContainEqual([
     'packages/lib/scripts/**',
     'packages/lib/script/**',
     'packages/lib/*.ts',

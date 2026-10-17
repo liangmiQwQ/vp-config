@@ -32,6 +32,10 @@
     "release": "bumpp",
     "test": "vp run ctest"
   },
+  "dependencies": {
+    "@oxlint-flat-config/composer": "catalog:",
+    "oxlint-flat-config": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
@@ -44,7 +48,7 @@
     "yaml": "catalog:"
   },
   "peerDependencies": {
-    "vite-plus": "1.0.0-rc.1"
+    "vite-plus": ">=1.0.0"
   },
   "packageManager": "pnpm@12.6.0",
   "inlinedDependencies": {

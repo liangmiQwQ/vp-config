@@ -30,7 +30,7 @@ There are no categories to choose. Every `vite.config.ts` uses the same `liangmi
 
 Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare traits with `.option()` only when a derived trait is wrong and fixing the committed files is too complicated.
 
-In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, it throws an error. Put project-specific lint or format changes in the root config's `overrides` instead.
+In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, or chain lint composer methods there, it throws an error. Put project-specific lint changes in the root config as flat config objects with `files`, and format changes in the root config's `fmt.overrides` instead.
 
 Vue template linting depends on improved upstream Oxlint support.
 
@@ -42,7 +42,7 @@ Use Vite+ for package management:
 vp install -D @liangmi/vp-config
 ```
 
-This preset requires `vite-plus@1.0.0-rc.1`. Align the installed version with the preset's peer dependency; keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version.
+This preset requires `vite-plus@1.0.0` or later. Keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version as `vite-plus`.
 
 ## Configure `vite.config.ts`
 
@@ -58,7 +58,31 @@ export default await liangmi({
 })
 ```
 
-The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled.
+The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled, except `lint`.
+
+### Lint config
+
+`lint` is an ESLint-style flat config array built with `oxlint-flat-config`, not an Oxlint config object. Do not write `categories`, `plugins`, `overrides` or `ignorePatterns`; use config objects with `files`, `ignores` and `rules`. They are applied after the preset, so later objects win.
+
+```typescript
+import { liangmi } from '@liangmi/vp-config'
+
+export default await liangmi({
+  lint: [{ files: ['packages/cli/**'], rules: { 'no-console': 'off' } }]
+})
+```
+
+To change preset objects instead of adding new ones, chain the `@oxlint-flat-config/composer` methods on `liangmi()`: `append`, `prepend`, `insertBefore`, `insertAfter`, `override`, `replace`, `remove`, `overrideRules` and `removeRules`. Preset objects are named `liangmi/ignores`, `liangmi/options`, `liangmi/<category>` (`correctness`, `perf`, `suspicious`, `nursery`, `restriction`, `pedantic`, `style`), `liangmi/<trait>` and `liangmi/<file role>` (`test`, `script`, `config-file`); a workspace member's objects contain its path, like `liangmi/packages/cli/react`.
+
+```typescript
+import { liangmi } from '@liangmi/vp-config'
+
+export default await liangmi({}).remove('liangmi/style')
+```
+
+Rule names are compared as written: `liangmi/correctness`, `liangmi/perf`, `liangmi/suspicious` and `liangmi/nursery` use prefixed names such as `eslint/no-debugger`, while other preset objects mostly use unprefixed ones.
+
+When migrating an existing Oxlint `lint` object, turn each `overrides` entry into a flat config object and drop settings the preset already covers.
 
 Chaining `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`). This is not recommended, however. Keep every part loaded and override individual options instead.
 

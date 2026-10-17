@@ -3,146 +3,157 @@ name: use-vp-config
 description: Configure JavaScript and TypeScript projects with Liangmi's @liangmi/vp-config presets for Vite+. Use when you are requested to migrate to `@liangmi/vp-config` or create a project with `@liangmi/vp-config`
 ---
 
-# Use Liangmi VP Config
+# Use @liangmi/vp-config
 
-Configure projects with `@liangmi/vp-config`, an opinionated preset for Vite+, the united JavaScript toolchain. Treat Vite+ as distinct from Vite.
+`@liangmi/vp-config` exports one function, `liangmi()`, used in `vite.config.ts`. It reads committed files (`package.json`, `tsconfig.json`, `index.html`, workspace manifests), works out what kind of project each package is, and emits Vite+ config for `lint`, `fmt`, `pack`, `test`, `run` and `staged`. The user config is merged on top.
 
-## Inspect the project
+So most of the job is not writing config. It is making the committed files describe the project correctly, then writing only the config that differs from the preset.
 
-Before editing:
+Requires `vite-plus@1.0.0` or later. Vite+ docs: `node_modules/vite-plus/docs` or https://viteplus.dev/guide/.
 
-1. Read the repository's `AGENTS.md` and existing `vite.config.ts`.
-2. Inspect `package.json`, source entry points, workspace layout, and browser or Node.js signals.
-3. Check local Vite+ documentation in `node_modules/vite-plus/docs` when an option is uncertain. Use <https://viteplus.dev/guide/> only when local docs are unavailable or outdated.
-4. Preserve project-specific overrides instead of replacing them blindly.
+## How projects are detected
 
-## Understand the project model
+Each project gets traits. Every trait comes from a committed file:
 
-There are no categories to choose. Every `vite.config.ts` uses the same `liangmi` entry, and the config is derived from traits, which are derived from facts detected in committed files:
+| Trait                         | Comes from                                                      | Changes                                                         |
+| ----------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- |
+| `lib`                         | `exports` in `package.json`                                     | pack: `.d.ts` via tsgo, fixed extensions, refined `exports`     |
+| `cli`                         | `bin` in `package.json`                                         | pack: Node target, minified. lint: `console`, `process.exit` ok |
+| `node`                        | `bin` in `package.json`, or `"node"` in tsconfig `types`        | lint: Node globals and rules. test: `node` environment          |
+| `browser`                     | `index.html` next to `package.json`, or `DOM` in tsconfig `lib` | lint: browser rules. test: `happy-dom` / `jsdom` if installed   |
+| `react`, `vue`, `tailwindcss` | Any dependency field in `package.json`                          | lint: component rules. fmt: JSX quotes, class sorting           |
 
-| Trait                         | Derived from                                                       |
-| ----------------------------- | ------------------------------------------------------------------ |
-| `node`                        | `bin` in `package.json`, `node` in `types` of `tsconfig.json`      |
-| `browser`                     | `index.html`, `DOM` in `lib` of `tsconfig.json`                    |
-| `react`, `vue`, `tailwindcss` | `package.json` dependencies, including dev, peer and optional ones |
-| `lib`                         | `exports` in `package.json`                                        |
-| `cli`                         | `bin` in `package.json`                                            |
+`node` and `browser` are independent. A project can have both, or neither (then it gets no `test` environment and no runtime rules).
 
-Make the committed files describe the project instead of overriding config. For example, keep `exports` for libraries and `bin` for executables, since `vp pack` only refines them and never creates them. Declare traits with `.option()` only when a derived trait is wrong and fixing the committed files is too complicated.
+When a trait is wrong, fix the source file first: add `"types": ["node"]` to `tsconfig.json`, add `exports` or `bin` to `package.json`, and so on. `vp pack` never creates `exports` or `bin`, so they must be committed anyway. Use `.option()` only when fixing the file is not reasonable (see [API](#api)).
 
-In a monorepo, use `liangmi` in the workspace root and in every member. Vite+ only reads `lint` and `fmt` from the workspace root, so the root generates scoped `lint.overrides` and `fmt.overrides` for each project, while members only emit `pack`, `test`, and `run`. Never pass `lint` or `fmt` in a member config, or chain lint composer methods there, it throws an error. Put project-specific lint changes in the root config as flat config objects with `files`, and format changes in the root config's `fmt.overrides` instead.
+Only `tsconfig.json` in the project directory is read (with its `extends` chain). Settings only in `tsconfig.app.json` or similar are not seen.
 
-Vue template linting depends on improved upstream Oxlint support.
+## Where config goes
 
-## Install with Vite+
+Vite+ only reads `lint` and `fmt` from the workspace root. The preset follows this:
 
-Use Vite+ for package management:
+| `vite.config.ts` location | Emits                                                                       |
+| ------------------------- | --------------------------------------------------------------------------- |
+| Single-package repo       | Everything                                                                  |
+| Workspace root            | `lint`, `fmt`, `staged`, `run`, with per-project overrides for every member |
+| Workspace member          | `pack`, `test`, `run` for that member                                       |
 
-```bash
-vp install -D @liangmi/vp-config
-```
+A workspace root is a directory with `pnpm-workspace.yaml` or `workspaces` in `package.json`. Use `liangmi()` in the root config and in every member config.
 
-This preset requires `vite-plus@1.0.0` or later. Keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version as `vite-plus`.
+Passing `lint` or `fmt` in a member config, or chaining lint methods there, throws an error. Put member-specific lint and fmt changes in the root config, with `files` globs relative to the workspace root (for example `packages/cli/**`).
 
-## Configure `vite.config.ts`
+## Migrate an existing project
 
-Await the `liangmi` entry:
+1. **Get onto Vite+ first.** If the project does not use Vite+ yet, run `vp migrate` at the workspace root and follow `node_modules/vite-plus/docs/guide/migrate.md`. Don't hand-port ESLint, Prettier, tsup or Vitest setups. Vite+ handles that.
+2. **Install** at the workspace root: `vp add -D @liangmi/vp-config`. Members resolve it from the root. If the workspace uses a pnpm catalog, add it there to match.
+3. **Check the facts** for every project against the table above. Fix `package.json` and `tsconfig.json` where they are wrong or missing. Ask the user when the intent is unclear, such as whether a package is published as a library.
+4. **Rewrite each `vite.config.ts`** to use `liangmi()`. Write only what the preset does not already cover:
+   - `pack.entry` is never derived. Set it for every `lib` or `cli` project.
+   - Drop `fmt` options, lint rules, `test.environment`, and `pack` defaults that the preset already sets. Keep options that really differ, and tell the user which ones you kept.
+   - Convert an existing `lint` object to flat config entries (see [Lint](#lint)), not a top-level object.
+   - Keep `vite`, `server`, `plugins` and other app config unchanged. `liangmi()` passes them through.
+5. **Update scripts** to the cached tasks, for example `"build": "vp run cpack"`, `"test": "vp run ctest"`, `"check": "vp run ccheck"`. Add `"prepare": "vp config"` so the commit hook is installed. Remove separate `tsc --noEmit` steps, because lint type checking already covers them.
+6. **Run `vp check`** and fix what it reports. See [Fixing lint errors](#fixing-lint-errors).
+7. **Run `vp test`** and `vp pack` / `vp build` for projects that have them.
 
-```typescript
+## Create a new project
+
+1. Scaffold with `vp create` (`vite:library`, `vite:application`, `vite:monorepo`, or a framework template). Read `node_modules/vite-plus/docs/guide/create.md` if unsure.
+2. Follow steps 2 to 7 of the migration. In a new project, set the facts while scaffolding: `exports` for libraries, `bin` for CLIs, `types: ["node"]` for Node code, `lib: ["DOM", ...]` for browser code.
+
+## API
+
+```ts
 import { liangmi } from '@liangmi/vp-config'
 
 export default await liangmi({
-  pack: {
-    entry: './src/index.ts'
-  }
+  pack: { entry: ['./src/index.ts'] }
 })
 ```
 
-The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled, except `lint`.
+- `liangmi(config)` takes the same input as Vite+'s `defineConfig`: an object, a promise, or a function of `ConfigEnv`. It already calls `defineConfig`, so don't wrap it again.
+- **Always `await` it.** It returns a chainable builder, not a config.
+- `fmt`, `pack`, `run`, `staged` and `test` are deeply merged over the preset. `lint` is a flat config array, appended after the preset.
+- `.only([...parts])` keeps only those preset parts. `.exclude([...parts])` drops them. Parts: `fmt`, `lint`, `pack`, `run`, `staged`, `test`. User config for a dropped part still applies, just without the preset under it.
+- `.option([{ path, ...traits }])` declares traits in the **root** config. `path` is relative to the workspace root (`'.'` for the root). Declared traits override detected ones, and undeclared ones are still detected. A path that is not a workspace member is added as an extra project.
 
-### Lint config
-
-`lint` is an ESLint-style flat config array built with `oxlint-flat-config`, not an Oxlint config object. Do not write `categories`, `plugins`, `overrides` or `ignorePatterns`; use config objects with `files`, `ignores` and `rules`. They are applied after the preset, so later objects win.
-
-```typescript
-import { liangmi } from '@liangmi/vp-config'
-
-export default await liangmi({
-  lint: [{ files: ['packages/cli/**'], rules: { 'no-console': 'off' } }]
-})
-```
-
-To change preset objects instead of adding new ones, chain the `@oxlint-flat-config/composer` methods on `liangmi()`: `append`, `prepend`, `insertBefore`, `insertAfter`, `override`, `replace`, `remove`, `overrideRules` and `removeRules`. Preset objects are named `liangmi/ignores`, `liangmi/options`, `liangmi/<category>` (`correctness`, `perf`, `suspicious`, `nursery`, `restriction`, `pedantic`, `style`), `liangmi/<trait>` and `liangmi/<file role>` (`test`, `script`, `config-file`); a workspace member's objects contain its path, like `liangmi/packages/cli/react`.
-
-```typescript
-import { liangmi } from '@liangmi/vp-config'
-
-export default await liangmi({}).remove('liangmi/style')
-```
-
-Rule names are compared as written: `liangmi/correctness`, `liangmi/perf`, `liangmi/suspicious` and `liangmi/nursery` use prefixed names such as `eslint/no-debugger`, while other preset objects mostly use unprefixed ones.
-
-When migrating an existing Oxlint `lint` object, turn each `overrides` entry into a flat config object and drop settings the preset already covers.
-
-Chaining `.only([...])` or `.exclude([...])` to load selected parts (`fmt`, `lint`, `pack`, `run`, `staged`, `test`). This is not recommended, however. Keep every part loaded and override individual options instead.
-
-Chaining `.option([...])` in the root config to declare traits of projects by their `path` relative to the workspace root. You should avoid it if possible, however. Fix the committed files the traits are derived from instead, and use it only when that fix is too complicated:
-
-```typescript
-import { liangmi } from '@liangmi/vp-config'
-
+```ts
 export default await liangmi({}).option([
   { path: 'apps/api', node: true },
-  { path: 'packages/ui', vue: true }
+  { path: 'packages/ui', browser: true, vue: true }
 ])
 ```
 
-For `lib` and `cli` projects, define `pack.entry` explicitly from the project's real source entry points. The preset cannot infer the package's intended public entries.
+The exported types are `LiangmiConfig`, `UserConfigFunction`, `ConfigPart`, `DeclaredProject`, `ProjectFacts` and `ProjectTraits`.
 
-Do not import the preset outside `vite.config.ts`.
+## Lint
 
-Since we already use vp config preset, most of the config items can be omiited. For example, we do not need to define `lint`, `staged`, and `fmt` config most of the time, `dts` generation, `fixedExtendions`, `export` generation or `minify` in `pack` are also set by default. If you are doing migration works, please handle them as well.
+`lint` is an ESLint-style flat config array from [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config). Later entries override earlier ones, and nothing is deeply merged.
 
-## Work with preset defaults
+```ts
+export default await liangmi({
+  lint: [
+    { rules: { 'no-console': 'warn' } },
+    { files: ['packages/cli/**'], rules: { 'no-console': 'off' } }
+  ]
+})
+```
 
-Assume these defaults unless the project explicitly overrides them:
+To change preset entries instead of adding new ones, chain composer methods on `liangmi()`: `override`, `replace`, `remove`, `insertBefore`, `insertAfter`, `append`, `prepend`, `overrideRules` and `removeRules`. They run after the user entries are appended.
 
-- Linting uses strict, type-aware Oxlint with type checking and warnings denied. Do not add a separate `tsc` check solely for type checking.
-- Style rules are explicitly allowlisted to keep lint behavior stable across Oxlint upgrades. New upstream style rules stay disabled until they are reviewed and added.
-- `console.log` is rejected except in `cli` projects and Node.js script overrides.
-- Formatting uses Oxfmt with single quotes, no semicolons, no unnecessary trailing commas, sorted imports, and sorted `package.json` fields. React and Vue projects enable embedded-language formatting, and Tailwind CSS projects sort classes.
-- `lib` packaging generates declarations with `dts.generator: 'tsgo'` and package exports with fixed extensions.
-- `cli` packaging targets Node.js, minifies, strips `node:` prefixes, and disables declaration generation. `lib` defaults win for projects that are both.
-- `node` projects test in the Node.js environment, and `browser` projects use an installed `happy-dom` or `jsdom`.
-- Staged files run `vp check --fix`.
+```ts
+export default await liangmi({})
+  .override('liangmi/options', { options: { typeCheck: false } })
+  .remove('liangmi/style')
+```
 
-Put task cache options (`input`, `output`, `env`, and `untrackedEnv`) inside `run.tasks.<name>.cache`.
+Preset entry names:
 
-Use the generated cached tasks when suitable:
+- `liangmi/ignores`, `liangmi/options`
+- `liangmi/correctness`, `liangmi/perf`, `liangmi/suspicious`, `liangmi/nursery`: whole categories, with plugin-prefixed rule names like `eslint/no-shadow`
+- `liangmi/restriction`, `liangmi/pedantic`, `liangmi/style`: selected rules, mostly unprefixed like `no-console`
+- Per trait: `liangmi/node`, `liangmi/browser`, `liangmi/cli`, `liangmi/react`, `liangmi/vue`
+- Per file role: `liangmi/test`, `liangmi/script`, `liangmi/config-file`
 
-| Task      | Underlying command |
-| --------- | ------------------ |
-| `cbuild`  | `vp build`         |
-| `cpack`   | `vp pack`          |
-| `clint`   | `vp lint`          |
-| `cfmt`    | `vp fmt`           |
-| `cformat` | `vp format`        |
-| `ccheck`  | `vp check`         |
-| `ctest`   | `vp test`          |
+In a workspace, member entries include the path, like `liangmi/packages/cli/react`. `overrideRules` and `removeRules` match rule names exactly as written, so use the spelling from the entry that defines the rule. To find it, search `node_modules/@liangmi/vp-config/dist/index.mjs`.
 
-Run them with `vp run <task>` or `vpr <task>`. Package scripts may call them, for example `"build": "vp run cpack"`. If there is existing scripts calling `vp <command>` inside package.json, you are supposed to change them to `vp run c<xxx>` (Only for commands listed above.).
+## Fixing lint errors
 
-## Migration
+The preset is strict, and `denyWarnings` is on, so warnings fail too. A migration usually brings a wave of new reports. Fix the code first. Don't turn rules off in bulk without asking the user.
 
-`@liangmi/vp-config` has a stricter ruleset, to make the linting pass after migration, you need to change runtime code to fix linting errors.
+- Many reports are fixable. Run `vp check --fix` first, then fix the rest by hand.
+- Relative imports need file extensions (`./util.ts`). TypeScript projects need `allowImportingTsExtensions` (with `noEmit`) or `rewriteRelativeImportExtensions` in `tsconfig.json`.
+- Classes are an error (`max-classes-per-file: 0`). Prefer functions and plain objects.
+- `console` is an error, except in `cli` projects and script files. `**/*.config.ts` files allow default exports but not `console`.
+- Test files must be named `*.test.ts`. `*.spec.ts` files are linted as tests, but reported for their name.
+- File roles apply inside each project: `scripts/**`, `script/**` and top-level `*.ts` / `*.js` files are Node scripts.
+- `bin/**` is ignored.
+- Only `oxlint-disable` comments count. `eslint-disable` comments are ignored, so convert existing ones. Unused disable comments are reported. When a disable is justified, use `// oxlint-disable-next-line <rule> -- <reason>`.
+- Type checking runs inside lint. Type errors show up in `vp check`.
 
-If you meet cases that can't fix easily, we prefer `// oxlint-disable-xxxx` than disabling one rules global in `vite.config.ts`.
+## Verify the result
 
-## Validate changes
+Print the resolved config to confirm the detected traits:
 
-After editing:
+```bash
+node -e "const c = (await import('./vite.config.ts')).default; console.log(JSON.stringify(c, null, 2))"
+```
 
-1. Run `vp config` when commit-hook configuration needs to be installed or refreshed.
-2. Run `vp check`.
-3. Run the relevant build, package, or test task for the changed project.
-4. If a member config throws because it passes `lint` or `fmt`, move that config into the workspace root.
+Run it in the directory of the config you want to check. Node 22.18+ can import a TypeScript config directly. If the config is a function, use `await c({ command: 'build', mode: 'production' })` instead of `c`. Check that the expected `liangmi/<path>/<trait>` entries appear in `lint.overrides`, that `test.environment` is right, and that `pack` has the `lib` or `cli` defaults.
+
+## Cached tasks
+
+Every config adds these tasks. Run them with `vp run <task>` (or `vpr <task>`):
+
+| Task      | Runs        |
+| --------- | ----------- |
+| `cbuild`  | `vp build`  |
+| `cpack`   | `vp pack`   |
+| `clint`   | `vp lint`   |
+| `cfmt`    | `vp fmt`    |
+| `cformat` | `vp format` |
+| `ccheck`  | `vp check`  |
+| `ctest`   | `vp test`   |
+
+Use them in `package.json` scripts so the Vite+ task cache applies. Change cache inputs under `run.tasks.<name>.cache`. The root config also sets `staged` to run `vp check --fix` on staged files.

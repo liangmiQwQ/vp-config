@@ -22,11 +22,11 @@ export default await liangmi({
 
 `liangmi` knows where it is loaded from by finding the workspace root, and only emits the parts Vite+ reads in that position.
 
-| Position            | `lint` / `fmt` / `staged`                         | `pack` / `build` / `test` / `run` |
-| ------------------- | ------------------------------------------------- | --------------------------------- |
-| Single-package repo | Top-level, for the only project                   | For the root project              |
-| Workspace root      | For the whole workspace, with generated overrides | Root-level tasks only             |
-| Workspace member    | Not emitted                                       | For this package                  |
+| Position            | `lint` / `fmt` / `staged`                         | `pack` / `test` / `run` |
+| ------------------- | ------------------------------------------------- | ----------------------- |
+| Single-package repo | Top-level, for the only project                   | For the root project    |
+| Workspace root      | For the whole workspace, with generated overrides | Root-level tasks only   |
+| Workspace member    | Not emitted                                       | For this package        |
 
 A single-package repo is not a special mode. Its project list only contains the root, so the config is emitted without `overrides`.
 

@@ -23,18 +23,18 @@ Tasks autogen means automatically generating wrapper tasks for some common comma
 
 Their names should start with `c` (a sign of `cached`). They should be treated more like cached versions of Vite+ commands rather than normal user-defined tasks. For example, users can run `vpr ccheck` as a cached replacement for `vp check`.
 
-For now, we only generate commands without detailed config like `output`, it's considiering Vite+'s team's recent work (#1774) and to reduce duplicate work.
+For now, we only generate commands without detailed config like `output`, to avoid duplicating the Vite+ team's recent work (#1774).
 
-The core idea is to get **command level** cache ability. Since we cannot modify internal Vite+'s command implementation, we use a task wrapper as the cached replacements for original commands.
+The core idea is to get **command level** cache ability. Since we cannot modify internal Vite+'s command implementation, we use task wrappers as cached replacements for the original commands.
 
-These ideas can help solve the problem in these aspect:
+These ideas can help solve these problems:
 
-- We do not need to enable command's cache manually anymore.
-- Cached commands won't be configured explicitly in `vite.config.ts`
-- We can now define `"build": "vp run cpack"` in `package.json` without any duplicate configure, it also helps contributors who aren't using global Vite+ CLI.
-- It provides ability to generate metadata like `output` (It has ability, but not planned to implement for now)
+- We no longer need to enable the cache for each command manually.
+- Cached commands don't need to be configured explicitly in `vite.config.ts`.
+- We can now define `"build": "vp run cpack"` in `package.json` without duplicate config, which also helps contributors who don't use the global Vite+ CLI.
+- It makes it possible to generate metadata like `output` (possible, but not planned for now).
 
-Personally, I am looking forward to seeing whether there might be further integration here. This idea might be worth subbmiting to upstream in the future.
+Personally, I am looking forward to seeing whether there might be further integration here. This idea might be worth submitting upstream in the future.
 
 ## Detail
 

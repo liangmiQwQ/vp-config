@@ -71,11 +71,11 @@ export default await liangmi({}).option([
 | Workspace root      | For the whole workspace, with generated overrides | Root-level tasks only   |
 | Workspace member    | Not emitted                                       | For this package        |
 
-The workspace root generates `lint.overrides` and `fmt.overrides` scoped to each project, so use `liangmi` in the root `vite.config.ts` and in every member. Passing `lint` or `fmt` in a member config, or chaining the [lint composer methods](#flat-lint-config-experimental) there, throws an error, since Vite+ would ignore it.
+The workspace root generates `lint.overrides` and `fmt.overrides` scoped to each project, so use `liangmi` in the root `vite.config.ts` and in every member. Passing `lint` or `fmt` in a member config, or chaining the [lint composer methods](#flat-lint-config) there, throws an error, since Vite+ would ignore it.
 
 ### Customizable
 
-`liangmi` is a wrapper of Vite+'s `defineConfig`. The config passed to it overrides and deeply merges with the preset, except `lint`, which is a [flat config](#flat-lint-config-experimental).
+`liangmi` is a wrapper of Vite+'s `defineConfig`. The config passed to it overrides and deeply merges with the preset, except `lint`, which is a [flat config](#flat-lint-config).
 
 > [!TIP]
 >
@@ -103,12 +103,9 @@ export default await liangmi({}).exclude(["staged"]);
 
 Available config parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depending on the position of the config.
 
-### Flat lint config (experimental)
+### Flat lint config
 
-> [!WARNING]
-> The flat lint config is experimental. It is built on [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config), and may change in minor versions.
-
-`lint` is written as an ESLint-style flat config array instead of an Oxlint config object. Your config objects are applied after the preset, so a later object overrides an earlier one instead of being deeply merged. Paths in `files` are relative to the workspace root.
+`lint` is written as an ESLint-style flat config array with [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config), instead of an Oxlint config object. Your config objects are applied after the preset, so a later object overrides an earlier one instead of being deeply merged. Paths in `files` are relative to the workspace root.
 
 ```typescript
 import { liangmi } from "@liangmi/vp-config";

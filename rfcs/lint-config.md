@@ -10,7 +10,7 @@ We mark as `warn` for code format lint rules that process with linter (e.g. `imp
 
 Lint config is only emitted by the workspace root (or the only project in a single-package repo). Project-specific rules are generated as `overrides` from the project model, see [Project detection](./detection.md).
 
-## Flat config (experimental)
+## Flat config
 
 The preset is written as an ESLint-style flat config array with [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config), which builds it into an Oxlint config. Objects apply in order: base, project traits, file roles, then the user's `lint` objects.
 

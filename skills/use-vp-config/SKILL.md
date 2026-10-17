@@ -60,7 +60,7 @@ export default await liangmi({
 
 The entry accepts the same object, function, or promise shapes as Vite+'s `defineConfig`. User values deeply override the preset while untouched nested defaults remain enabled, except `lint`.
 
-### Lint config (experimental)
+### Lint config
 
 `lint` is an ESLint-style flat config array built with `oxlint-flat-config`, not an Oxlint config object. Do not write `categories`, `plugins`, `overrides` or `ignorePatterns`; use config objects with `files`, `ignores` and `rules`. They are applied after the preset, so later objects win.
 

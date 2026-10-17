@@ -118,7 +118,7 @@ Each project is described by traits, which are derived from facts detected in co
 
 `node` and `browser` are independent, so a universal project has both of them. Vue template linting is still waiting for [better Vue support in Oxlint](https://github.com/oxc-project/oxc/issues/15761).
 
-When a derived trait is wrong, prefer fixing the committed files it comes from. If that is too complicated, declare it with `.option()` in the root config. It takes a flat list of projects identified by their `path` relative to the workspace root. Undeclared traits are still derived, and paths that are not workspace members are added as projects. Only the root config can call `.option()`. Members load the root config module and use its declarations for their own presets, so lint, fmt, pack and test agree on project traits.
+When a derived trait is wrong, prefer fixing the committed files it comes from. If that is too complicated, declare it with `.option()` in the root config. It takes a flat list of projects identified by their `path` relative to the workspace root. Undeclared traits are still derived, and paths that are not workspace members are added as projects.
 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'

@@ -44,6 +44,13 @@ it('should merge preset with function config after Vite+ provides env', async ()
   })
 })
 
+it('should resolve the config when Vite+ calls the exported entry with env', async () => {
+  const config = liangmi({ fmt: { semi: true } })
+  const env = { command: 'build', mode: 'production' } as ConfigEnv
+
+  await expect(config(env)).resolves.toMatchObject({ fmt: { semi: true, singleQuote: true } })
+})
+
 it('should load only selected parts', async () => {
   const config = await liangmi({ staged: { '*': 'vp test' } }).only(['fmt'])
 
@@ -118,5 +125,21 @@ it('should reject lint and fmt in a workspace member', async () => {
   await expect(liangmi({ lint: [] })).rejects.toThrow(/`lint` in .* is ignored by Vite\+/u)
   await expect(liangmi({}).removeRules('curly')).rejects.toThrow(
     /`lint` in .* is ignored by Vite\+/u
+  )
+})
+
+it('should apply traits declared by the root config in a workspace member', async () => {
+  useWorkingDirectory(join(workspace, 'tools'))
+
+  const config = await liangmi({})
+
+  expect(config.test).toStrictEqual({ environment: 'node' })
+})
+
+it('should reject `.option()` in a workspace member', () => {
+  useWorkingDirectory(join(workspace, 'packages/lib'))
+
+  expect(() => liangmi({}).option([{ path: 'packages/lib', node: true }])).toThrow(
+    /only allowed in the workspace root config/u
   )
 })

@@ -15,7 +15,7 @@ Then use it in your `vite.config.ts`:
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({
+export default liangmi({
   /* Your own config, deeply merged over the preset */
 })
 ```
@@ -123,7 +123,7 @@ When a derived trait is wrong, prefer fixing the committed files it comes from. 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).option([
+export default liangmi({}).option([
   { path: 'apps/api', node: true },
   { path: 'packages/ui', vue: true }
 ])
@@ -164,7 +164,7 @@ Use `.only()` to load only selected parts of the preset:
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({
+export default liangmi({
   lint: [
     /* Your own flat config objects */
   ]
@@ -176,7 +176,7 @@ Use `.exclude()` to leave out selected parts and keep the rest:
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).exclude(['staged'])
+export default liangmi({}).exclude(['staged'])
 ```
 
 The available parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depending on where the config is loaded.
@@ -188,7 +188,7 @@ The available parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depe
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({
+export default liangmi({
   lint: [
     { rules: { 'no-console': 'warn' } },
     { files: ['packages/cli/**'], rules: { 'no-console': 'off' } }
@@ -202,7 +202,7 @@ Every preset object has a name. To change preset objects instead of adding new o
 import { liangmi } from '@liangmi/vp-config'
 
 // Keep the preset, without its style rules and type checking.
-export default await liangmi({})
+export default liangmi({})
   .remove('liangmi/style')
   .override('liangmi/options', { options: { typeCheck: false } })
 ```

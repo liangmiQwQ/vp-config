@@ -1,4 +1,4 @@
-// The `liangmi()` entry: a chainable, awaitable builder that derives the preset and merges it with the user config.
+// The `liangmi()` entry: a chainable builder, callable by Vite+ or awaited, that derives the preset and merges it with the user config.
 
 import { composer } from '@oxlint-flat-config/composer/vite-plus'
 import type { Composer } from '@oxlint-flat-config/composer/vite-plus'
@@ -10,7 +10,9 @@ import { mergePresetConfig, omitPresetConfig, pickPresetConfig } from './merge.t
 import { derivePreset } from './preset/index.ts'
 import type { ConfigPart, Preset, PresetConfig } from './preset/index.ts'
 import { findConfigDirectory } from './project/config-file.ts'
+import { declarationKey, loadRootDeclarations } from './project/declarations.ts'
 import type { DeclaredProject } from './project/index.ts'
+import { findMemberRoot } from './project/workspace.ts'
 
 export type UserConfigFunction = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
 type UserConfigInput = UserConfig | Promise<UserConfig> | UserConfigFunction
@@ -39,6 +41,7 @@ export type PartsFunction<Result> = <const Parts extends readonly ConfigPart[]>(
 ) => LiangmiConfig<Result>
 
 export interface LiangmiConfig<Result> extends PromiseLike<Result>, LintMethods<Result> {
+  (env: ConfigEnv): Promise<ViteUserConfig>
   only: PartsFunction<Result>
   exclude: PartsFunction<Result>
   // Declares project traits which override the derived ones.
@@ -70,19 +73,26 @@ function createLiangmiConfig<Result>(state: EntryState): LiangmiConfig<Result> {
   const chain = (step: LintStep) =>
     createLiangmiConfig<Result>({ ...state, lintSteps: [...state.lintSteps, step] })
 
-  return {
+  const methods: { [Key in keyof LiangmiConfig<Result>]: LiangmiConfig<Result>[Key] } = {
     only: parts =>
-      createLiangmiConfig({
+      createLiangmiConfig<Result>({
         ...state,
         filter: config => pickPresetConfig(state.filter(config), parts)
       }),
     exclude: parts =>
-      createLiangmiConfig({
+      createLiangmiConfig<Result>({
         ...state,
         filter: config => omitPresetConfig(state.filter(config), parts)
       }),
-    option: projects =>
-      createLiangmiConfig({ ...state, declared: [...state.declared, ...projects] }),
+    option: projects => {
+      if (findMemberRoot(state.configDirectory)) {
+        throw new Error(
+          '[@liangmi/vp-config] `.option()` is only allowed in the workspace root config.'
+        )
+      }
+
+      return createLiangmiConfig<Result>({ ...state, declared: [...state.declared, ...projects] })
+    },
 
     append: (...inputs) => chain(lint => lint.append(...inputs)),
     prepend: (...inputs) => chain(lint => lint.prepend(...inputs)),
@@ -95,24 +105,40 @@ function createLiangmiConfig<Result>(state: EntryState): LiangmiConfig<Result> {
     overrideRules: rules => chain(lint => lint.overrideRules(rules)),
     removeRules: (...ruleNames) => chain(lint => lint.removeRules(...ruleNames)),
 
-    // oxlint-disable-next-line unicorn/no-thenable -- The entry is awaited in vite.config.ts to resolve the config.
+    // oxlint-disable-next-line unicorn/no-thenable -- Support both direct config exports and explicit async resolution.
     then: (onFulfilled, onRejected) => resolveConfig<Result>(state).then(onFulfilled, onRejected)
   }
+
+  // Vite calls function exports with ConfigEnv; awaiting the builder still resolves its config.
+  return Object.assign(
+    async (env: ConfigEnv) => {
+      const config = await resolveConfig<
+        ViteUserConfig | ((env: ConfigEnv) => Promise<ViteUserConfig>)
+      >(state)
+      return typeof config === 'function' ? config(env) : config
+    },
+    methods,
+    { [declarationKey]: state.declared }
+  )
 }
 
 async function resolveConfig<Result>(state: EntryState): Promise<Result> {
-  const preset = derivePreset(state.configDirectory, state.declared)
+  const memberRoot = findMemberRoot(state.configDirectory)
+  const declared = memberRoot ? await loadRootDeclarations(memberRoot) : state.declared
+  const preset = derivePreset(state.configDirectory, declared)
   const presetConfig = state.filter(preset.config)
   const { config } = state
 
-  if (typeof config === 'function') {
-    // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
-    return defineConfig(async (env: ConfigEnv) =>
-      mergeUserConfig(state, preset, presetConfig, await config(env))
-    ) as Result
-  }
+  // Vite+ owns ConfigEnv, so defer function configs until the loader calls this wrapper.
+  const resolved =
+    typeof config === 'function'
+      ? defineConfig(async (env: ConfigEnv) =>
+          mergeUserConfig(state, preset, presetConfig, await config(env))
+        )
+      : defineConfig(await mergeUserConfig(state, preset, presetConfig, await config))
 
-  return defineConfig(await mergeUserConfig(state, preset, presetConfig, await config)) as Result
+  // A root config exported with top-level await is resolved, so it keeps the declarations too.
+  return Object.assign(resolved, { [declarationKey]: declared }) as Result
 }
 
 function mergeUserConfig(

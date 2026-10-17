@@ -10,12 +10,12 @@ A project is described by several independent questions: the runtime (node or br
 
 Every `vite.config.ts` uses the same entry, `liangmi`. It is a wrapper of `defineConfig` from `vite-plus`, and the config passed to it is deeply merged with the generated defaults, except `lint`, which is a flat config appended after the preset, see [lint config](./lint-config.md).
 
-`liangmi()` returns a thenable object. Its methods are chained to set options, and the config is resolved when it is awaited.
+`liangmi()` returns a chainable builder. Its methods are chained to set options, and Vite+ resolves the config when it loads the exported builder. Awaiting the builder also resolves it.
 
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({
+export default liangmi({
   /* Your personal config overrides, will be merged deeply */
 })
 ```
@@ -35,7 +35,7 @@ A single-package repo is not a special mode. Its project list only contains the 
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).exclude(['staged'])
+export default liangmi({}).exclude(['staged'])
 ```
 
 ## Diagnostics

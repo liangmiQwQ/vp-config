@@ -1,6 +1,6 @@
 import { liangmi } from './src/index.ts'
 
-export default await liangmi({
+export default liangmi({
   pack: {
     entry: ['./src/index.ts'],
     deps: {

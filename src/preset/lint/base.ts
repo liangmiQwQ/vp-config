@@ -1,7 +1,7 @@
 // Base Oxlint rules applied to every file of every project.
 
 import { category, globalIgnores } from 'oxlint-flat-config/vite-plus'
-import type { FlatConfigItem } from 'oxlint-flat-config/vite-plus'
+import type { CategorySelection, FlatConfigItem } from 'oxlint-flat-config/vite-plus'
 import type { DummyRuleMap, RuleCategories } from 'vite-plus/lint'
 
 // Every rule is off until configured, so the other categories stay in whitelist mode.
@@ -12,23 +12,33 @@ export const lintCategories: RuleCategories = {
   nursery: 'error'
 }
 
+const defaultPlugins: CategorySelection['plugins'] = [
+  'eslint',
+  'oxc',
+  'import',
+  'promise',
+  'typescript',
+  'unicorn'
+]
+
 // Rules Config
+// Rules of enabled categories are spread over `category()`, so they use its prefixed names.
 const suspicious: DummyRuleMap = {
-  'no-shadow': 'off',
+  'eslint/no-shadow': 'off',
   'typescript/no-unsafe-type-assertion': 'off'
 }
 
 const perf: DummyRuleMap = {
-  'no-await-in-loop': 'off'
+  'eslint/no-await-in-loop': 'off'
 }
 
 const nursery: DummyRuleMap = {
   // We hope typescript can process them.
-  'no-undef': 'off',
+  'eslint/no-undef': 'off',
   'import/named': 'off',
 
   // Disable some too strict ones
-  'no-restricted-exports': 'off'
+  'eslint/no-restricted-exports': 'off'
 }
 
 // Keep style rules in whitelist mode so Oxlint upgrades do not enable new rules automatically.
@@ -274,25 +284,11 @@ const pedantic: DummyRuleMap = {
   'no-negated-condition': 'warn'
 }
 
-// Named so that users can find them with the composer methods.
+// One object per category, named so that users can remove or override a whole category with the composer methods.
 export const lintBase: FlatConfigItem[] = [
   globalIgnores(['bin/**'], 'liangmi/ignores'),
-  category(
-    { ...lintCategories, plugins: ['eslint', 'oxc', 'import', 'promise', 'typescript', 'unicorn'] },
-    { name: 'liangmi/categories' }
-  ),
   {
-    name: 'liangmi/base',
-    rules: {
-      // Enable all `correctness` config
-      ...suspicious,
-      ...nursery,
-      ...perf,
-
-      ...restriction,
-      ...pedantic,
-      ...style
-    },
+    name: 'liangmi/options',
     options: {
       typeAware: true,
       typeCheck: true,
@@ -301,5 +297,24 @@ export const lintBase: FlatConfigItem[] = [
       // We hope to use `oxlint-disable-next-line` instead of `eslint-xxx`
       respectEslintDisableDirectives: false
     }
-  }
+  },
+
+  // Enabled categories
+  enabledCategory('correctness'),
+  enabledCategory('perf', perf),
+  enabledCategory('suspicious', suspicious),
+  enabledCategory('nursery', nursery),
+
+  // Whitelist categories
+  { name: 'liangmi/restriction', rules: restriction },
+  { name: 'liangmi/pedantic', rules: pedantic },
+  { name: 'liangmi/style', rules: style }
 ]
+
+function enabledCategory(name: keyof RuleCategories, rules: DummyRuleMap = {}): FlatConfigItem {
+  const item = category(
+    { [name]: lintCategories[name], plugins: defaultPlugins },
+    { name: `liangmi/${name}` }
+  )
+  return { ...item, rules: { ...item.rules, ...rules } }
+}

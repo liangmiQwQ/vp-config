@@ -126,18 +126,20 @@ Every preset object has a name, and the methods of [`@oxlint-flat-config/compose
 ```typescript
 import { liangmi } from "@liangmi/vp-config";
 
+// Keep the preset, without its style rules and type checking.
 export default await liangmi({})
-  .override("liangmi/base", { rules: { curly: "off" } })
-  .remove("liangmi/config-file");
+  .remove("liangmi/style")
+  .override("liangmi/options", { options: { typeCheck: false } });
 ```
 
-| Name                  | Content                                                                         |
-| --------------------- | ------------------------------------------------------------------------------- |
-| `liangmi/ignores`     | Global ignores                                                                  |
-| `liangmi/categories`  | Correctness, performance, suspicious, and nursery rules of the default plugins  |
-| `liangmi/base`        | Base rules and Oxlint options                                                   |
-| `liangmi/<trait>`     | Rules of the `node`, `browser`, `cli`, `react`, and `vue` traits of the project |
-| `liangmi/<file role>` | Rules of `test`, `script`, and `config-file` files of the project               |
+| Name                  | Content                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `liangmi/ignores`     | Global ignores                                                                     |
+| `liangmi/options`     | Oxlint options, like `typeAware`, `typeCheck` and `denyWarnings`                   |
+| `liangmi/<category>`  | All `correctness`, `perf`, `suspicious` and `nursery` rules of the default plugins |
+| `liangmi/<category>`  | Selected `restriction`, `pedantic` and `style` rules                               |
+| `liangmi/<trait>`     | Rules of the `node`, `browser`, `cli`, `react`, and `vue` traits of the project    |
+| `liangmi/<file role>` | Rules of `test`, `script`, and `config-file` files of the project                  |
 
 In a workspace, the objects of a member contain its path, like `liangmi/packages/cli/react`.
 

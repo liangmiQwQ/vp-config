@@ -15,8 +15,14 @@ it('should name an object for each trait and role of a single project', () => {
 
   expect(lint.map(item => item.name)).toStrictEqual([
     'liangmi/ignores',
-    'liangmi/categories',
-    'liangmi/base',
+    'liangmi/options',
+    'liangmi/correctness',
+    'liangmi/perf',
+    'liangmi/suspicious',
+    'liangmi/nursery',
+    'liangmi/restriction',
+    'liangmi/pedantic',
+    'liangmi/style',
     'liangmi/node',
     'liangmi/cli',
     'liangmi/react',
@@ -38,7 +44,7 @@ it('should preserve style rules through an allowlist', () => {
 
   expect(lint).toContainEqual(
     expect.objectContaining({
-      name: 'liangmi/base',
+      name: 'liangmi/style',
       rules: expect.objectContaining({
         curly: 'warn',
         'typescript/consistent-type-definitions': ['warn', 'interface']

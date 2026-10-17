@@ -76,12 +76,14 @@ it('should apply user lint config objects after the preset', async () => {
 
 it('should change the preset lint config with composer methods', async () => {
   const config = await liangmi({})
-    .override('liangmi/base', { rules: { curly: 'off' } })
+    .override('liangmi/options', { options: { typeCheck: false } })
+    .remove('liangmi/style')
     .remove('liangmi/config-file')
   const overrides = config.lint?.overrides ?? []
 
-  expect(overrides).toContainEqual(
-    expect.objectContaining({ rules: expect.objectContaining({ curly: 'off' }) })
+  expect(config.lint?.options).toMatchObject({ typeAware: true, typeCheck: false })
+  expect(overrides).not.toContainEqual(
+    expect.objectContaining({ rules: expect.objectContaining({ curly: 'warn' }) })
   )
   expect(overrides).not.toContainEqual(expect.objectContaining({ files: ['**/*.config.ts'] }))
 })

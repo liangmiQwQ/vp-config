@@ -72,15 +72,15 @@ export default await liangmi({
 })
 ```
 
-To change preset objects instead of adding new ones, chain the `@oxlint-flat-config/composer` methods on `liangmi()`: `append`, `prepend`, `insertBefore`, `insertAfter`, `override`, `replace`, `remove`, `overrideRules` and `removeRules`. Preset objects are named `liangmi/ignores`, `liangmi/categories`, `liangmi/base`, `liangmi/<trait>` and `liangmi/<file role>` (`test`, `script`, `config-file`); a workspace member's objects contain its path, like `liangmi/packages/cli/react`.
+To change preset objects instead of adding new ones, chain the `@oxlint-flat-config/composer` methods on `liangmi()`: `append`, `prepend`, `insertBefore`, `insertAfter`, `override`, `replace`, `remove`, `overrideRules` and `removeRules`. Preset objects are named `liangmi/ignores`, `liangmi/options`, `liangmi/<category>` (`correctness`, `perf`, `suspicious`, `nursery`, `restriction`, `pedantic`, `style`), `liangmi/<trait>` and `liangmi/<file role>` (`test`, `script`, `config-file`); a workspace member's objects contain its path, like `liangmi/packages/cli/react`.
 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).override('liangmi/base', { rules: { curly: 'off' } })
+export default await liangmi({}).remove('liangmi/style')
 ```
 
-Rule names are compared as written: `liangmi/categories` uses prefixed names such as `eslint/no-debugger`, while other preset objects mostly use unprefixed ones.
+Rule names are compared as written: `liangmi/correctness`, `liangmi/perf`, `liangmi/suspicious` and `liangmi/nursery` use prefixed names such as `eslint/no-debugger`, while other preset objects mostly use unprefixed ones.
 
 When migrating an existing Oxlint `lint` object, turn each `overrides` entry into a flat config object and drop settings the preset already covers.
 

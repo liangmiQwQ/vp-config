@@ -67,19 +67,19 @@ Passing `lint` or `fmt` in a member config, or chaining lint methods there, thro
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({
+export default liangmi({
   pack: { entry: ['./src/index.ts'] }
 })
 ```
 
 - `liangmi(config)` takes the same input as Vite+'s `defineConfig`: an object, a promise, or a function of `ConfigEnv`. It already calls `defineConfig`, so don't wrap it again.
-- **Always `await` it.** It returns a chainable builder, not a config.
+- Export the chainable builder directly. Vite+ resolves it when loading the config.
 - `fmt`, `pack`, `run`, `staged` and `test` are deeply merged over the preset. `lint` is a flat config array, appended after the preset.
 - `.only([...parts])` keeps only those preset parts. `.exclude([...parts])` drops them. Parts: `fmt`, `lint`, `pack`, `run`, `staged`, `test`. User config for a dropped part still applies, just without the preset under it.
-- `.option([{ path, ...traits }])` declares traits in the **root** config. `path` is relative to the workspace root (`'.'` for the root). Declared traits override detected ones, and undeclared ones are still detected. A path that is not a workspace member is added as an extra project.
+- `.option([{ path, ...traits }])` declares traits in the **root** config. `path` is relative to the workspace root (`'.'` for the root). Declared traits override detected ones, and undeclared ones are still detected. A path that is not a workspace member is added as an extra project. Calling `.option()` in a member throws. Members load the root config module to read its declarations before deriving their presets.
 
 ```ts
-export default await liangmi({}).option([
+export default liangmi({}).option([
   { path: 'apps/api', node: true },
   { path: 'packages/ui', browser: true, vue: true }
 ])
@@ -92,7 +92,7 @@ The exported types are `LiangmiConfig`, `UserConfigFunction`, `ConfigPart`, `Dec
 `lint` is an ESLint-style flat config array from [`oxlint-flat-config`](https://github.com/liangmiQwQ/oxlint-flat-config). Later entries override earlier ones, and nothing is deeply merged.
 
 ```ts
-export default await liangmi({
+export default liangmi({
   lint: [
     { rules: { 'no-console': 'warn' } },
     { files: ['packages/cli/**'], rules: { 'no-console': 'off' } }
@@ -103,7 +103,7 @@ export default await liangmi({
 To change preset entries instead of adding new ones, chain composer methods on `liangmi()`: `override`, `replace`, `remove`, `insertBefore`, `insertAfter`, `append`, `prepend`, `overrideRules` and `removeRules`. They run after the user entries are appended.
 
 ```ts
-export default await liangmi({})
+export default liangmi({})
   .override('liangmi/options', { options: { typeCheck: false } })
   .remove('liangmi/style')
 ```

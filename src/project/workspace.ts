@@ -2,7 +2,7 @@
 
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join, posix } from 'node:path'
+import { dirname, join, posix, resolve } from 'node:path'
 
 import { globSync } from 'tinyglobby'
 import { parse } from 'yaml'
@@ -18,6 +18,13 @@ export function findWorkspaceRoot(directory: string): string | undefined {
   const parent = dirname(directory)
 
   return parent === directory ? undefined : findWorkspaceRoot(parent)
+}
+
+// The workspace root of a member directory. The root itself and single-package repos have none.
+export function findMemberRoot(directory: string): string | undefined {
+  const root = findWorkspaceRoot(directory)
+
+  return root && resolve(root) !== resolve(directory) ? root : undefined
 }
 
 // Member paths are POSIX paths relative to the workspace root.

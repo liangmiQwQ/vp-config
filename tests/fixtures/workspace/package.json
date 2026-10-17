@@ -1,4 +1,5 @@
 {
   "name": "workspace",
-  "private": true
+  "private": true,
+  "type": "module"
 }

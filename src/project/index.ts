@@ -5,7 +5,7 @@ import { join, relative, resolve, sep } from 'node:path'
 import { detectFacts } from './facts/index.ts'
 import type { ProjectFacts } from './facts/index.ts'
 import type { ProjectTraits } from './traits.ts'
-import { findWorkspaceRoot, listWorkspaceMembers } from './workspace.ts'
+import { findMemberRoot, listWorkspaceMembers } from './workspace.ts'
 
 export type { ProjectFacts } from './facts/index.ts'
 export type { ProjectTraits } from './traits.ts'
@@ -42,10 +42,11 @@ export function resolveProjectContext(
   configDirectory: string,
   declared: DeclaredProject[] = []
 ): ProjectContext {
-  const root = findWorkspaceRoot(configDirectory) ?? configDirectory
+  const memberRoot = findMemberRoot(configDirectory)
+  const root = memberRoot ?? configDirectory
   const declaredTraits = groupDeclared(root, declared)
 
-  if (resolve(root) !== resolve(configDirectory)) {
+  if (memberRoot) {
     const path = toProjectPath(root, configDirectory)
 
     return {

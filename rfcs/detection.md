@@ -45,13 +45,15 @@ When a derived trait is wrong, it can be declared with `.option()` in the root c
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default await liangmi({}).option([
+export default liangmi({}).option([
   { path: 'apps/api', node: true },
   { path: 'tools/codegen', cli: true }
 ])
 ```
 
 A `path` that is not a workspace member adds that directory as a project.
+
+Only the root config can call `.option()`, and a member calling it throws. Members load the root config module to read its declarations, so every tool sees the same traits. Other root settings are not inherited, and a member without a root config only uses detected traits.
 
 ## Derivation
 

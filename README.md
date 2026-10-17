@@ -34,7 +34,7 @@ Here are some real-world examples using `@liangmi/vp-config`.
 - `@liangmi/vp-config` uses itself to manage its own codebase.
 
 > [!WARNING]
-> This preset requires `vite-plus@1.0.0-rc.1`. Vite+ is still pre-stable, so keep the installed version aligned with the preset's peer dependency. If something does not work as expected, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
+> This preset requires `vite-plus@1.0.0` or later. If something does not work as expected, please [submit an issue](https://github.com/liangmiQwQ/vp-config/issues/new).
 
 ### Project model
 

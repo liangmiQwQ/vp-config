@@ -42,7 +42,7 @@ Use Vite+ for package management:
 vp install -D @liangmi/vp-config
 ```
 
-This preset requires `vite-plus@1.0.0-rc.1`. Align the installed version with the preset's peer dependency; keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version.
+This preset requires `vite-plus@1.0.0` or later. Keep any `vite` alias to `@voidzero-dev/vite-plus-core` on the same version as `vite-plus`.
 
 ## Configure `vite.config.ts`
 

@@ -45,7 +45,7 @@ When a derived trait is wrong, it can be declared with `.option()` in the root c
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default liangmi({}).option([
+export default liangmi().option([
   { path: 'apps/api', node: true },
   { path: 'tools/codegen', cli: true }
 ])

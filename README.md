@@ -123,7 +123,7 @@ When a derived trait is wrong, prefer fixing the committed files it comes from. 
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default liangmi({}).option([
+export default liangmi().option([
   { path: 'apps/api', node: true },
   { path: 'packages/ui', vue: true }
 ])
@@ -176,7 +176,7 @@ Use `.exclude()` to leave out selected parts and keep the rest:
 ```typescript
 import { liangmi } from '@liangmi/vp-config'
 
-export default liangmi({}).exclude(['staged'])
+export default liangmi().exclude(['staged'])
 ```
 
 The available parts are `fmt`, `lint`, `pack`, `run`, `staged`, and `test`, depending on where the config is loaded.
@@ -202,7 +202,7 @@ Every preset object has a name. To change preset objects instead of adding new o
 import { liangmi } from '@liangmi/vp-config'
 
 // Keep the preset, without its style rules and type checking.
-export default liangmi({})
+export default liangmi()
   .remove('liangmi/style')
   .override('liangmi/options', { options: { typeCheck: false } })
 ```

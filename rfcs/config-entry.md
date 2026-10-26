@@ -35,7 +35,7 @@ A single-package repo is not a special mode. Its project list only contains the 
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default liangmi({}).exclude(['staged'])
+export default liangmi().exclude(['staged'])
 ```
 
 ## Diagnostics

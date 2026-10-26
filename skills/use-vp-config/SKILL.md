@@ -79,7 +79,7 @@ export default liangmi({
 - `.option([{ path, ...traits }])` declares traits in the **root** config. `path` is relative to the workspace root (`'.'` for the root). Declared traits override detected ones, and undeclared ones are still detected. A path that is not a workspace member is added as an extra project. Calling `.option()` in a member throws. Members load the root config module to read its declarations before deriving their presets.
 
 ```ts
-export default liangmi({}).option([
+export default liangmi().option([
   { path: 'apps/api', node: true },
   { path: 'packages/ui', browser: true, vue: true }
 ])
@@ -103,7 +103,7 @@ export default liangmi({
 To change preset entries instead of adding new ones, chain composer methods on `liangmi()`: `override`, `replace`, `remove`, `insertBefore`, `insertAfter`, `append`, `prepend`, `overrideRules` and `removeRules`. They run after the user entries are appended.
 
 ```ts
-export default liangmi({})
+export default liangmi()
   .override('liangmi/options', { options: { typeCheck: false } })
   .remove('liangmi/style')
 ```

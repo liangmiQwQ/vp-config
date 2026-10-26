@@ -61,7 +61,7 @@ it('should load only selected parts', async () => {
 })
 
 it('should exclude selected parts', async () => {
-  const config = await liangmi({}).exclude(['staged', 'pack'])
+  const config = await liangmi().exclude(['staged', 'pack'])
 
   expect(config).not.toHaveProperty('staged')
   expect(config).not.toHaveProperty('pack')
@@ -69,7 +69,7 @@ it('should exclude selected parts', async () => {
 })
 
 it('should apply declared project traits', async () => {
-  const config = await liangmi({}).option([{ path: '.', node: false, browser: true }])
+  const config = await liangmi().option([{ path: '.', node: false, browser: true }])
 
   expect(config.lint?.overrides).toContainEqual(expect.objectContaining({ env: { browser: true } }))
   expect(config.test).toBeUndefined()
@@ -82,7 +82,7 @@ it('should apply user lint config objects after the preset', async () => {
 })
 
 it('should change the preset lint config with composer methods', async () => {
-  const config = await liangmi({})
+  const config = await liangmi()
     .override('liangmi/options', { options: { typeCheck: false } })
     .remove('liangmi/style')
     .remove('liangmi/config-file')
@@ -98,7 +98,7 @@ it('should change the preset lint config with composer methods', async () => {
 it('should emit workspace parts at the workspace root', async () => {
   useWorkingDirectory(workspace)
 
-  const config = await liangmi({})
+  const config = await liangmi()
 
   expect(config.lint?.overrides).toContainEqual(expect.objectContaining({ files: ['apps/web/**'] }))
   expect(config).toHaveProperty('staged')
@@ -110,7 +110,7 @@ it('should emit workspace parts at the workspace root', async () => {
 it('should emit project parts for a workspace member', async () => {
   useWorkingDirectory(join(workspace, 'apps/web'))
 
-  const config = await liangmi({})
+  const config = await liangmi()
 
   expect(config.test).toStrictEqual({ environment: 'happy-dom' })
   expect(config).toHaveProperty('run')
@@ -123,15 +123,13 @@ it('should reject lint and fmt in a workspace member', async () => {
   useWorkingDirectory(join(workspace, 'packages/lib'))
 
   await expect(liangmi({ lint: [] })).rejects.toThrow(/`lint` in .* is ignored by Vite\+/u)
-  await expect(liangmi({}).removeRules('curly')).rejects.toThrow(
-    /`lint` in .* is ignored by Vite\+/u
-  )
+  await expect(liangmi().removeRules('curly')).rejects.toThrow(/`lint` in .* is ignored by Vite\+/u)
 })
 
 it('should apply traits declared by the root config in a workspace member', async () => {
   useWorkingDirectory(join(workspace, 'tools'))
 
-  const config = await liangmi({})
+  const config = await liangmi()
 
   expect(config.test).toStrictEqual({ environment: 'node' })
 })
@@ -139,7 +137,7 @@ it('should apply traits declared by the root config in a workspace member', asyn
 it('should reject `.option()` in a workspace member', () => {
   useWorkingDirectory(join(workspace, 'packages/lib'))
 
-  expect(() => liangmi({}).option([{ path: 'packages/lib', node: true }])).toThrow(
+  expect(() => liangmi().option([{ path: 'packages/lib', node: true }])).toThrow(
     /only allowed in the workspace root config/u
   )
 })

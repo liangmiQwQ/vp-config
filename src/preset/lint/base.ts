@@ -211,7 +211,6 @@ const restriction: DummyRuleMap = {
   'no-div-regex': 'warn',
 
   'no-default-export': 'warn',
-  'no-empty-object-type': 'warn',
   'no-proto': 'warn'
 }
 

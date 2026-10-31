@@ -127,8 +127,7 @@ The preset is strict, and `denyWarnings` is on, so warnings fail too. A migratio
 - Classes are an error (`max-classes-per-file: 0`). Prefer functions and plain objects.
 - `console` is an error, except in `cli` projects and script files. `**/*.config.ts` files allow default exports but not `console`.
 - Test files must be named `*.test.ts`. `*.spec.ts` files are linted as tests, but reported for their name.
-- File roles apply inside each project: `scripts/**`, `script/**` and top-level `*.ts` / `*.js` files are Node scripts and allow synchronous Node APIs.
-- Browser projects allow side-effect stylesheet imports (`css`, `scss`, `sass`, `less`, `styl`, `stylus`, `pcss`, `postcss`). Add project-specific polyfills or registration modules to `import/no-unassigned-import`'s `allow` list in user lint config, preserving the stylesheet patterns.
+- File roles apply inside each project: `scripts/**`, `script/**` and top-level `*.ts` / `*.js` files are Node scripts.
 - `bin/**` is ignored.
 - Only `oxlint-disable` comments count. `eslint-disable` comments are ignored, so convert existing ones. Unused disable comments are reported. When a disable is justified, use `// oxlint-disable-next-line <rule> -- <reason>`.
 - Type checking runs inside lint. Type errors show up in `vp check`.

@@ -41,6 +41,11 @@ const testOverride: RoleOverride = {
 // Scripts are Node.js programs printing to the terminal.
 const scriptOverride: RoleOverride = {
   ...mergeConfig<LintOverride, LintOverride>(nodeOverride, cliOverride),
+  rules: {
+    ...nodeOverride.rules,
+    ...cliOverride.rules,
+    'node/no-sync': 'off'
+  },
   files: ['scripts/**', 'script/**', '*.ts', '*.js']
 }
 

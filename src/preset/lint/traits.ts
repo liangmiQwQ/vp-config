@@ -41,7 +41,10 @@ export const browserOverride: LintOverride = {
     'prefer-dom-node-remove': 'warn',
     'prefer-blob-reading-methods': 'warn',
 
-    'import/no-unassigned-import': ['error', { allow: ['**/*.css'] }],
+    'import/no-unassigned-import': [
+      'error',
+      { allow: ['**/*.{css,scss,sass,less,styl,stylus,pcss,postcss}'] }
+    ],
 
     // Some meta framework use default export to create middlewares or apis
     'import/no-default-export': 'off',

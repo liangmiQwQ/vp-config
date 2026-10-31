@@ -115,7 +115,7 @@ const style: DummyRuleMap = {
   'typescript/consistent-type-exports': 'warn',
   'typescript/consistent-type-imports': 'warn',
   'typescript/dot-notation': 'warn',
-  'typescript/no-empty-interface': 'warn',
+  'typescript/no-empty-interface': ['warn', { allowSingleExtends: true }],
   'typescript/no-inferrable-types': 'warn',
   'typescript/no-unnecessary-qualifier': 'warn',
   'typescript/parameter-properties': 'warn',
@@ -179,12 +179,10 @@ const style: DummyRuleMap = {
 const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
   'class-methods-use-this': 'error',
-  'default-case': 'error',
   'import/extensions': ['error', 'always', { checkTypeImports: true, ignorePackages: true }],
   'unicorn/no-abusive-eslint-disable': 'error',
   'no-alert': 'error',
   'import/no-amd': 'error',
-  'no-array-reduce': 'error',
   'unicorn/prefer-module': 'error',
   'no-console': 'error',
   'import/no-cycle': 'error',
@@ -207,7 +205,6 @@ const restriction: DummyRuleMap = {
 
   'prefer-node-protocol': 'warn',
   'unicorn/prefer-number-properties': 'warn',
-  'no-array-for-each': 'warn',
   'no-div-regex': 'warn',
 
   'no-default-export': 'warn',
@@ -246,7 +243,7 @@ const pedantic: DummyRuleMap = {
   'typescript/prefer-nullish-coalescing': 'error',
   'typescript/prefer-promise-reject-errors': 'error',
   'typescript/require-await': 'error',
-  'typescript/return-await': ['error', 'never'],
+  'typescript/return-await': ['error', 'in-try-catch'],
 
   // Rules are reported as `warn`. Most of them are fixable, mainly about readability and style.
   'unicorn/no-hex-escape': 'warn',
@@ -256,7 +253,7 @@ const pedantic: DummyRuleMap = {
   'unicorn/no-instanceof-array': 'warn',
   'no-else-return': 'warn',
   'typescript/ban-ts-comment': 'warn', // Replace typescript/prefer-ts-expect-error
-  'typescript/no-confusing-void-expression': 'warn',
+  'typescript/no-confusing-void-expression': ['warn', { ignoreArrowShorthand: true }],
   'unicorn/escape-case': 'warn',
   'unicorn/explicit-length-check': 'warn',
   'no-array-constructor': 'warn',

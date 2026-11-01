@@ -25,6 +25,8 @@ const defaultPlugins: CategorySelection['plugins'] = [
 // Rules of enabled categories are spread over `category()`, so they use its prefixed names.
 const suspicious: DummyRuleMap = {
   'eslint/no-shadow': 'off',
+  // Removing generics can change excess-property checking for callers.
+  'typescript/no-unnecessary-type-parameters': 'off',
   'typescript/no-unsafe-type-assertion': 'off'
 }
 

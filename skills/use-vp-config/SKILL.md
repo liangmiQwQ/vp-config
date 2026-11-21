@@ -53,7 +53,7 @@ Passing `lint` or `fmt` in a member config, or chaining lint methods there, thro
    - Drop `fmt` options, lint rules, `test.environment`, and `pack` defaults that the preset already sets. Keep options that really differ, and tell the user which ones you kept.
    - Convert an existing `lint` object to flat config entries (see [Lint](#lint)), not a top-level object.
    - Keep `vite`, `server`, `plugins` and other app config unchanged. `liangmi()` passes them through.
-5. **Update scripts** to the cached tasks, for example `"build": "vp run cpack"`, `"test": "vp run ctest"`, `"check": "vp run ccheck"`. Add `"prepare": "vp config"` so the commit hook is installed. Remove separate `tsc --noEmit` steps, because lint type checking already covers them.
+5. **Update scripts** to the cached tasks, for example `"build": "vp run cpack"`, `"test": "vp run ctest"`, `"check": "vp run ccheck"`. Add `"prepare": "vp config"` to install the Git hook dispatcher. For automatic staged checks, include `vp staged` in `.vite-hooks/pre-commit` and commit that file. Remove separate `tsc --noEmit` steps, because lint type checking already covers them.
 6. **Run `vp check`** and fix what it reports. See [Fixing lint errors](#fixing-lint-errors).
 7. **Run `vp test`** and `vp pack` / `vp build` for projects that have them.
 

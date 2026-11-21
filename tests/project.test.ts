@@ -162,3 +162,35 @@ it.each([
     await rm(root, { recursive: true, force: true })
   }
 })
+
+it.each([
+  ['[react()]', 'oxc-transform-react', false],
+  ['[react({ compiler: false })]', 'oxc-transform-react', false],
+  ['[react(), ...lazyPlugins()]', 'oxc-transform-react', true],
+  ['lazyPlugins()', 'oxc-transform-react', true],
+  ['lazyPlugins()', 'react', false],
+  ['[react({ compiler: false, ...options })]', 'oxc-transform-react', true],
+  ['[react({ ...options, compiler: false })]', 'oxc-transform-react', false],
+  ['[react(), babel({ presets: [compilerPreset()] })]', 'react', true],
+  ["[react({ babel: { plugins: [['babel-plugin-react-compiler', {}]] } })]", 'react', true],
+  ['[react()]', 'babel-plugin-react-compiler', true]
+] as const)('should resolve %s with dependency %s', async (plugins, dependency, expected) => {
+  const root = await mkdtemp(join(tmpdir(), 'vp-react-'))
+  try {
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { [dependency]: '*' } })
+    )
+    await writeFile(
+      join(root, 'vite.config.ts'),
+      [
+        "import react, { reactCompilerPreset as compilerPreset } from '@vitejs/plugin-react'",
+        "import babel from '@rolldown/plugin-babel'",
+        `export default { plugins: ${plugins} }`
+      ].join('\n')
+    )
+    expect(isReactCompiler(resolveProjectContext(root).projects[0])).toBe(expected)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

@@ -9,7 +9,6 @@ export interface ProjectTraits {
   lib: boolean
   cli: boolean
   react: boolean
-  // Declared explicitly because a compiler dependency alone does not enable compilation.
   reactCompiler?: boolean
   vue: boolean
   tailwindcss: boolean
@@ -41,6 +40,10 @@ export function isCli({ facts, declared }: TraitSource): boolean {
 
 export function isReact({ facts, declared }: TraitSource): boolean {
   return declared.react ?? hasDependency(facts, 'react')
+}
+
+export function isReactCompiler({ facts, declared }: TraitSource): boolean {
+  return declared.reactCompiler ?? hasDependency(facts, 'babel-plugin-react-compiler')
 }
 
 export function isVue({ facts, declared }: TraitSource): boolean {

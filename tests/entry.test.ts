@@ -75,29 +75,39 @@ it('should apply declared project traits', async () => {
   expect(config.test).toBeUndefined()
 })
 
-it('should relax prop identity rules only for the declared React Compiler project', async () => {
-  useWorkingDirectory(workspace)
-  const config = await liangmi().option([{ path: 'packages/lib', reactCompiler: true }])
-  const overrides = config.lint?.overrides ?? []
-  for (const [path, severity] of [
-    ['packages/lib', 'off'],
-    ['packages/cli', 'error']
-  ] as const) {
-    const rules = Object.assign(
-      {},
-      ...overrides.filter(item => item.files.includes(`${path}/**`)).map(item => item.rules)
+it.each([false, true])(
+  'should resolve React Compiler rules with declarations: %s',
+  async override => {
+    useWorkingDirectory(workspace)
+    const config = await liangmi().option(
+      override
+        ? [
+            { path: 'packages/lib', reactCompiler: false },
+            { path: 'packages/cli', reactCompiler: true }
+          ]
+        : []
     )
-    expect(rules).toMatchObject({
-      'react-perf/jsx-no-jsx-as-prop': severity,
-      'react-perf/jsx-no-new-array-as-prop': severity,
-      'react-perf/jsx-no-new-object-as-prop': severity,
-      'react-perf/jsx-no-new-function-as-prop': 'off',
-      'react/jsx-no-constructed-context-values': severity,
-      'react/no-object-type-as-default-prop': severity,
-      'react/rules-of-hooks': 'error'
-    })
+    const overrides = config.lint?.overrides ?? []
+    for (const [path, severity] of [
+      ['packages/lib', override ? 'error' : 'off'],
+      ['packages/cli', override ? 'off' : 'error']
+    ] as const) {
+      const rules = Object.assign(
+        {},
+        ...overrides.filter(item => item.files.includes(`${path}/**`)).map(item => item.rules)
+      )
+      expect(rules).toMatchObject({
+        'react-perf/jsx-no-jsx-as-prop': severity,
+        'react-perf/jsx-no-new-array-as-prop': severity,
+        'react-perf/jsx-no-new-object-as-prop': severity,
+        'react-perf/jsx-no-new-function-as-prop': severity,
+        'react/jsx-no-constructed-context-values': severity,
+        'react/no-object-type-as-default-prop': severity,
+        'react/rules-of-hooks': 'error'
+      })
+    }
   }
-})
+)
 
 it('should apply user lint config objects after the preset', async () => {
   const config = await liangmi({ lint: [{ rules: { curly: 'off' } }] })

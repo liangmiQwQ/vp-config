@@ -5,7 +5,7 @@ import { category } from 'oxlint-flat-config/vite-plus'
 import type { ScopedConfigItem } from 'oxlint-flat-config/vite-plus'
 
 import type { Project } from '../../project/index.ts'
-import { isBrowser, isCli, isNode, isReact, isVue } from '../../project/traits.ts'
+import { isBrowser, isCli, isNode, isReact, isReactCompiler, isVue } from '../../project/traits.ts'
 import type { ProjectTraits } from '../../project/traits.ts'
 import { lintCategories } from './base.ts'
 
@@ -70,9 +70,6 @@ const reactOverride: LintOverride = {
     'react/jsx-no-useless-fragment': 'warn',
     'react/no-unescaped-entities': 'warn',
 
-    // Performance
-    'react-perf/jsx-no-new-function-as-prop': 'off',
-
     // Style
     'react/jsx-curly-brace-presence': [
       'warn',
@@ -95,6 +92,7 @@ const reactCompilerOverride: LintOverride = {
     ...reactOverride.rules,
     'react-perf/jsx-no-jsx-as-prop': 'off',
     'react-perf/jsx-no-new-array-as-prop': 'off',
+    'react-perf/jsx-no-new-function-as-prop': 'off',
     'react-perf/jsx-no-new-object-as-prop': 'off',
     'react/jsx-no-constructed-context-values': 'off',
     'react/no-object-type-as-default-prop': 'off'
@@ -138,7 +136,7 @@ function traitOverrides(project: Project): Partial<Record<keyof ProjectTraits, L
     ...(isBrowser(project) ? { browser: browserOverride } : {}),
     ...(isCli(project) ? { cli: cliOverride } : {}),
     ...(isReact(project)
-      ? { react: project.declared.reactCompiler ? reactCompilerOverride : reactOverride }
+      ? { react: isReactCompiler(project) ? reactCompilerOverride : reactOverride }
       : {}),
     ...(isVue(project) ? { vue: vueOverride } : {})
   }

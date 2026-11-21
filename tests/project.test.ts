@@ -44,7 +44,7 @@ it('should detect raw project facts from committed files', () => {
   const { projects } = resolveProjectContext(workspace)
 
   expect(projects.find(project => project.path === 'packages/lib')?.facts).toStrictEqual({
-    packageDependencies: ['react'],
+    packageDependencies: ['babel-plugin-react-compiler', 'react'],
     packageExports: true,
     packageBin: false,
     tsconfigLib: [],

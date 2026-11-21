@@ -123,7 +123,6 @@ In a workspace, member entries include the path, like `liangmi/packages/cli/reac
 The preset is strict, and `denyWarnings` is on, so warnings fail too. A migration usually brings a wave of new reports. Fix the code first. Don't turn rules off in bulk without asking the user.
 
 - Many reports are fixable. Run `vp check --fix` first, then fix the rest by hand.
-- Relative imports need file extensions (`./util.ts`). TypeScript projects need `allowImportingTsExtensions` (with `noEmit`) or `rewriteRelativeImportExtensions` in `tsconfig.json`.
 - Classes are an error (`max-classes-per-file: 0`). Prefer functions and plain objects.
 - `console` is an error, except in `cli` projects and script files. `**/*.config.ts` files allow default exports but not `console`.
 - Test files must be named `*.test.ts`. `*.spec.ts` files are linted as tests, but reported for their name.

@@ -181,7 +181,6 @@ const style: DummyRuleMap = {
 const restriction: DummyRuleMap = {
   'oxc/bad-bitwise-operator': 'error',
   'class-methods-use-this': 'error',
-  'import/extensions': ['error', 'always', { checkTypeImports: true, ignorePackages: true }],
   'unicorn/no-abusive-eslint-disable': 'error',
   'no-alert': 'error',
   'import/no-amd': 'error',

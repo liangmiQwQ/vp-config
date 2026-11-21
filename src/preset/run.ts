@@ -3,7 +3,7 @@
 import type { UserConfig } from 'vite-plus'
 
 // `index.html` decides the browser runtime, but its existence check is not tracked automatically.
-const lintInput = [{ auto: true }, 'index.html']
+const lintInput = [{ auto: true }, 'index.html', '**/vite.config.{js,mjs,ts,cjs,mts,cts}']
 
 export const runBase: NonNullable<UserConfig['run']> = {
   tasks: {

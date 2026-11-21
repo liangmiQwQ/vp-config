@@ -1,3 +1,5 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { expect, it } from 'vite-plus/test'
@@ -10,6 +12,7 @@ import {
   isLib,
   isNode,
   isReact,
+  isReactCompiler,
   isTailwindcss,
   isVue
 } from '../src/project/traits.ts'
@@ -131,4 +134,31 @@ it('should treat a workspace without members as a single project', () => {
     vue: false,
     tailwindcss: false
   })
+})
+
+it.each([
+  ['@vitejs/plugin-react-swc', '{ compiler: true }', true],
+  ['@vitejs/plugin-react-swc', '', false],
+  ['@vitejs/plugin-react', "{ compiler: { target: '18' } }", true],
+  ['@vitejs/plugin-react', '{ compiler: false }', false],
+  ['oxc-transform-react', '', true],
+  ['swc-plugin-react-compiler', '', true]
+] as const)('should detect %s with options %s', async (dependency, options, expected) => {
+  const root = await mkdtemp(join(tmpdir(), 'vp-react-'))
+  try {
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { react: '*', [dependency]: '*' } })
+    )
+    if (dependency.startsWith('@vitejs/')) {
+      await writeFile(
+        join(root, 'vite.config.ts'),
+        `import plugin from '${dependency}'; export default { plugins: [plugin(${options})] }`
+      )
+    }
+    const { projects } = resolveProjectContext(root)
+    expect(isReactCompiler(projects[0])).toBe(expected)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

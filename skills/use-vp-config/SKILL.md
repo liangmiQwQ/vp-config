@@ -85,7 +85,7 @@ export default liangmi().option([
 ])
 ```
 
-React projects that list `babel-plugin-react-compiler` in their own `package.json` get relaxed lint rules for inline JSX props (including callbacks), context provider values and destructured prop defaults. Detection uses the dependency list. If the build config enables the compiler through a shared preset or leaves the installed plugin disabled, set `reactCompiler: true` or `false` for that project with `.option()` in the root config.
+React projects get relaxed lint rules for inline props, context provider values and destructured prop defaults when their package lists `babel-plugin-react-compiler`, `oxc-transform-react` or `swc-plugin-react-compiler`. The preset also reads literal `compiler` options on default imports of `@vitejs/plugin-react` and `@vitejs/plugin-react-swc` called directly in a Vite `plugins` array. Use `reactCompiler: true` or `false` in the root `.option()` declaration for shared or dynamic configs and native SWC setups configured outside Vite.
 
 The exported types are `LiangmiConfig`, `UserConfigFunction`, `ConfigPart`, `DeclaredProject`, `ProjectFacts` and `ProjectTraits`.
 

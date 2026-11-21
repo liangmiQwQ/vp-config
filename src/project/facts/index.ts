@@ -8,15 +8,18 @@ import { detectManifestFacts } from './manifest.ts'
 import type { ManifestFacts } from './manifest.ts'
 import { detectTsconfigFacts } from './tsconfig.ts'
 import type { TsconfigFacts } from './tsconfig.ts'
+import { detectViteReactCompiler } from './vite.ts'
 
 // Facts are raw data read from committed files, so the root config can read them without executing member configs.
 export interface ProjectFacts extends ManifestFacts, TsconfigFacts {
+  viteReactCompiler?: boolean | 'options'
   indexHtml: boolean
 }
 
 export function detectFacts(directory: string): ProjectFacts {
   return {
     ...detectManifestFacts(directory),
+    ...detectViteReactCompiler(directory),
     ...detectTsconfigFacts(directory),
     indexHtml: existsSync(join(directory, 'index.html'))
   }

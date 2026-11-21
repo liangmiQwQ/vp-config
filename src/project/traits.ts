@@ -43,7 +43,13 @@ export function isReact({ facts, declared }: TraitSource): boolean {
 }
 
 export function isReactCompiler({ facts, declared }: TraitSource): boolean {
-  return declared.reactCompiler ?? hasDependency(facts, 'babel-plugin-react-compiler')
+  return (
+    declared.reactCompiler ??
+    (hasDependency(facts, 'babel-plugin-react-compiler') ||
+      hasDependency(facts, 'swc-plugin-react-compiler') ||
+      facts.viteReactCompiler === 'options' ||
+      (facts.viteReactCompiler ?? hasDependency(facts, 'oxc-transform-react')))
+  )
 }
 
 export function isVue({ facts, declared }: TraitSource): boolean {

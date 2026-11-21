@@ -9,6 +9,8 @@ export interface ProjectTraits {
   lib: boolean
   cli: boolean
   react: boolean
+  // Declared explicitly because a compiler dependency alone does not enable compilation.
+  reactCompiler?: boolean
   vue: boolean
   tailwindcss: boolean
 }

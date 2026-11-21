@@ -135,6 +135,8 @@ export default liangmi().option([
 ])
 ```
 
+For a React project built with React Compiler, set `reactCompiler: true` in its root-config declaration, for example `.option([{ path: 'apps/web', reactCompiler: true }])`. This relaxes lint rules for inline JSX props, context provider values and destructured prop defaults throughout that project. Configure the compiler separately in the build.
+
 ### File roles
 
 Inside each project, some files get extra lint rules by their path. The globs are relative to the project.

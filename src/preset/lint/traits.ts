@@ -70,6 +70,9 @@ export const reactOverride: LintOverride = {
     'react/jsx-no-useless-fragment': 'warn',
     'react/no-unescaped-entities': 'warn',
 
+    // Performance
+    'react-perf/jsx-no-new-function-as-prop': 'off',
+
     // Style
     'react/jsx-curly-brace-presence': [
       'warn',

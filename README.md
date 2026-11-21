@@ -102,7 +102,13 @@ Run them with `vp run <task>`, such as `vp run cpack`, or the shorthand `vpr cpa
 
 Staged-file checks keep automatic fixes close to the commit workflow, so only code that is about to be committed is processed.
 
-The root config runs `vp check --fix` on staged files. Run `vp config` to install Vite+'s commit hook.
+Run `vp staged` to apply `vp check --fix` to staged files using the root config. To run it automatically before each commit, add this line to `.vite-hooks/pre-commit` and commit the file:
+
+```sh
+vp staged
+```
+
+Run `vp config` to install the Git hook dispatcher in your clone. A `"prepare": "vp config"` package script installs it when contributors install dependencies. See the [Vite+ commit hooks guide](https://viteplus.dev/guide/commit-hooks).
 
 ## Project model
 

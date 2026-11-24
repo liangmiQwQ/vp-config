@@ -49,7 +49,7 @@ Passing `lint` or `fmt` in a member config, or chaining lint methods there, thro
 2. **Install** at the workspace root: `vp add -D @liangmi/vp-config`. Members resolve it from the root. If the workspace uses a pnpm catalog, add it there to match.
 3. **Check the facts** for every project against the table above. Fix `package.json` and `tsconfig.json` where they are wrong or missing. Ask the user when the intent is unclear, such as whether a package is published as a library.
 4. **Rewrite each `vite.config.ts`** to use `liangmi()`. Write only what the preset does not already cover:
-   - `pack.entry` is never derived. Set it for every `lib` or `cli` project.
+   - Omit `pack.entry` when a `lib` or `cli` builds only `src/index.ts`. Keep explicit entries for other layouts.
    - Drop `fmt` options, lint rules, `test.environment`, and `pack` defaults that the preset already sets. Keep options that really differ, and tell the user which ones you kept.
    - Convert an existing `lint` object to flat config entries (see [Lint](#lint)), not a top-level object.
    - Keep `vite`, `server`, `plugins` and other app config unchanged. `liangmi()` passes them through.
@@ -67,9 +67,7 @@ Passing `lint` or `fmt` in a member config, or chaining lint methods there, thro
 ```ts
 import { liangmi } from '@liangmi/vp-config'
 
-export default liangmi({
-  pack: { entry: ['./src/index.ts'] }
-})
+export default liangmi()
 ```
 
 - `liangmi(config)` takes the same input as Vite+'s `defineConfig`: an object, a promise, or a function of `ConfigEnv`. It already calls `defineConfig`, so don't wrap it again.

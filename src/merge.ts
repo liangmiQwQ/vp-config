@@ -62,11 +62,13 @@ function mergePackConfig(
   presetPack: NonNullable<PresetConfig['pack']>,
   userPack: UserConfig['pack']
 ): UserConfig['pack'] {
-  if (Array.isArray(userPack)) {
-    return userPack.map(packConfig => mergeConfig(presetPack, packConfig) as PackUserConfig)
-  }
+  // Apply the entry fallback outside mergeConfig, which concatenates entry arrays.
+  const mergePack = (packConfig: PackUserConfig): PackUserConfig => ({
+    entry: ['src/index.ts'],
+    ...mergeConfig(presetPack, packConfig)
+  })
 
-  return mergeConfig(presetPack, userPack ?? {}) as PackUserConfig
+  return Array.isArray(userPack) ? userPack.map(mergePack) : mergePack(userPack ?? {})
 }
 
 function mergeStagedConfig(

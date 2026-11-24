@@ -1,6 +1,6 @@
 import { expect, it } from 'vite-plus/test'
 
-import { mergePresetConfig } from '../src/merge.ts'
+import { liangmi } from '../src/index.ts'
 import { derivePack } from '../src/preset/pack.ts'
 import { createTestProject } from './project-fixture.ts'
 
@@ -31,34 +31,14 @@ it('should prefer lib defaults for a project shipping both', () => {
   })
 })
 
-it('should merge pack preset with every array item', () => {
-  expect(
-    mergePresetConfig(
-      { pack: { dts: true, exports: true } },
-      {
-        pack: [
-          {
-            entry: ['./src/index.ts']
-          },
-          {
-            dts: false,
-            entry: ['./src/cli.ts']
-          }
-        ]
-      }
-    )
-  ).toMatchObject({
-    pack: [
-      {
-        dts: true,
-        entry: ['./src/index.ts'],
-        exports: true
-      },
-      {
-        dts: false,
-        entry: ['./src/cli.ts'],
-        exports: true
-      }
-    ]
+it('should merge pack defaults with each build and respect its entry', async () => {
+  const config = await liangmi({
+    pack: [{}, { dts: false, entry: ['src/cli.ts'] }, { entry: { worker: 'src/worker.ts' } }]
   })
+
+  expect(config.pack).toMatchObject([
+    { dts: { generator: 'tsgo' }, entry: ['src/index.ts'], exports: true },
+    { dts: false, entry: ['src/cli.ts'], exports: true },
+    { entry: { worker: 'src/worker.ts' }, exports: true }
+  ])
 })

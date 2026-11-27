@@ -2,8 +2,21 @@
 
 // oxlint-disable node/no-sync -- Config files are read once while Vite+ loads vite.config.ts.
 import { existsSync, readFileSync } from 'node:fs'
-import { basename, dirname } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const configNames = [
+  'vite.config.js',
+  'vite.config.mjs',
+  'vite.config.ts',
+  'vite.config.cjs',
+  'vite.config.mts',
+  'vite.config.cts'
+]
+
+export function findViteConfig(directory: string): string | undefined {
+  return configNames.map(name => join(directory, name)).find(existsSync)
+}
 
 const configFilePattern = /^vite\.config\.[cm]?[jt]s$/u
 // Vite bundles the config into `node_modules/.vite-temp/vite.config.ts.timestamp-<hash>.mjs`.

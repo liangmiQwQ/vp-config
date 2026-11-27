@@ -85,6 +85,8 @@ export default liangmi().option([
 ])
 ```
 
+For React projects, the preset reads native `compiler` options on `@vitejs/plugin-react` and `@vitejs/plugin-react-swc`, plus literal Babel compiler plugin entries and Vite’s `reactCompilerPreset()`. With `plugins: [react()]`, the native compiler defaults to off even if `oxc-transform-react` is installed. When lazy plugins or dynamic options leave the native setting unknown, the project’s `oxc-transform-react` dependency provides a fallback. Direct dependencies on `babel-plugin-react-compiler` and `swc-plugin-react-compiler` can indicate independent compiler setups. Set `reactCompiler: true` or `false` in the root `.option()` declaration to override detection.
+
 The exported types are `LiangmiConfig`, `UserConfigFunction`, `ConfigPart`, `DeclaredProject`, `ProjectFacts` and `ProjectTraits`.
 
 ## Lint

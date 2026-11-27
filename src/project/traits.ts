@@ -9,6 +9,7 @@ export interface ProjectTraits {
   lib: boolean
   cli: boolean
   react: boolean
+  reactCompiler?: boolean
   vue: boolean
   tailwindcss: boolean
 }
@@ -39,6 +40,16 @@ export function isCli({ facts, declared }: TraitSource): boolean {
 
 export function isReact({ facts, declared }: TraitSource): boolean {
   return declared.react ?? hasDependency(facts, 'react')
+}
+
+export function isReactCompiler({ facts, declared }: TraitSource): boolean {
+  return (
+    declared.reactCompiler ??
+    (hasDependency(facts, 'babel-plugin-react-compiler') ||
+      hasDependency(facts, 'swc-plugin-react-compiler') ||
+      facts.viteReactCompiler === 'options' ||
+      (facts.viteReactCompiler ?? hasDependency(facts, 'oxc-transform-react')))
+  )
 }
 
 export function isVue({ facts, declared }: TraitSource): boolean {

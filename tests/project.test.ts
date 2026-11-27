@@ -1,3 +1,5 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { expect, it } from 'vite-plus/test'
@@ -10,6 +12,7 @@ import {
   isLib,
   isNode,
   isReact,
+  isReactCompiler,
   isTailwindcss,
   isVue
 } from '../src/project/traits.ts'
@@ -44,7 +47,7 @@ it('should detect raw project facts from committed files', () => {
   const { projects } = resolveProjectContext(workspace)
 
   expect(projects.find(project => project.path === 'packages/lib')?.facts).toStrictEqual({
-    packageDependencies: ['react'],
+    packageDependencies: ['babel-plugin-react-compiler', 'react'],
     packageExports: true,
     packageBin: false,
     tsconfigLib: [],
@@ -131,4 +134,63 @@ it('should treat a workspace without members as a single project', () => {
     vue: false,
     tailwindcss: false
   })
+})
+
+it.each([
+  ['@vitejs/plugin-react-swc', '{ compiler: true }', true],
+  ['@vitejs/plugin-react-swc', '', false],
+  ['@vitejs/plugin-react', "{ compiler: { target: '18' } }", true],
+  ['@vitejs/plugin-react', '{ compiler: false }', false],
+  ['oxc-transform-react', '', true],
+  ['swc-plugin-react-compiler', '', true]
+] as const)('should detect %s with options %s', async (dependency, options, expected) => {
+  const root = await mkdtemp(join(tmpdir(), 'vp-react-'))
+  try {
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { react: '*', [dependency]: '*' } })
+    )
+    if (dependency.startsWith('@vitejs/')) {
+      await writeFile(
+        join(root, 'vite.config.ts'),
+        `import plugin from '${dependency}'; export default { plugins: [plugin(${options})] }`
+      )
+    }
+    const { projects } = resolveProjectContext(root)
+    expect(isReactCompiler(projects[0])).toBe(expected)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+it.each([
+  ['[react()]', 'oxc-transform-react', false],
+  ['[react({ compiler: false })]', 'oxc-transform-react', false],
+  ['[react(), ...lazyPlugins()]', 'oxc-transform-react', true],
+  ['lazyPlugins()', 'oxc-transform-react', true],
+  ['lazyPlugins()', 'react', false],
+  ['[react({ compiler: false, ...options })]', 'oxc-transform-react', true],
+  ['[react({ ...options, compiler: false })]', 'oxc-transform-react', false],
+  ['[react(), babel({ presets: [compilerPreset()] })]', 'react', true],
+  ["[react({ babel: { plugins: [['babel-plugin-react-compiler', {}]] } })]", 'react', true],
+  ['[react()]', 'babel-plugin-react-compiler', true]
+] as const)('should resolve %s with dependency %s', async (plugins, dependency, expected) => {
+  const root = await mkdtemp(join(tmpdir(), 'vp-react-'))
+  try {
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { [dependency]: '*' } })
+    )
+    await writeFile(
+      join(root, 'vite.config.ts'),
+      [
+        "import react, { reactCompilerPreset as compilerPreset } from '@vitejs/plugin-react'",
+        "import babel from '@rolldown/plugin-babel'",
+        `export default { plugins: ${plugins} }`
+      ].join('\n')
+    )
+    expect(isReactCompiler(resolveProjectContext(root).projects[0])).toBe(expected)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

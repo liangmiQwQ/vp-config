@@ -5,7 +5,7 @@ import { category } from 'oxlint-flat-config/vite-plus'
 import type { ScopedConfigItem } from 'oxlint-flat-config/vite-plus'
 
 import type { Project } from '../../project/index.ts'
-import { isBrowser, isCli, isNode, isReact, isVue } from '../../project/traits.ts'
+import { isBrowser, isCli, isNode, isReact, isReactCompiler, isVue } from '../../project/traits.ts'
 import type { ProjectTraits } from '../../project/traits.ts'
 import { lintCategories } from './base.ts'
 
@@ -53,7 +53,7 @@ export const browserOverride: LintOverride = {
 }
 
 // For React components, including React Ink.
-export const reactOverride: LintOverride = {
+const reactOverride: LintOverride = {
   extends: [category({ ...lintCategories, plugins: ['react', 'react-perf'] })],
   rules: {
     // Suspicious
@@ -70,9 +70,6 @@ export const reactOverride: LintOverride = {
     'react/jsx-no-useless-fragment': 'warn',
     'react/no-unescaped-entities': 'warn',
 
-    // Performance
-    'react-perf/jsx-no-new-function-as-prop': 'off',
-
     // Style
     'react/jsx-curly-brace-presence': [
       'warn',
@@ -86,6 +83,19 @@ export const reactOverride: LintOverride = {
     'react/jsx-max-depth': 'off',
     'react/no-redundant-should-component-update': 'off',
     'react/jsx-props-no-spreading': 'off' // Component APIs often intentionally forward JSX props.
+  }
+}
+
+const reactCompilerOverride: LintOverride = {
+  ...reactOverride,
+  rules: {
+    ...reactOverride.rules,
+    'react-perf/jsx-no-jsx-as-prop': 'off',
+    'react-perf/jsx-no-new-array-as-prop': 'off',
+    'react-perf/jsx-no-new-function-as-prop': 'off',
+    'react-perf/jsx-no-new-object-as-prop': 'off',
+    'react/jsx-no-constructed-context-values': 'off',
+    'react/no-object-type-as-default-prop': 'off'
   }
 }
 
@@ -125,7 +135,9 @@ function traitOverrides(project: Project): Partial<Record<keyof ProjectTraits, L
     ...(isNode(project) ? { node: nodeOverride } : {}),
     ...(isBrowser(project) ? { browser: browserOverride } : {}),
     ...(isCli(project) ? { cli: cliOverride } : {}),
-    ...(isReact(project) ? { react: reactOverride } : {}),
+    ...(isReact(project)
+      ? { react: isReactCompiler(project) ? reactCompilerOverride : reactOverride }
+      : {}),
     ...(isVue(project) ? { vue: vueOverride } : {})
   }
 }

@@ -105,7 +105,6 @@ const style: DummyRuleMap = {
   'promise/no-return-wrap': 'warn',
   'promise/param-names': 'warn',
   'promise/prefer-await-to-callbacks': 'warn',
-  'promise/prefer-catch': 'warn',
 
   // TypeScript
   'typescript/adjacent-overload-signatures': 'warn',
@@ -146,7 +145,6 @@ const style: DummyRuleMap = {
   'unicorn/no-unreadable-array-destructuring': 'warn',
   'unicorn/no-useless-collection-argument': 'warn',
   'unicorn/no-zero-fractions': 'warn',
-  'unicorn/number-literal-case': 'warn',
   'unicorn/numeric-separators-style': 'warn',
   'unicorn/prefer-array-index-of': 'warn',
   'unicorn/prefer-bigint-literals': 'warn',
@@ -271,7 +269,6 @@ const pedantic: DummyRuleMap = {
   'prefer-type-error': 'warn',
   'unicorn/require-number-to-fixed-digits-argument': 'warn',
 
-  'typescript/strict-void-return': 'warn',
   'unicorn/prefer-native-coercion-functions': 'warn',
   'unicorn/prefer-array-flat': 'warn',
   'eslint/no-useless-return': 'warn',

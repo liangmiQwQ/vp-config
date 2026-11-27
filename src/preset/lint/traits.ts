@@ -70,6 +70,10 @@ const reactOverride: LintOverride = {
     'react/jsx-no-useless-fragment': 'warn',
     'react/no-unescaped-entities': 'warn',
 
+    // Performance
+    'react-perf/jsx-no-jsx-as-prop': 'off',
+    'react-perf/jsx-no-new-function-as-prop': 'off',
+
     // Style
     'react/jsx-curly-brace-presence': [
       'warn',
@@ -90,9 +94,7 @@ const reactCompilerOverride: LintOverride = {
   ...reactOverride,
   rules: {
     ...reactOverride.rules,
-    'react-perf/jsx-no-jsx-as-prop': 'off',
     'react-perf/jsx-no-new-array-as-prop': 'off',
-    'react-perf/jsx-no-new-function-as-prop': 'off',
     'react-perf/jsx-no-new-object-as-prop': 'off',
     'react/jsx-no-constructed-context-values': 'off',
     'react/no-object-type-as-default-prop': 'off'

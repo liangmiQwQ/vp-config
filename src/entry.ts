@@ -105,7 +105,7 @@ function createLiangmiConfig<Result>(state: EntryState): LiangmiConfig<Result> {
     overrideRules: rules => chain(lint => lint.overrideRules(rules)),
     removeRules: (...ruleNames) => chain(lint => lint.removeRules(...ruleNames)),
 
-    // oxlint-disable-next-line unicorn/no-thenable, promise/prefer-catch -- Awaiting the config requires a thenable that forwards both handlers to the same promise.
+    // oxlint-disable-next-line unicorn/no-thenable -- Awaiting the config requires a thenable that forwards both handlers to the same promise.
     then: (onFulfilled, onRejected) => resolveConfig<Result>(state).then(onFulfilled, onRejected)
   }
 

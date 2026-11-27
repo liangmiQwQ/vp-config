@@ -21,7 +21,7 @@ it('should emit every part for a single-package repo', async () => {
 
   expect(config.fmt).toMatchObject({ semi: true, singleQuote: true })
   expect(config.lint?.overrides).toContainEqual(expect.objectContaining({ env: { node: true } }))
-  expect(config.pack).toMatchObject({ exports: true })
+  expect(config.pack).toMatchObject({ entry: ['src/index.ts'], exports: true })
   expect(config.test).toMatchObject({ environment: 'node' })
   expect(config.staged).toMatchObject({ '*': 'vp check --fix' })
   expect(config.run?.tasks).toHaveProperty('ccheck')

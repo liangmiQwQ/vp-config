@@ -66,7 +66,7 @@ Embedded-language formatting is off by default. React and Vue projects turn it o
 
 ### Pack
 
-The packaging presets provide sensible defaults for each kind of project and leave project-specific details to you. The package entry depends on your source layout, so you still need to set `pack.entry` yourself.
+For libraries and CLIs, `vp pack` uses `src/index.ts` by default. Set `pack.entry` to use a different entry or to build multiple entries.
 
 - `lib` projects generate `.d.ts` files with `tsgo` and package exports with fixed extensions, without minifying.
 - `cli` projects target Node.js, minify output, strip `node:` prefixes, and skip `.d.ts` generation.

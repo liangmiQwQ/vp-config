@@ -97,10 +97,10 @@ it.each([false, true])(
         ...overrides.filter(item => item.files.includes(`${path}/**`)).map(item => item.rules)
       )
       expect(rules).toMatchObject({
-        'react-perf/jsx-no-jsx-as-prop': severity,
+        'react-perf/jsx-no-jsx-as-prop': 'off',
         'react-perf/jsx-no-new-array-as-prop': severity,
         'react-perf/jsx-no-new-object-as-prop': severity,
-        'react-perf/jsx-no-new-function-as-prop': severity,
+        'react-perf/jsx-no-new-function-as-prop': 'off',
         'react/jsx-no-constructed-context-values': severity,
         'react/no-object-type-as-default-prop': severity,
         'react/rules-of-hooks': 'error'
